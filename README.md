@@ -2,7 +2,7 @@
 
 English | [中文](README.zh-CN.md)
 
-An agent skill (for Claude Code and similar agents): tell it which data you want from a page, and it collects the whole list into a CSV.
+A free web scraping skill for AI agents such as Claude Code: tell it which data you want from a page, and it collects the whole list into a CSV, across pagination, infinite scroll and "load more" buttons.
 
 - **Free.** No account, no API key, no per-result billing.
 - **Uses your logins.** When a site blocks bots or needs an account, it can run in your own Chrome, with the sessions you already have (it asks you first).
@@ -110,6 +110,27 @@ With a small model, check the "why it stopped" line in its report. If it says th
 ## Where your data goes
 
 The scripts run only on your computer and depend only on Playwright. They call no model and no outside service. Page content goes only to the agent you are using, and the CSV is saved where you say. The skill tells the agent to treat page text as data: if a page contains instructions, the agent reports them to you instead of following them.
+
+## FAQ
+
+**How do I scrape a website with Claude Code?**
+Install this skill, then ask in plain words and give the URL, for example "export every review on this page to CSV: <url>". The agent works out the list, the fields and the pagination, and runs the collection with Playwright on your computer.
+
+**Do I need an API key or a paid account?**
+No. Cloud scraping skills such as Apify or Firecrawl need an API key and bill per request or result. This one runs a browser locally, so there is nothing to sign up for.
+
+**Can it scrape pages that need a login?**
+Yes. With your permission it switches to your own Chrome and uses the sessions you are already logged in with. It won't solve captchas for you.
+
+**Does it handle infinite scroll, pagination and "load more"?**
+Yes. Scripts do the scrolling and clicking, and the report says why collection stopped, so you know whether you got the whole list.
+
+**Is it a crawler?**
+No. It collects one list (with all its pages) from the URL you give it. It doesn't follow links across a whole site.
+
+## Prefer clicking? Try DataLens
+
+This skill comes from [DataLens](https://datalens.uk/?utm_source=github&utm_medium=readme&utm_campaign=scrape-skill), a Chrome extension that does the same job without an agent: open the page, click, and export the list to CSV or Excel. Handy when you just want the data and would rather not write a prompt.
 
 ## What else is in this repo
 
