@@ -40,10 +40,7 @@ agent 会先看一眼页面，确定哪一块是你要的列表、每行读哪�
 
 skill 默认在后台开一个看不见的浏览器。很多网站会拦这种浏览器，有些内容要登录才看得到。这时 agent 会**先问你**，同意后改用你自己的 Chrome 来采，带着你的登录状态。
 
-第一次要做的准备：
-
-1. 在 Chrome 里装 [Playwright Extension](https://chromewebstore.google.com/detail/playwright-extension/mmlmfjhmonkocbjadbfplnigmagldckm)。
-2. 第一次连接时 Chrome 会弹出一个确认页，点同意。想免确认，可以把扩展上显示的 token 设成环境变量 `PLAYWRIGHT_MCP_EXTENSION_TOKEN`。
+第一次要做的准备：按 [Playwright Chrome Extension 的设置文档](https://github.com/microsoft/playwright/tree/main/packages/extension#readme) 装好扩展。
 
 采的过程中：
 
