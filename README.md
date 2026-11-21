@@ -135,3 +135,7 @@ This skill comes from [DataLens](https://datalens.uk/?utm_source=github&utm_medi
 ## What else is in this repo
 
 `skill/` is what gets installed for the agent, and it is all you need. `eval/` and `docs/` are for developing and evaluating the skill: 80 local mock pages, regression tests and the blind-test method. See [`eval/README.md`](eval/README.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).

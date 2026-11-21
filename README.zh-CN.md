@@ -135,3 +135,7 @@ Opus 和 Sonnet 测下来效果最好。Haiku 也能用，在上面 10 个站上
 ## 仓库里还有什么
 
 `skill/` 是装给 agent 用的，只需要它。`eval/` 和 `docs/` 是开发和评测这个 skill 用的，包括 80 个本地模拟页面、回归测试和盲测方法，见 [`eval/README.md`](eval/README.md)。
+
+## 许可证
+
+MIT，见 [LICENSE](LICENSE)。

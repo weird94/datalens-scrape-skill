@@ -1,0 +1,1 @@
+{"url":"http://localhost:3031/dev-fixtures/playground/detail-links?items=24&perPage=8","rows":"ul.products > li.item","fields":{"title":".title","link":{"css":"a.title","attr":"href"},"price":".price"},"next":{"type":"click","selector":"a.next"}}

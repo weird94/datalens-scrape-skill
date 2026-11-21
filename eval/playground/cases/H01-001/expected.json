@@ -1,0 +1,33 @@
+{
+  "expectedRows": 24,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "ul.products > li.item",
+    "textPrefix": "Product "
+  },
+  "oracle": {
+    "strategy": "next-link",
+    "clickSelector": "a.next"
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 8
+  },
+  "trapVerifiedBy": "naive",
+  "detail": {
+    "linkSelector": "a.title",
+    "expectedStatus": { "ok": 20, "empty": 2, "failed": 0, "blocked": 0, "pending": 0, "no-link": 2 },
+    "noLink": [7, 17],
+    "deadLinks": [9, 18],
+    "secondLayout": [4, 8, 12, 16, 20, 24],
+    "fields": {
+      "name": "h1.name",
+      "brand": ".specs .brand, .maker a",
+      "sku": ".sku",
+      "description": ".description .full-text"
+    },
+    "expand": [".read-more"],
+    "naiveBrandSelector": ".specs .brand",
+    "naiveBrandFill": "14/20"
+  }
+}

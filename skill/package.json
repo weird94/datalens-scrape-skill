@@ -18,9 +18,10 @@
   },
   "scripts": {
     "sync-references": "node scripts/sync-references.mjs",
-    "test": "node --test scripts/references-sync.test.mjs scripts/verifier-links.test.mjs scripts/inspect-report.test.mjs scripts/collector-order.test.mjs scripts/expand-opened-record.test.mjs scripts/wait-for-page.test.mjs scripts/scroll-and-columns.test.mjs scripts/row-identity.test.mjs scripts/confirm-stop.test.mjs"
+    "test": "node --test scripts/references-sync.test.mjs scripts/verifier-links.test.mjs scripts/inspect-report.test.mjs scripts/collector-order.test.mjs scripts/expand-opened-record.test.mjs scripts/wait-for-page.test.mjs scripts/scroll-and-columns.test.mjs scripts/row-identity.test.mjs scripts/confirm-stop.test.mjs scripts/collect-chunks.test.mjs scripts/verifier-stop.test.mjs scripts/detail-plan.test.mjs scripts/detail-pages.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.56.1"
-  }
+  },
+  "license": "MIT"
 }

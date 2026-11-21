@@ -1449,7 +1449,9 @@ export function installDlk() {
     else if (login && small) kind = 'login'
     if (kind === 'blocked' && login && !challenge && !hit) kind = 'login'
     if (login && kind) evidence.push(`text "${login[0]}"`)
-    return { kind, evidence: evidence.join(', '), title: document.title, textHead: clip(text, 200) }
+    // What was seen apart from the status, for callers that weigh it against a page that read fine (detail pages).
+    const signals = { challenge: Boolean(challenge), text: hit ? hit[0] : null, login: login ? login[0] : null }
+    return { kind, evidence: evidence.join(', '), title: document.title, textHead: clip(text, 200), signals }
   }
 
   // ---------- totals the page claims ("评论 160", "共 250 条", "1–20 of 300 results") ----------

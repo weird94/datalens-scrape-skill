@@ -7,11 +7,21 @@ import { rowIdentity } from './row-identity.mjs'
 
 export async function collectOnPage(page, config, lib) {
   const { settle, gotoAndSettle, runSetup, installDlk } = lib
-  // Optional host hooks: progress after each round, and an external stop (user, points budget).
+  // Optional host hooks: progress after each round (the round, and the rows and rounds so far), progress after
+  // each read of the page (the rows and rounds so far, also half-way through a round), and an external stop
+  // (user, points budget).
   const onRound = lib.onRound ?? (() => undefined)
+  const onRows = lib.onRows ?? (() => undefined)
   const shouldStop = lib.shouldStop ?? (() => null)
   // Optional: asked whether the list really ended when the rules want to stop (see confirmEnd below).
   const confirmStop = lib.confirmStop ?? null
+  // Optional: run in chunks. `pauseAfter` ({ steps, ms }) returns { paused: true, state } once that many turns
+  // of the paging loop (or that much time) have passed; `resume` is such a state (as JSON, from another
+  // process too): the next call goes on in the same tab, without loading the page or running setup again, and
+  // ends as one uninterrupted run would have.
+  const pauseAfter = lib.pauseAfter ?? null
+  const resume = lib.resume ?? null
+  const chunkStarted = Date.now()
   const maxPages = Number(config.maxPages ?? 50)
   const maxRows = Number(config.maxRows ?? 0)
   const next = config.next ?? null
@@ -149,7 +159,7 @@ export async function collectOnPage(page, config, lib) {
 
   // Rows the host already collected from this page (its preview run): they start the result.
   const rowByKey = new Map()
-  for (const rec of lib.seedRows ?? []) {
+  for (const rec of resume ? [] : lib.seedRows ?? []) {
     const key = keyOf(rec)
     if (seen.has(key)) continue
     seen.add(key)
@@ -159,7 +169,7 @@ export async function collectOnPage(page, config, lib) {
     indexRow(rec)
     turnOf.set(rec, 0)
   }
-  const seeded = rows.length
+  let seeded = rows.length
 
   // Expanding: a pass clicks every expander not clicked yet, waits for what it brings, and the rows are
   // read again after each pass — a per-record "next page" replaces the replies it showed, so they are
@@ -508,6 +518,7 @@ export async function collectOnPage(page, config, lib) {
     const read = () => inPage(([sel, f]) => window.__dlk.extractTagged(sel, f), [config.rows, fields])
     let batch = await read()
     let got = absorb(batch, expanding)
+    await onRows({ rows, rounds })
     let added = got.added
     let cut = got.cut
     // Before the first click: a record whose own pager already shows a later page (someone paged it while
@@ -549,6 +560,7 @@ export async function collectOnPage(page, config, lib) {
         ).catch(() => null)
         if (!step) break
         const progress = take(step.read)
+        await onRows({ rows, rounds })
         clickedLast = step.clicked
         lastBefore = step.before
         if (!step.clicked) {
@@ -574,6 +586,7 @@ export async function collectOnPage(page, config, lib) {
       if (clickedLast && !(maxRows && rows.length >= maxRows)) {
         await waitForChange(lastBefore, EXPAND_LATE_MS)
         take(await read())
+        await onRows({ rows, rounds })
       }
       noteExpandClicks(await inPage(() => window.__dlk.takeExpandClicks()).catch(() => []))
     }
@@ -587,7 +600,7 @@ export async function collectOnPage(page, config, lib) {
     }
     const entry = { round: rounds.length + 1, label, onPage: batch.length, filtered: got.filtered, added, total: rows.length, ...(cut ? { cutAtMaxRows: cut } : {}) }
     rounds.push(entry)
-    await onRound(entry)
+    await onRound(entry, { rows, rounds })
     return added
   }
 
@@ -724,7 +737,8 @@ export async function collectOnPage(page, config, lib) {
     return true
   }
 
-  try {
+  /** Load the page, run setup and read page 1 (the first call of a run only). */
+  async function openPage() {
     lastStatus = await gotoAndSettle(page, config.url, { wait: Number(config.initialWaitMs ?? 0) })
     if (!(await isRendering())) {
       await page.bringToFront().catch(() => undefined)
@@ -756,43 +770,129 @@ export async function collectOnPage(page, config, lib) {
       claimed = await inPage(sel => window.__dlk.claims(sel), config.rows).catch(() => [])
       unreadLinks = await inPage(([sel, f]) => window.__dlk.unreadLinks(sel, f), [config.rows, fields]).catch(() => null)
     }
-
-    let pages = 1
-    let stagnant = 0
-    let immobile = 0
-    // Scrolling for more rows is the default, not a setting: with nothing said about more rows the list is
-    // scrolled anyway, what scrolls it is left to the browser (the rows are scrolled into view), and a page
-    // reached by a click or a URL is scrolled to its end before it is read (rows drawn only in view).
-    const implicitScroll = !next
-    const scrolls = implicitScroll || next.type === 'scroll'
-    /** How many rows scrolling has brought. */
-    let scrolledIn = 0
-    const scrollOnce = () =>
-      inPage(([s, st, rowsSel]) => window.__dlk.scrollStep(s, st, rowsSel), [next?.scroller ?? null, Number(next?.step ?? 0), config.rows])
-    /** Whether pages of this list grow when scrolled (learnt on the first page that did). */
-    let lazyPages = false
-    /** Scroll a page reached by a click or a URL to the end of its rows, as long as that draws more of them.
-     *  → whether it did. */
-    async function reveal() {
-      let grew = false
-      for (let i = 0; i < 8; i += 1) {
-        const had = await rowCount()
-        const shown = await contentMark()
-        const step = await scrollOnce().catch(() => ({ error: 'scroll failed' }))
-        if (step.error) return grew
-        await waitForChange(shown, lazyPages ? 2500 : 500)
-        // A virtual list on a paged site: read at every stop, the rows above are gone by the next.
-        if (step.virtual) await harvest(`page ${pages} (scrolled)`)
-        else if ((await rowCount()) <= had) return grew
-        if (step.virtual && step.atBottom) return grew
-        grew = true
-        lazyPages = true
-      }
-      return grew
-    }
     // Page 1 was read as it loaded; what scrolling it draws is read too.
     if (!stopReason && next && (next.type === 'click' || next.type === 'url') && (await reveal())) await harvest('page 1 (scrolled)')
+  }
+
+  // The paging loop's counters.
+  let pages = 1
+  let stagnant = 0
+  let immobile = 0
+  // Scrolling for more rows is the default, not a setting: with nothing said about more rows the list is
+  // scrolled anyway, what scrolls it is left to the browser (the rows are scrolled into view), and a page
+  // reached by a click or a URL is scrolled to its end before it is read (rows drawn only in view).
+  const implicitScroll = !next
+  const scrolls = implicitScroll || next.type === 'scroll'
+  /** How many rows scrolling has brought. */
+  let scrolledIn = 0
+  const scrollOnce = () =>
+    inPage(([s, st, rowsSel]) => window.__dlk.scrollStep(s, st, rowsSel), [next?.scroller ?? null, Number(next?.step ?? 0), config.rows])
+  /** Whether pages of this list grow when scrolled (learnt on the first page that did). */
+  let lazyPages = false
+  /** Scroll a page reached by a click or a URL to the end of its rows, as long as that draws more of them.
+   *  → whether it did. */
+  async function reveal() {
+    let grew = false
+    for (let i = 0; i < 8; i += 1) {
+      const had = await rowCount()
+      const shown = await contentMark()
+      const step = await scrollOnce().catch(() => ({ error: 'scroll failed' }))
+      if (step.error) return grew
+      await waitForChange(shown, lazyPages ? 2500 : 500)
+      // A virtual list on a paged site: read at every stop, the rows above are gone by the next.
+      if (step.virtual) await harvest(`page ${pages} (scrolled)`)
+      else if ((await rowCount()) <= had) return grew
+      if (step.virtual && step.atBottom) return grew
+      grew = true
+      lazyPages = true
+    }
+    return grew
+  }
+
+  // ---------- running in chunks ----------
+  // Everything a later call needs to go on as if it had never stopped, as plain JSON: rows are referred to by
+  // their place in `rows`. What follows from the rows (`seen`, `rowByKey`, `rowsByStable`) is rebuilt from them.
+  // The page keeps its own part (element ids, what expand clicked) in window.__dlk while it does not navigate:
+  // `doc` names that document, and a later call that finds another one (the tab navigated or reloaded between
+  // calls) stops with the rows so far instead of going on against a page it knows nothing of.
+  const STATE_VERSION = 2
+  const docId = () => inPage(() => window.__dlk.DOC_ID).catch(() => null)
+  async function snapshot() {
+    const at = new Map(rows.map((row, index) => [row, index]))
+    const ref = row => (at.has(row) ? at.get(row) : -1)
+    return {
+      version: STATE_VERSION,
+      url: page.url(),
+      doc: await docId(),
+      rows,
+      rowMeta: rows.map(row => [elementOf.get(row) ?? null, turnOf.get(row) ?? 0]),
+      rowById: [...rowById].map(([id, row]) => [id, ref(row)]),
+      rawSeen: [...rawSeen],
+      previous: previous ? (at.has(previous) ? { row: at.get(previous) } : { rec: previous }) : null,
+      rounds,
+      counters: { pages, stagnant, immobile, scrolledIn, lazyPages, turn, harvests, seeded, mergedByLink, mergedSameRecord, expandClicks },
+      run: { note, setupLog, lastStatus, claimed, unreadLinks, unreadParts, lastScroll },
+      expand: {
+        shrank: expandShrank,
+        missed: expandMissed,
+        pastStart: expandPastStart,
+        noEffect: expandNoEffect,
+        clicked: [...expandClicked].map(([selector, shapes]) => [selector, [...shapes]]),
+        replaced: [...replacedOnReread].map(ref),
+        replacedCells: [...replacedCells.values()].map(({ rows: kept, ...cell }) => ({ ...cell, rows: [...kept].map(ref) })),
+        filled: [...filledOnReread],
+      },
+      aiStop: { ...aiStop, asksWithoutRows, rowsAtLastAsk, incompleteAt, lookOnce },
+    }
+  }
+  async function restore(state) {
+    if (state?.version !== STATE_VERSION) throw new Error(`cannot resume from this state (version ${state?.version}, expected ${STATE_VERSION})`)
+    state.rows.forEach((row, index) => {
+      const [element, rowTurn] = state.rowMeta[index] ?? [null, 0]
+      rows.push(row)
+      seen.add(keyOf(row))
+      rowByKey.set(keyOf(row), row)
+      indexRow(row)
+      if (element !== null) elementOf.set(row, element)
+      turnOf.set(row, rowTurn)
+    })
+    for (const [id, index] of state.rowById) if (rows[index]) rowById.set(id, rows[index])
+    for (const raw of state.rawSeen) rawSeen.add(raw)
+    previous = state.previous ? (state.previous.rec ?? rows[state.previous.row] ?? null) : null
+    rounds.push(...state.rounds)
+    ;({ pages, stagnant, immobile, scrolledIn, lazyPages, turn, harvests, seeded, mergedByLink, mergedSameRecord, expandClicks } = state.counters)
+    ;({ note, setupLog, lastStatus, claimed, unreadLinks, unreadParts, lastScroll } = state.run)
+    const ex = state.expand
+    expandShrank = ex.shrank
+    expandMissed = ex.missed
+    expandPastStart = ex.pastStart
+    expandNoEffect = ex.noEffect
+    for (const [selector, shapes] of ex.clicked) expandClicked.set(selector, new Map(shapes))
+    for (const index of ex.replaced) if (rows[index]) replacedOnReread.add(rows[index])
+    for (const { rows: kept, ...cell } of ex.replacedCells) replacedCells.set(cell.column, { ...cell, rows: new Set(kept.map(index => rows[index]).filter(Boolean)) })
+    for (const [column, count] of ex.filled) filledOnReread.set(column, count)
+    const { asksWithoutRows: asks, rowsAtLastAsk: atAsk, incompleteAt: incomplete, lookOnce: once, ...stop } = state.aiStop
+    Object.assign(aiStop, stop)
+    asksWithoutRows = asks
+    rowsAtLastAsk = atAsk
+    incompleteAt = incomplete
+    lookOnce = once
+    const doc = await docId()
+    if (!state.doc || doc !== state.doc) {
+      throw new Error(`the tab navigated between calls (was ${state.url}, now ${page.url()}): the rows of the calls before are kept, the rest of the list was not read`)
+    }
+  }
+  /** Has this call done its share (`steps`: page 1 and the turns of the loop it ran)? Never before it read something. */
+  const chunkDone = steps =>
+    Boolean(pauseAfter) && steps > 0 && ((pauseAfter.steps > 0 && steps >= pauseAfter.steps) || (pauseAfter.ms > 0 && Date.now() - chunkStarted >= pauseAfter.ms))
+
+  try {
+    if (resume) await restore(resume)
+    else await openPage()
+    let steps = resume ? 0 : 1
     while (!stopReason) {
+      if (chunkDone(steps)) return { paused: true, state: await snapshot() }
+      steps += 1
       const external = await shouldStop(rows.length)
       if (external) {
         stopReason = external

@@ -21,9 +21,14 @@ export function loadPlaywright() {
   )
 }
 
-export async function openBrowser({ headless = process.env.HEADFUL ? false : true } = {}) {
+/**
+ * Launch the bundled Chromium with one page. `handleSignals: false` leaves SIGINT / SIGTERM / SIGHUP to
+ * the caller (Playwright otherwise closes the browser on them, under pages still being read).
+ */
+export async function openBrowser({ headless = process.env.HEADFUL ? false : true, handleSignals = true } = {}) {
   const { chromium } = loadPlaywright()
-  const browser = await chromium.launch({ headless })
+  const signals = handleSignals ? {} : { handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false }
+  const browser = await chromium.launch({ headless, ...signals })
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, ...(process.env.SCRAPE_LOCALE ? { locale: process.env.SCRAPE_LOCALE } : {}) })
   const page = await context.newPage()
   return { browser, context, page }
@@ -58,6 +63,14 @@ export function parseArgs(argv, switches = []) {
     else flags[name] = [].concat(flags[name], value)
   }
   return { positional, flags }
+}
+
+/** Write a file through a temporary one and a rename, so a reader (or a killed run) never sees half of it. */
+export function writeFileAtomic(file, text) {
+  fs.mkdirSync(path.dirname(path.resolve(file)), { recursive: true })
+  const tmp = `${file}.${process.pid}.tmp`
+  fs.writeFileSync(tmp, text)
+  fs.renameSync(tmp, file)
 }
 
 export const asList = value => (value === undefined ? [] : [].concat(value))

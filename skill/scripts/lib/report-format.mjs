@@ -179,3 +179,82 @@ export function summarizeCollect(result, extra = {}) {
     ...Object.fromEntries(Object.entries(extra).filter(([key]) => key !== 'browser')),
   }
 }
+
+/** What a detail run's stop reason means for the agent, when it needs saying. */
+const DETAIL_STOP_NOTES = {
+  blocked:
+    'the site started answering with a block / bot check / login wall. Progress is kept in the checkpoint. Ask the user before going on: rerunning the same command with --browser chrome (their own Chrome, references/browser.md) usually gets past it, and resumes where this run stopped. Do not try to solve captchas or log in for the user.',
+  'no-data':
+    'either the selectors / "require" miss on these pages (inspect one of them, fix detail.json, rerun), or the site serves this browser empty pages (if inspect shows the data, ask the user before rerunning the same command with --browser chrome). The empty pages stay to be read again: a rerun reads the other links first, then these.',
+  'tab-not-rendering':
+    'the browser is not drawing this tab (window minimized or covered, or tab in the background), so late content never comes. Ask the user to bring that Chrome window to the front and keep it visible during the run, then rerun the same command.',
+  interrupted: 'stopped (Ctrl-C or a kill signal). Progress is kept: rerun the same command to resume.',
+}
+
+const pct = (n, of) => (of ? Math.round((100 * n) / of) : 0)
+
+/**
+ * detail.mjs's summary: counts by status per row (the same counts as the output's status column; a link in
+ * several rows is read once and counts for each row), fill rate of each detail column on the pages that read
+ * ok, and warnings the agent should act on or report.
+ *   rowUrls — each list row's detail URL (null: no usable link); entries: url → latest checkpoint entry
+ *   maxRows — the --max-rows limit when one was given; extraWarnings — warnings the run itself raised
+ */
+export function summarizeDetail({ rowUrls, entries, detailNames, stopReason, note = '', maxRows = 0, canary = [], extraWarnings = [], extra = {} }) {
+  const links = [...new Set(rowUrls.filter(Boolean))]
+  const statusOf = url => (url ? entries.get(url)?.status ?? 'pending' : 'no-link')
+  const status = { ok: 0, empty: 0, failed: 0, blocked: 0, pending: 0, 'no-link': 0 }
+  for (const url of rowUrls) status[statusOf(url)] += 1
+  const of = wanted => links.filter(url => statusOf(url) === wanted)
+  const okUrls = of('ok')
+  const fill = Object.fromEntries(detailNames.map(name => [name, okUrls.filter(url => String(entries.get(url).fields?.[name] ?? '') !== '').length]))
+  const fillRate = Object.fromEntries(detailNames.map(name => [name, `${fill[name]}/${okUrls.length} (${pct(fill[name], okUrls.length)}%)`]))
+  const sample = (urls, n = 3) => urls.slice(0, n)
+  const warnings = [...extraWarnings]
+
+  if (okUrls.length) {
+    const best = Math.max(...detailNames.map(name => fill[name]))
+    const bestName = detailNames.find(name => fill[name] === best)
+    for (const name of detailNames) {
+      const emptyOn = okUrls.filter(url => String(entries.get(url).fields?.[name] ?? '') === '')
+      if (fill[name] === 0) {
+        warnings.push(`column "${name}" is empty on every ok page: wrong selector, or it only shows after a click (expand / setup). Check with inspect --probe on ${sample(okUrls, 2).join(' , ')}.`)
+      } else if (okUrls.length >= 3 && best - fill[name] >= Math.max(1, okUrls.length * 0.15)) {
+        warnings.push(
+          `column "${name}" is filled on ${fill[name]}/${okUrls.length} ok pages while "${bestName}" is on ${best}: the pages may use more than one layout. Inspect one where it is empty (${sample(emptyOn).join(' , ')}) and widen the selector to cover both (a comma list), unless those items really lack it.`
+        )
+      }
+    }
+  }
+  const softEmpty = of('empty').filter(url => !entries.get(url).notFound)
+  const deadLinks = of('empty').filter(url => entries.get(url).notFound)
+  const visited = okUrls.length + softEmpty.length
+  if (softEmpty.length >= 2 && softEmpty.length >= visited * 0.2) {
+    const reasons = [...new Set(softEmpty.map(url => entries.get(url).error).filter(Boolean))].slice(0, 3)
+    warnings.push(
+      `${softEmpty.length} of ${visited} pages read as empty (${reasons.join('; ')}), e.g. ${sample(softEmpty).join(' , ')}. Inspect one: another layout, content that renders late (set waitFor), a click it needs, or a soft block.`
+    )
+  }
+  const failed = of('failed')
+  if (failed.length) {
+    const errors = sample(failed).map(url => `${url}: ${entries.get(url).error ?? 'failed'}`)
+    warnings.push(`${failed.length} page${failed.length > 1 ? 's' : ''} failed (${errors.join('; ')}). Rerun the same command to retry pages with tries left (maxAttempts), or raise maxAttempts.`)
+  }
+  const pendingLinks = of('pending').length
+  if (stopReason === 'max-rows' && pendingLinks) {
+    warnings.push(`NOT THE END: preview of the first ${maxRows} links; ${pendingLinks} links are pending. Rerun without --max-rows (same --out resumes) for all of them.`)
+  }
+  const stopNote = DETAIL_STOP_NOTES[stopReason]
+  return {
+    rows: rowUrls.length,
+    links: links.length,
+    status,
+    stopReason,
+    note: [note, stopNote].filter(Boolean).join(' — ') || undefined,
+    fillRate,
+    warnings: warnings.length ? warnings : undefined,
+    deadLinks: deadLinks.length ? { count: deadLinks.length, sample: sample(deadLinks) } : undefined,
+    canary: canary.length ? canary : undefined,
+    ...extra,
+  }
+}

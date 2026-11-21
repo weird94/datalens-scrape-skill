@@ -72,4 +72,8 @@ http
       res.writeHead(500).end(String(error instanceof Error ? error.stack : error))
     }
   })
-  .listen(PORT, () => console.log(`fixtures on http://localhost:${PORT}`))
+  .listen(PORT, function (this: http.Server) {
+    // PORT=0 picks a free port: print the one in use (tests read it).
+    const address = this.address()
+    console.log(`fixtures on http://localhost:${typeof address === 'object' && address ? address.port : PORT}`)
+  })

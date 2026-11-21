@@ -3,6 +3,13 @@
 // summary says (limits hit, totals the page claims, scroll candidates).
 // Pure function, shared by verify.mjs and the extension.
 
+/** Stop reasons of a run that did not get to the end, and what to say about each (given the summary's note). */
+const UNFINISHED = {
+  running: () => 'the run had not finished when this CSV was written (it is still going, or its process died)',
+  interrupted: () => 'the run was stopped (Ctrl-C or a kill signal) before it finished',
+  error: note => `the run stopped on an error${note ? ` (${note})` : ''}`,
+}
+
 /**
  * @param {{ header: string[], rows: string[][], summary?: object | null }} input
  * @returns {{ lines: string[], warnings: string[], notes: string[] }} report text, plus the WARN and NOTE messages
@@ -13,7 +20,10 @@ export function verifyTable({ header, rows, summary = null }) {
   const notes = []
   const note = msg => notes.push(`NOTE  ${msg}`)
   lines.push(`ROWS  ${rows.length}   COLUMNS  ${header.length}: ${header.join(', ')}`)
-  if (!rows.length) return { lines, warnings: [], notes: [] }
+  // A run that did not finish: the CSV holds only what was collected until it stopped.
+  const unfinished = summary ? UNFINISHED[summary.stopReason] : null
+  if (unfinished) warn(`${unfinished(summary.note)}: the CSV holds only the rows collected until then — rerun to get the rest, or tell the user the list is incomplete`)
+  if (!rows.length) return { lines, warnings: lines.filter(l => l.startsWith('WARN')).map(l => l.slice(6)), notes: [] }
 
   // Columns
   lines.push('', 'COLUMNS')

@@ -1,0 +1,19 @@
+{
+  "id": "H01-001",
+  "pattern": ["H1"],
+  "title": "列表 → 详情页：24 件商品分 3 页（a.next 翻页），用户要的品牌 / SKU / 完整描述只在每件商品自己的详情页上。详情页晚渲染（1.5 秒）、两套模板（每第 4 件的品牌不在规格表里，在标题下的「by 品牌」链接里）、完整描述要点「Read more」才出来；2 行没有链接，2 个链接是死链（404）。列表本身 24 行",
+  "source": "合成（列表只给标题和价格、字段在详情页的电商 / 招聘 / 目录站形状；用 skill/scripts/detail.mjs 走第二遍）",
+  "variant": { "lang": "en", "items": 24, "perPage": 8, "lateMs": 1500 },
+  "url": "/dev-fixtures/playground/detail-links?items=24&perPage=8",
+  "heldOut": false,
+  "status": "draft",
+  "relatedCode": [
+    "eval/playground/fixtures/detail-links/route.ts",
+    "eval/playground/fixtures/detail-links/[id]/route.ts",
+    "eval/playground/fixtures/__test__/detail-links.test.ts",
+    "skill/scripts/detail.mjs",
+    "skill/scripts/lib/detail.mjs",
+    "skill/scripts/detail-pages.test.mjs"
+  ],
+  "relatedDocs": ["skill/references/detail-pages.md"]
+}
