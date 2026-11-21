@@ -4,7 +4,12 @@ English | [中文](README.zh-CN.md)
 
 An agent skill (for Claude Code and similar agents): tell it which data you want from a page, and it collects the whole list into a CSV.
 
-Good for search results, product listings, comments and replies, rankings, directories and tables. It handles pagination, infinite scroll, "load more" and "show replies" on its own, so you get the whole list, not just the first screen.
+- **Free.** No account, no API key, no per-result billing.
+- **Uses your logins.** When a site blocks bots or needs an account, it can run in your own Chrome, with the sessions you already have (it asks you first).
+- **Local and private.** The browser and scripts run on your computer, with no scraping service or proxy in between. Your cookies never leave your machine, page content goes only to the agent you already use, and the CSV stays on your disk.
+- **The whole list, honestly.** Pagination, infinite scroll, "load more" and "show replies" are handled by scripts, and every run reports why it stopped. A partial result is never passed off as complete.
+- **Any site, no templates.** The agent reads the page each time and writes a fresh config, so it isn't limited to a list of supported platforms and copes with redesigns.
+- **Checked, not claimed.** On 10 real sites a separate agent verified the output field by field: 9 fully correct, 1 with 3 wrong cells (results below).
 
 ```
 You:   Export all the comments on this article to CSV, replies too: https://news.qq.com/rain/a/...
@@ -13,11 +18,7 @@ Agent: Saved comments.csv: 160 rows (123 comments + 37 replies), 9 columns:
        Clicked "load more" until it ran out and opened every reply thread.
 ```
 
-## How it differs from other scraping skills
-
-- **Free and local.** No account, no API key, no per-result billing. It needs only Node and Playwright, and the scripts run on your machine.
-- **Built to get the whole list.** The agent decides what a row is and which fields to read. Fixed scripts then do the repetitive part: paging, scrolling, clicking expand buttons, de-duplicating and checking whether the end was reached. The report says **why it stopped**, so a partial result is never passed off as complete.
-- **When a site blocks it, it uses your own Chrome**, with your logins, after asking you. It does not try to beat captchas or bot checks.
+Good for search results, product listings, comments and replies, rankings, directories and tables. It does not try to beat captchas or bot checks.
 
 ## Install
 
