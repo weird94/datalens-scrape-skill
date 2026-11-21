@@ -128,9 +128,9 @@ Yes. Scripts do the scrolling and clicking, and the report says why collection s
 **Is it a crawler?**
 No. It collects one list (with all its pages) from the URL you give it. It doesn't follow links across a whole site.
 
-## Prefer clicking? Try DataLens
+## Not using an agent? DataLens does this in Chrome
 
-This skill comes from [DataLens](https://datalens.uk/?utm_source=github&utm_medium=readme&utm_campaign=scrape-skill), a Chrome extension that does the same job without an agent: open the page, click, and export the list to CSV or Excel. Handy when you just want the data and would rather not write a prompt.
+This skill comes from [DataLens](https://datalens.uk/?utm_source=github&utm_medium=readme&utm_campaign=scrape-skill), an AI scraper that lives in your browser's side panel. Install the extension, open the page you're already on (logged-in pages too), tell it what you want, preview the table and export it to CSV or Excel. No terminal, no Node, nothing to configure.
 
 ## What else is in this repo
 

@@ -128,9 +128,9 @@ Opus 和 Sonnet 测下来效果最好。Haiku 也能用，在上面 10 个站上
 **它是爬虫吗？**
 不是。它只采你给的那个网址上的一份列表（包括所有分页），不会顺着链接把整个网站爬一遍。
 
-## 更喜欢点鼠标？试试 DataLens
+## 不用 agent？在 Chrome 里用 DataLens
 
-这个 skill 出自 [DataLens](https://datalens.uk/zh?utm_source=github&utm_medium=readme&utm_campaign=scrape-skill)，一个 Chrome 插件，不用 agent 也能做同样的事：打开页面、点几下，把列表导出成 CSV 或 Excel。只想要数据、不想写提示词的时候更顺手。
+这个 skill 出自 [DataLens](https://datalens.uk/zh?utm_source=github&utm_medium=readme&utm_campaign=scrape-skill)，一个放在浏览器侧边栏里的 AI 采集工具。装上插件，打开你正在看的页面（要登录的也行），告诉它要什么，预览表格，再导出成 CSV 或 Excel。不用终端、不用装 Node，什么都不用配置。
 
 ## 仓库里还有什么
 
