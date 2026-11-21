@@ -13,6 +13,7 @@ import {
   needsDetailFetch,
   nextStreaks,
   readDetailCheckpoint,
+  recordTextKeeper,
 } from './lib/detail.mjs'
 import { summarizeDetail } from './lib/report-format.mjs'
 
@@ -291,4 +292,65 @@ test('summarizeDetail counts rows, like the detail_status column: a link in two 
   const fromCsv = {}
   for (const row of merged) fromCsv[row.detail_status] = (fromCsv[row.detail_status] ?? 0) + 1
   for (const [status, n] of Object.entries(summary.status)) assert.equal(fromCsv[status] ?? 0, n, status)
+})
+
+test('summarizeDetail: a low-fill or all-empty warning quotes the record text of a page where the column is empty, so the value can be looked for in the whole record', () => {
+  const ok = (n, brand, recordText, recordScope = 'root') => [
+    `https://e.com/${n}`,
+    { status: 'ok', fields: { name: `P${n}`, brand, notes: '' }, ...(recordText ? { recordText, recordScope } : {}) },
+  ]
+  const entries = new Map([
+    ok(1, 'A', 'P1 Notes: none'),
+    ok(2, 'B', 'P2 Notes: none'),
+    // The first page where brand is empty has no record text (an older checkpoint line): the next one is quoted.
+    ok(3, ''),
+    ok(4, 'C', 'P4 Notes: none'),
+    ok(5, '', 'P5 by "Initech" $22.00'),
+  ])
+  const summary = summarizeDetail({ rowUrls: [...entries.keys()], entries, detailNames: ['name', 'brand', 'notes'], stopReason: 'done' })
+  const [brand, notes] = [summary.warnings.find(w => w.includes('"brand"')), summary.warnings.find(w => w.includes('"notes"'))]
+  assert.ok(!brand.includes('\n'), 'one paragraph')
+  assert.match(brand, /"brand" is filled on 3\/5 ok pages while "name" is on 5.*https:\/\/e\.com\/3 , https:\/\/e\.com\/5/)
+  assert.ok(brand.includes('On https://e.com/5 the record reads: "P5 by \\"Initech\\" $22.00". Look for the value there before deciding the item lacks it'), brand)
+  assert.ok(notes.includes('On https://e.com/1 the record reads: "P1 Notes: none"'), notes)
+  // Without any record text the warning still says to look at the whole record, not one block of it.
+  const bare = summarizeDetail({ rowUrls: ['https://e.com/1', 'https://e.com/2', 'https://e.com/3'], entries: new Map([ok(1, 'A'), ok(2, 'B'), ok(3, '')]), detailNames: ['name', 'brand'], stopReason: 'done' })
+  assert.match(bare.warnings[0], /whole record/)
+  assert.doesNotMatch(bare.warnings[0], /the record reads/)
+})
+
+test('summarizeDetail: a cut-off record excerpt is quoted as the start of the record, and the whole record is still to be inspected', () => {
+  const ok = (n, brand, extra = {}) => [`https://e.com/${n}`, { status: 'ok', fields: { name: `P${n}`, brand }, ...extra }]
+  const head = `P3 Home › Shoes › P3 $10.00 Size: 40 41 42 ${'x'.repeat(340)}…`
+  const entries = new Map([ok(1, 'A'), ok(2, 'B'), ok(3, '', { recordText: head, recordScope: 'root' })])
+  const [warning] = summarizeDetail({ rowUrls: [...entries.keys()], entries, detailNames: ['name', 'brand'], stopReason: 'done' }).warnings
+  assert.ok(warning.includes(`On https://e.com/3 the record starts: ${JSON.stringify(head)} (cut off).`), warning)
+  assert.match(warning, /if it is not in this part, inspect the whole record \(--html "<root>"\) before deciding the item lacks it/)
+  assert.doesNotMatch(warning, /the record reads/)
+  // The verdict "keep the selector" stays, but only after the whole record was looked at.
+  assert.ok(warning.indexOf('inspect the whole record') < warning.indexOf('keep the selector'), warning)
+})
+
+test('summarizeDetail: an excerpt not taken from root is not called the record', () => {
+  const ok = (n, brand, extra = {}) => [`https://e.com/${n}`, { status: 'ok', fields: { name: `P${n}`, brand }, ...extra }]
+  const run = extra => summarizeDetail({ rowUrls: ['https://e.com/1', 'https://e.com/2', 'https://e.com/3'], entries: new Map([ok(1, 'A'), ok(2, 'B'), ok(3, '', extra)]), detailNames: ['name', 'brand'], stopReason: 'done' }).warnings[0]
+  const main = run({ recordText: 'P3 by Initech', recordScope: 'main' })
+  assert.ok(main.includes(`On https://e.com/3 the page's main content (no "root" set) reads: "P3 by Initech".`), main)
+  assert.doesNotMatch(main, /the record reads/)
+  // A checkpoint line without a scope says no more than "the page".
+  const unknown = run({ recordText: 'P3 by Initech' })
+  assert.ok(unknown.includes('On https://e.com/3 the page reads: "P3 by Initech".'), unknown)
+})
+
+test('recordTextKeeper: excerpts are kept for the first few pages per blank column, counting the checkpoint already read', () => {
+  const page = (blank, recordText = 'text') => ({ status: 'ok', fields: Object.fromEntries(['name', 'brand', 'sku'].map(f => [f, blank.includes(f) ? '' : 'v'])), recordText })
+  const keep = recordTextKeeper(new Map([['https://e.com/0', page(['brand'])]]), ['name', 'brand', 'sku'], 2)
+  assert.equal(keep(page(['brand'])), true, 'second brand excerpt')
+  assert.equal(keep(page(['brand'])), false, 'brand has two already')
+  assert.equal(keep(page(['brand', 'sku'])), true, 'sku has none yet')
+  assert.equal(keep(page(['sku'])), true)
+  assert.equal(keep(page(['sku'])), false)
+  assert.equal(keep({ status: 'ok', fields: { name: '', brand: 'B', sku: 'S' } }), false, 'no excerpt read')
+  assert.equal(keep({ ...page(['name']), status: 'empty' }), false, 'only ok pages')
+  assert.equal(keep(page(['name'])), true)
 })

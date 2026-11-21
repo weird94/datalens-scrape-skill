@@ -32,6 +32,7 @@ import {
   nextStreaks,
   readDetailCheckpoint,
   readDetailPage,
+  recordTextKeeper,
 } from './lib/detail.mjs'
 import { installDlk } from './lib/in-page.mjs'
 import { summarizeDetail } from './lib/report-format.mjs'
@@ -101,6 +102,8 @@ const checkpointText = fs.existsSync(checkpointPath) ? fs.readFileSync(checkpoin
 // A run killed while writing a line left it unfinished: end it, so the next line is not glued to it.
 if (checkpointText && !checkpointText.endsWith('\n')) fs.appendFileSync(checkpointPath, '\n')
 const { entries, stale } = readDetailCheckpoint(checkpointText, specKey)
+/** Record excerpts go into the checkpoint for the first few pages per blank column only (the summary quotes one). */
+const keepRecordText = recordTextKeeper(entries, detailNames)
 
 // ---------- plan ----------
 const rowUrls = list.rows.map(row => detailLink(row[spec.link]))
@@ -151,7 +154,7 @@ function append(entry) {
 /** Record one finished page. An empty one (not a dead link) is `unconfirmed` until the site is vouched for. */
 function record(url, result, attemptsDelta = 1) {
   const prev = entries.get(url)
-  const { status, fields = {}, error, httpStatus, notFound } = result
+  const { status, fields = {}, error, httpStatus, notFound, recordText, recordScope } = result
   return append({
     url,
     status,
@@ -163,6 +166,7 @@ function record(url, result, attemptsDelta = 1) {
     ...(error ? { error } : {}),
     ...(httpStatus ? { httpStatus } : {}),
     ...(notFound ? { notFound } : {}),
+    ...(keepRecordText(result) ? { recordText, ...(recordScope ? { recordScope } : {}) } : {}),
   })
 }
 
@@ -206,7 +210,7 @@ async function checkCanary(read) {
   const ok = [...entries.values()].filter(e => e.status === 'ok' && !emptyStreak.includes(e.url)).map(e => e.url)
   if (!ok.length) {
     const first = entries.get(emptyStreak[0])
-    stop('no-data', `${emptyStreak.length} pages in a row read empty and none has read ok yet (e.g. ${emptyStreak[0]}: ${first?.error ?? 'empty'})`)
+    stop('no-data', `${emptyStreak.length} pages read empty and none has read ok yet (e.g. ${emptyStreak[0]}: ${first?.error ?? 'empty'})`)
     return 'stop'
   }
   for (const target of [ok[0], ok[1] ?? ok[0]]) {
@@ -224,7 +228,7 @@ async function checkCanary(read) {
     for (const e of suspects) record(e.url, { status: 'blocked', fields: {}, error: `re-marked: a page that read fine before (${target}) now reads ${result.status}` }, 0)
     stop(
       'blocked',
-      `${emptyStreak.length} pages in a row read empty, and ${target}, which read fine before, now reads ${result.status}${result.error ? ` (${result.error})` : ''}: the site is probably blocking, or its pages changed`
+      `${emptyStreak.length} pages read empty with no ok page between them, and ${target}, which read fine before, now reads ${result.status}${result.error ? ` (${result.error})` : ''}: the site is probably blocking, or its pages changed`
     )
     return 'stop'
   }

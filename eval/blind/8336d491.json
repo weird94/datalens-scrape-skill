@@ -1,0 +1,24 @@
+{
+  "url": "http://localhost:3031/t/8336d491",
+  "rows": "ul.products > li.item",
+  "fields": {
+    "name": ".title",
+    "link": {
+      "css": "a.title",
+      "attr": "href"
+    },
+    "price": ".price",
+    "status": {
+      "css": ".soon",
+      "default": ""
+    }
+  },
+  "require": [
+    "name"
+  ],
+  "next": {
+    "type": "click",
+    "selector": "div.pager a.next"
+  },
+  "maxPages": 10
+}

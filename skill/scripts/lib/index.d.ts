@@ -391,6 +391,10 @@ export interface DetailRead {
   /** HTTP 404 / 410: a dead link (status 'empty'). */
   notFound?: boolean
   expandClicks?: number
+  /** On an ok page where a field read blank: the text of root (else the page's main) on one line, cut to 400 chars (then ending in "…"). */
+  recordText?: string
+  /** Where recordText comes from: the record (`root`) or the page's main content. */
+  recordScope?: 'root' | 'main'
 }
 
 /** One checkpoint line (`<out>.detail.jsonl`). */

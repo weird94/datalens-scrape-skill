@@ -87,6 +87,7 @@ mock 页面路由在 `packages/backend/src/app/dev-fixtures/playground/`，由 b
 | [G02-001](cases/G02-001/case.json) | G2 | 回复语言跟随用户：侧栏界面是中文、页面是英文，用户用越南语要「导出全部帖子，带播放和评论数」；创作者后台内容库表格 24 行 | 24 | — | — | none | oracle-verified | — |
 | [G03-001](cases/G03-001/case.json) | G3 | 连续调工具时长时间不说话：ERP 订单表，订单头一行 + 每单 1–3 个商品行，用户要「商品信息和 1688 商品信息两列」，两列都在列表单元格里、不用下钻；15 单 30 个商品行 | 30 | ok | — | verified | oracle-verified | — |
 | [H01-001](cases/H01-001/case.json) | H1 | 列表 → 详情页：24 件商品分 3 页，品牌 / SKU / 完整描述只在详情页上；详情页晚渲染 1.5 秒、两套模板（每第 4 件的品牌换了位置）、完整描述要点「Read more」；2 行没有链接、2 个死链（404）；详情页可选「第 N 次请求后变验证码页 / 空壳页 / 首次 503」 | 24 | — | — | vitest | draft | skill：scripts/detail-pages.test.mjs（detail.mjs 端到端：20 ok / 2 empty / 2 no-link，断点续跑、重试、被拦停机、canary） |
+| [H01-002](cases/H01-002/case.json) | H1 | 同 H01-001 的商品，详情页主记录前多一块「Customers also viewed」（两张卡片复用 .name / .maker a / .price / .warranty，各有 Read more）；用户要的保修是真可选字段（每第 3 件没有、别处也没有，14/20） | 24 | — | — | vitest | draft | skill：scripts/detail-pages.test.mjs（设 root 读主记录、expand 只点 root 内；不设 root 读到相关卡片；保修 14/20 的填充率提示不说「换了模板」） |
 
 ## 列说明
 

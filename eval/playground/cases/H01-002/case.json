@@ -1,0 +1,22 @@
+{
+  "id": "H01-002",
+  "pattern": ["H1"],
+  "title": "列表 → 详情页（H01-001 的同一套商品 + 两个陷阱）：每个详情页在主记录前面有一块「Customers also viewed」，两张卡片复用主记录的 class（.name / .maker a / .price / .warranty），整页选择器和逗号列表（按页面顺序取第一个）会读到相关商品；用户要的保修是真正的可选字段，每第 3 件没有、页面别处也没有，填充率 14/20 是对的，不该放宽选择器去凑。其余同 H01-001：晚渲染、两套模板、Read more、2 行没链接、2 个死链；列表 24 行",
+  "source": "合成（真实详情页常见的相关 / 相似商品轮播、推荐职位块，以及缺折扣 / 缺薪资这类可选字段；用 skill/scripts/detail.mjs 走第二遍）",
+  "variant": { "lang": "en", "items": 24, "perPage": 8, "lateMs": 1500, "related": 1, "warranty": 1 },
+  "url": "/dev-fixtures/playground/detail-links?items=24&perPage=8&related=1&warranty=1",
+  "message": "Export every product in this list with its brand, SKU, warranty and the full description.",
+  "heldOut": false,
+  "status": "draft",
+  "agentExpectation": "detail.json 设 root 为主记录（不是整页），品牌 / 保修读主记录里的；报告保修填充率 14/20（那些商品没有保修），不把选择器放宽到相关卡片或别的元素上。",
+  "relatedCode": [
+    "eval/playground/fixtures/detail-links/route.ts",
+    "eval/playground/fixtures/detail-links/[id]/route.ts",
+    "eval/playground/fixtures/__test__/detail-links.test.ts",
+    "skill/scripts/detail.mjs",
+    "skill/scripts/lib/detail.mjs",
+    "skill/scripts/lib/report-format.mjs",
+    "skill/scripts/detail-pages.test.mjs"
+  ],
+  "relatedDocs": ["skill/references/detail-pages.md"]
+}

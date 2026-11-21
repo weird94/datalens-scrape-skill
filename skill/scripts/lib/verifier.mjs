@@ -6,7 +6,7 @@
 /** Stop reasons of a run that did not get to the end, and what to say about each (given the summary's note). */
 const UNFINISHED = {
   running: () => 'the run had not finished when this CSV was written (it is still going, or its process died)',
-  interrupted: () => 'the run was stopped (Ctrl-C or a kill signal) before it finished',
+  interrupted: () => 'the run was stopped (Ctrl-C, SIGTERM or SIGHUP) before it finished',
   error: note => `the run stopped on an error${note ? ` (${note})` : ''}`,
 }
 

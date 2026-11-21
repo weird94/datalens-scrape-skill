@@ -66,6 +66,8 @@ describe('playground · detail-links（H1）· 列表页', () => {
     expect(linkOf(rows[0])).toBe(`${PATH}/1?lateMs=200&blockAfter=5&softBlockAfter=9&run=x&flaky=1`)
     const plain = await fetchList('')
     expect(linkOf(rowsOf(plain.html)[0])).toBe(`${PATH}/1`)
+    const extended = await fetchList('?related=1&warranty=1')
+    expect(linkOf(rowsOf(extended.html)[0])).toBe(`${PATH}/1?related=1&warranty=1`)
   })
 
   it('越界或非数字的页码 404；生产环境 404', async () => {
@@ -155,6 +157,44 @@ describe('playground · detail-links（H1）· 详情页', () => {
     expect((await fetchDetail('4', `?flaky=2&run=${run}`)).status).toBe(200)
   })
 
+  it('related=1：主记录前面（DOM 顺序在前）有两张相关商品卡片，复用 .name / .maker a / .price 和 .read-more；主记录的按钮限定在 article 里', async () => {
+    const { html } = await fetchDetail('3', '?related=1')
+    const later = renderedLater(html)
+    expect(later.indexOf('<aside class="related">')).toBeGreaterThanOrEqual(0)
+    expect(later.indexOf('<aside class="related">')).toBeLessThan(later.indexOf('<article class="product-detail">'))
+    const cards = later.match(/<div class="product-card">[\s\S]*?<\/div>/g) ?? []
+    expect(cards).toHaveLength(2)
+    expect(cards[0]).toContain('<h3 class="name"><a href="/dev-fixtures/playground/detail-links/4">Product 4</a></h3>')
+    expect(cards[0]).toContain(`<p class="maker">by <a href="/brands/${BRANDS[4].toLowerCase()}">${BRANDS[4]}</a></p>`)
+    expect(cards[0]).toContain('<button class="read-more" type="button">Read more</button>')
+    // 第一个 .maker a 是相关卡片的（Product 4 的品牌），不是本商品的 td.brand。
+    expect(later.match(/class="maker">by <a[^>]*>([^<]*)</)?.[1]).toBe(BRANDS[4])
+    expect(later).toContain(`<td class="brand">${BRANDS[3]}</td>`)
+    expect(html).toContain("document.querySelector('article.product-detail .read-more')")
+    expect(html).toContain("document.querySelectorAll('.related .read-more')")
+  })
+
+  it('warranty=1：规格表多一行 td.warranty；id % 3 === 0 的商品主记录里没有保修（真正缺，不是换了位置）', async () => {
+    for (const id of ['1', '4', '5']) {
+      const later = renderedLater((await fetchDetail(id, '?warranty=1')).html)
+      expect(later).toContain(`<tr><th>Warranty</th><td class="warranty">${1 + (Number(id) % 3)} years</td></tr>`)
+    }
+    for (const id of ['3', '12']) {
+      const later = renderedLater((await fetchDetail(id, '?warranty=1&related=1')).html)
+      const record = later.slice(later.indexOf('<article'))
+      expect(record).not.toMatch(/warranty/i)
+    }
+  })
+
+  it('不带 related / warranty 时详情页与原来一样（H01-001 不受影响）', async () => {
+    for (const id of ['3', '4']) {
+      const { html } = await fetchDetail(id)
+      expect(html).not.toMatch(/related|warranty|product-card/)
+      expect(html).toContain("document.querySelector('.read-more')")
+      expect(html).toContain("document.querySelector('.summary').replaceWith(full)")
+    }
+  })
+
   it('badge=1：每个详情页都挂一个 fixed 的 reCAPTCHA 徽标，内容照常晚渲染', async () => {
     const { status, html } = await fetchDetail('3', '?badge=1&lateMs=500')
     expect(status).toBe(200)
@@ -195,5 +235,47 @@ describe('H01-001 case 目录与路由输出同步', () => {
     expect(compact).toEqual(expected.detail.secondLayout)
     expect(expected.detail.expectedStatus).toMatchObject({ ok: linked.length - dead.length, empty: dead.length, 'no-link': expected.detail.noLink.length })
     expect(expected.detail.naiveBrandFill).toBe(`${linked.length - dead.length - compact.length}/${linked.length - dead.length}`)
+  })
+})
+
+describe('H01-002 case 目录与路由输出同步', () => {
+  const caseDir = new URL('../../cases/H01-002/', import.meta.url)
+  const caseFile = JSON.parse(readFileSync(fileURLToPath(new URL('case.json', caseDir)), 'utf8')) as { url: string; message: string }
+  const expected = JSON.parse(readFileSync(fileURLToPath(new URL('expected.json', caseDir)), 'utf8')) as {
+    expectedRows: number
+    detail: { noLink: number[]; deadLinks: number[]; noWarranty: number[]; warrantyFill: string; expectedStatus: Record<string, number>; relatedBeforeRecord: number }
+  }
+
+  it('行数与路由一致，详情链接带上 related / warranty；用户要的字段里有保修', async () => {
+    const rows = await crawl(caseFile.url.slice(PATH.length))
+    expect(rows).toHaveLength(expected.expectedRows)
+    expect(linkOf(rows[0])).toBe(`${PATH}/1?related=1&warranty=1`)
+    expect(caseFile.message).toMatch(/warranty/i)
+  })
+
+  it('详情页的答案：各状态的数目、没有保修的编号与保修填充率、主记录前的相关卡片数', async () => {
+    const rows = await crawl(caseFile.url.slice(PATH.length))
+    const ids = rows.map((row) => Number(titleOf(row).split(' ')[1]))
+    const linked = rows.filter((row) => linkOf(row) !== null)
+    expect(ids.filter((_, i) => linkOf(rows[i]) === null)).toEqual(expected.detail.noLink)
+    const dead: number[] = []
+    const noWarranty: number[] = []
+    for (const row of linked) {
+      const href = linkOf(row) as string
+      const id = href.slice(PATH.length + 1).split('?')[0]
+      const { status, html } = await fetchDetail(id, `${href.slice(href.indexOf('?'))}&lateMs=0`)
+      if (status === 404) {
+        dead.push(Number(id))
+        continue
+      }
+      const later = renderedLater(html)
+      expect(later.slice(0, later.indexOf('<article')).match(/class="product-card"/g)).toHaveLength(expected.detail.relatedBeforeRecord)
+      if (!later.slice(later.indexOf('<article')).includes('class="warranty"')) noWarranty.push(Number(id))
+    }
+    expect(dead).toEqual(expected.detail.deadLinks)
+    expect(noWarranty).toEqual(expected.detail.noWarranty)
+    const ok = linked.length - dead.length
+    expect(expected.detail.expectedStatus).toMatchObject({ ok, empty: dead.length, 'no-link': expected.detail.noLink.length })
+    expect(expected.detail.warrantyFill).toBe(`${ok - noWarranty.length}/${ok}`)
   })
 })

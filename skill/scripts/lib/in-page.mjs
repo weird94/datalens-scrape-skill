@@ -1276,15 +1276,18 @@ export function installDlk() {
   // `inner`: after a pass of clicks. Where none of a selector's clicks did anything, an element that is not a
   // control itself but wraps exactly one (a "12 replies, view" line whose button is the part that listens) is
   // clicked on that control. Where some did, the others are slow, not misplaced: they are left alone.
-  function clickAll(selectors, rowsSel, limit = 60, inner = false) {
+  /** `within`: only controls inside the first match of this CSS are clicked (a detail page's record). */
+  function clickAll(selectors, rowsSel, limit = 60, inner = false, within = null) {
     let clicked = 0
+    const box = within ? qs(within) : null
+    if (within && !box) return 0
     const holders = rowHolders(rowsSel)
     if (!inner) {
       clickPass += 1
       passClicks = new Map()
     }
     for (const sel of selectors || []) {
-      const els = matchAll(sel).filter(el => isVisible(el) && !isDisabled(el))
+      const els = matchAll(sel).filter(el => isVisible(el) && !isDisabled(el) && (!box || containsDeep(box, el)))
       if (inner) {
         const stale = els.filter(el => clickCtx.get(el)?.pass === clickPass && clickDidNothing(el, holders))
         if (!stale.length || stale.length < (passClicks.get(sel) || 0)) continue
@@ -2014,6 +2017,22 @@ export function installDlk() {
   }
 
   const bodyText = () => clean(document.body ? renderedText(document.body) : '')
+  /**
+   * A record's text on one line, cut to `max` characters (then it ends with "…"): the first match of `root`, else
+   * the page's main. → { text, scope: 'root' | 'main' }, or null: the body alone is mostly header and navigation.
+   */
+  function recordText(root, max = 400) {
+    let el = null
+    try {
+      el = root ? qs(root) : null
+    } catch {
+      el = null
+    }
+    const scope = el ? 'root' : 'main'
+    el = el || document.querySelector('main, [role=main]')
+    const text = el ? clip(clean(renderedText(el)), max) : ''
+    return text ? { text, scope } : null
+  }
 
   // ---------- evidence for a stop decision ----------
   // When the rules want to end a run, a host may ask an AI whether the list really ended. What it reads is the end
@@ -2208,5 +2227,5 @@ export function installDlk() {
     lastRemedied = null
   }
 
-  window.__dlk = { DOC_ID, stopEvidence, stopRemedy, stopRemedyBrought, count: countAll, find, tree, shadowRootCount, pageState, stateChange, changeMark, markOnScreen, lists, controls, scrollers, overlays, probe, extract, extractTagged, contentMark, signature, markFirstClickable, scrollStep, dismiss, clickAll, takeExpandClicks, expandBusy, expandLeft, unclickedAmongRows, bodyText, cssPath, postProcess, toNumber, wall, claims, scrollCandidates, locate, act, press, unreadLinks, unreadParts, outline, outlineControls, clearOutline, pick, cancelPick }
+  window.__dlk = { DOC_ID, stopEvidence, stopRemedy, stopRemedyBrought, count: countAll, find, tree, shadowRootCount, pageState, stateChange, changeMark, markOnScreen, lists, controls, scrollers, overlays, probe, extract, extractTagged, contentMark, recordText, signature, markFirstClickable, scrollStep, dismiss, clickAll, takeExpandClicks, expandBusy, expandLeft, unclickedAmongRows, bodyText, cssPath, postProcess, toNumber, wall, claims, scrollCandidates, locate, act, press, unreadLinks, unreadParts, outline, outlineControls, clearOutline, pick, cancelPick }
 }

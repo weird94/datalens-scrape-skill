@@ -1,5 +1,6 @@
 // detail.mjs end to end on the playground's list → detail fixture (eval/playground/fixtures/detail-links):
-// late-rendered detail pages in two layouts, dead links, a "Read more" to click, a site that starts
+// late-rendered detail pages in two layouts, dead links, a "Read more" to click, related items before the
+// record that reuse its classes, an optional field, a site that starts
 // blocking (a captcha, or empty pages) after N requests, and pages that fail once. The fixture server
 // (eval/serve.mts) is started on a free port. Run with `node --test scripts/detail-pages.test.mjs`.
 import assert from 'node:assert/strict'
@@ -13,7 +14,9 @@ import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 import { runCodeSource } from './lib/chrome.mjs'
 import { parseCsv, toCsv } from './lib/csv.mjs'
-import { detailBatchProgram } from './lib/detail.mjs'
+import { detailBatchProgram, readDetailPage } from './lib/detail.mjs'
+import { installDlk } from './lib/in-page.mjs'
+import { gotoAndSettle, runSetup, settle } from './lib/page-helpers.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const SKILL = path.join(HERE, '..')
@@ -172,6 +175,12 @@ describe('detail.mjs', { concurrency: 4 }, () => {
     assert.equal(summary.fillRate.brand, '4/5 (80%)')
     const text = summary.warnings.join('\n')
     assert.match(text, /"brand" is filled on 4\/5 ok pages .*detail-links\/4/)
+    // #4 shows its brand outside the spec table: the warning quotes #4's record text, brand included.
+    const brandWarning = summary.warnings.find(w => w.includes('"brand"'))
+    assert.match(brandWarning, /On http:\S+\/detail-links\/4\S* the page's main content \(no "root" set\) reads: "Product 4 by Umbrella \$22\.00 SKU SKU-0004 Full description of product 4: [^"]+"\. Look for the value there/)
+    // Only the page with a blank field keeps its record text in the checkpoint.
+    const lines = checkpointLines(path.join(tmp, 'preview.detail.jsonl'))
+    assert.deepEqual(lines.filter(l => l.recordText).map(l => l.url.split('?')[0].split('/').pop()), ['4'])
     assert.match(text, /NOT THE END: preview of the first 5 links/)
     const { rows } = readCsv(path.join(tmp, 'preview.csv'))
     assert.equal(rows.length, 12)
@@ -283,7 +292,7 @@ describe('detail.mjs', { concurrency: 4 }, () => {
     const out = path.join(tmp, 'soft.out.csv')
     const soft = await script('detail.mjs', [list, quick, '--out', out])
     assert.equal(soft.summary.stopReason, 'blocked')
-    assert.match(soft.summary.note, /3 pages in a row read empty, and .*detail-links\/1\?.*now reads empty/)
+    assert.match(soft.summary.note, /3 pages read empty with no ok page between them, and .*detail-links\/1\?.*now reads empty/)
     assert.deepEqual(soft.summary.status, { ok: 2, empty: 0, failed: 0, blocked: 3, pending: 1, 'no-link': 0 })
     assert.deepEqual(soft.summary.canary.map(c => c.status), ['empty'])
 
@@ -338,6 +347,14 @@ describe('detail.mjs', { concurrency: 4 }, () => {
       assert.equal(results[1].fields.brand, BRANDS[4])
       assert.match(results[1].fields.description, /^Full description of product 4:/)
       assert.equal(results[2].notFound, true)
+      assert.equal(results[1].recordText, undefined, 'no record text when every field read')
+      // A field read blank on an ok page: the record's text comes back too (root given: the record only).
+      const naive = { ...SPEC, root: 'article.product-detail', fields: { ...SPEC.fields, brand: '.specs .brand' } }
+      const again = detailBatchProgram([detailUrl(4, q)], naive, { limit: 3 })
+      const { results: [compact] } = JSON.parse(await new Function(`return (${runCodeSource(again.sources, again.call)})`)()(page))
+      assert.equal(compact.status, 'ok')
+      assert.match(compact.recordText, /^Product 4 by Umbrella \$22\.00 SKU SKU-0004 Full description of product 4:/)
+      assert.equal(compact.recordScope, 'root')
     } finally {
       await browser.close()
     }
@@ -450,6 +467,56 @@ describe('detail.mjs', { concurrency: 4 }, () => {
     assert.equal(summary.status.ok, 2)
     // About 5 s a page here; waiting out waitTimeoutMs before the click took over 10 s a page.
     assert.ok(summary.seconds < 15, `took ${summary.seconds}s`)
+  })
+
+  test('related items before the record reuse its classes: with root they are not read, without root the first match in page order is theirs', async () => {
+    // related=1: two "customers also viewed" cards (products id+1, id+2) come before the record; warranty=1: id % 3 === 0 has none.
+    const q = `related=1&warranty=1&lateMs=200&run=related-${run}`
+    const ids = [1, 2, 3, 4, 5, 6]
+    const list = listOf('related.csv', ids.map(id => detailUrl(id, q)))
+    const fields = { name: 'h1.name', brand: '.specs .brand, .maker a', warranty: '.warranty', description: '.description .full-text' }
+    const [scoped, whole] = await Promise.all(
+      [{ root: 'article.product-detail' }, {}].map((extra, i) =>
+        script('detail.mjs', [list, write(`related-${i}.json`, { ...SPEC, ...extra, fields }), '--out', path.join(tmp, `related-${i}.csv`)])
+      )
+    )
+    for (const { summary } of [scoped, whole]) assert.deepEqual(summary.status, { ok: 6, empty: 0, failed: 0, blocked: 0, pending: 0, 'no-link': 0 })
+
+    const scopedRows = readCsv(path.join(tmp, 'related-0.csv')).rows
+    for (const [i, id] of ids.entries()) {
+      assert.equal(scopedRows[i].brand, BRANDS[id % BRANDS.length], `brand of product ${id}`)
+      assert.equal(scopedRows[i].warranty, id % 3 ? `${1 + (id % 3)} years` : '', `warranty of product ${id}`)
+      assert.match(scopedRows[i].description, new RegExp(`^Full description of product ${id}:`))
+    }
+    // A field the items really lack: the warning says so, and does not call it another layout.
+    assert.equal(scoped.summary.fillRate.warranty, '4/6 (67%)')
+    const warning = scoped.summary.warnings.find(w => w.includes('"warranty"'))
+    assert.match(warning, /either those items lack this field/)
+    assert.match(warning, /keep the selector and report the fill rate/)
+
+    // Without root: the comma list takes the first element in page order (a related card's maker link, not
+    // the record's spec table), and the optional field is "filled" everywhere with another product's value.
+    const wholeRows = readCsv(path.join(tmp, 'related-1.csv')).rows
+    for (const [i, id] of ids.entries()) assert.equal(wholeRows[i].brand, BRANDS[(id + 1) % BRANDS.length], `brand of product ${id} without root`)
+    assert.equal(whole.summary.fillRate.warranty, '6/6 (100%)')
+  })
+
+  test('with root, expand clicks only the buttons inside the record', async () => {
+    const browser = await chromium.launch()
+    try {
+      const page = await browser.newPage()
+      const lib = { settle, gotoAndSettle, runSetup, installDlk }
+      const url = detailUrl(2, `related=1&lateMs=200&run=expand-${run}`)
+      const scoped = await readDetailPage(page, url, { ...SPEC, root: 'article.product-detail' }, lib)
+      assert.equal(scoped.status, 'ok')
+      assert.equal(scoped.expandClicks, 1)
+      assert.match(scoped.fields.description, /^Full description of product 2:/)
+      // Without root every "Read more" on the page is clicked: the record's and the two related cards'.
+      const whole = await readDetailPage(page, url, SPEC, lib)
+      assert.equal(whole.expandClicks, 3)
+    } finally {
+      await browser.close()
+    }
   })
 
   test('arguments: --out may not be the config, a value flag needs its value, --max-rows over finished links is done', async () => {

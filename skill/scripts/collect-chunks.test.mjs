@@ -258,6 +258,17 @@ test('collect.mjs stopped by Ctrl-C writes what it has and says so', { skip: !ha
   assert.equal(csvRows(run.out), summary.rows)
 })
 
+test('collect.mjs stopped by SIGHUP (the terminal closed) writes what it has like Ctrl-C', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+  const run = await startRun(SLOW_SCROLL(), { ready: summary => summary?.rows >= 60 })
+  run.child.kill('SIGHUP')
+  const { code } = await run.exited
+  assert.equal(code, 129)
+  const summary = readJson(run.summaryFile)
+  assert.equal(summary.stopReason, 'interrupted')
+  assert.ok(summary.rows >= 60, `summary rows ${summary.rows}`)
+  assert.equal(csvRows(run.out), summary.rows)
+})
+
 test('rows read while the first page is still being expanded are written before its round ends', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
   // Opening every record's replies on page 1 takes several seconds; the rows read meanwhile must not wait for it.
   const config = { url: `${base}/reply-threads?comments=20`, rows: '.comment-item', fields: { author: '.author', text: '.text' }, expand: ['button.reply-expand', 'button.reply-more:not(.collapse)'] }

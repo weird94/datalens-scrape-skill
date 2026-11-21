@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from '../../_lib/next-shim'
 
 import { htmlResponse, intParam, playgroundBlocked, renderShell } from '../../_lib/shell'
-import { isCompactTemplate, isDeadLink, isFlaky, product, type Product } from '../products'
+import { BASE, isCompactTemplate, isDeadLink, isFlaky, product, type Product } from '../products'
 
 /**
  * 演练场 · 列表 → 详情页（pattern H1）：详情页 /dev-fixtures/playground/detail-links/<id>。
@@ -18,6 +18,11 @@ import { isCompactTemplate, isDeadLink, isFlaky, product, type Product } from '.
  *   内容永远不来，也没有任何验证码或拦截文案（有的站限流时就这样）。默认 0 = 不限流。
  * - flaky=1：id % 5 === 0 的详情页，同一个 run 里第一次请求返回 HTTP 503，之后正常。
  * - flaky=2：id % 5 === 0 的详情页，同一个 run 里第二次请求返回 HTTP 503，第一次和之后都正常（读过的页再读一次时偶发失败）。
+ * - related=1：商品详情前面（DOM 顺序在前）多一块「Customers also viewed」：aside.related 里两张 div.product-card，
+ *   复用主记录的 class（.name / .maker a / .price / .warranty），各带一个 button.read-more。整页选择器会先读到它；
+ *   root 设成主记录（article.product-detail）才读对、expand 也只该点主记录里的按钮。
+ * - warranty=1：规格表多一行 Warranty（td.warranty）；id % 3 === 0 的商品没有保修，这一行不出现、页面别处也没有
+ *   （真正的可选字段：填充率低不是因为换了模板）。
  * - badge=1：每个详情页右下角常驻一个 reCAPTCHA v3 徽标（position:fixed 的 div.grecaptcha-badge + iframe title="reCAPTCHA"），
  *   很多站每页都挂着它；它不是拦截，内容照常渲染。
  *
@@ -41,43 +46,76 @@ const CAPTCHA_STYLE = `
 `
 const BADGE = `<div class="grecaptcha-badge" style="position:fixed;right:0;bottom:14px;width:256px;height:60px;box-shadow:0 0 5px gray;overflow:hidden"><iframe title="reCAPTCHA" width="256" height="60" style="border:0"></iframe></div>`
 
-function detailHtml(p: Product): string {
+/** 详情页的可选部件（query 打开）；全关时输出与 H01-001 的原样一致。 */
+interface Variant {
+  related: boolean
+  warranty: boolean
+}
+
+function warrantyRow(p: Product, v: Variant): string {
+  return v.warranty && p.warranty ? `<tr><th>Warranty</th><td class="warranty">${p.warranty}</td></tr>` : ''
+}
+
+/** 「Customers also viewed」：主记录前面的两张卡片，class 与主记录相同。 */
+function relatedHtml(p: Product, v: Variant): string {
+  const card = (r: Product): string =>
+    `<div class="product-card"><h3 class="name"><a href="${BASE}/${r.id}">${r.name}</a></h3><p class="maker">by <a href="/brands/${r.brand.toLowerCase()}">${r.brand}</a></p><p class="price">${r.price}</p>${v.warranty && r.warranty ? `<p class="warranty">${r.warranty}</p>` : ''}<p class="teaser">${r.summary}</p><button class="read-more" type="button">Read more</button></div>`
+  return `<aside class="related"><h2>Customers also viewed</h2>
+${[product(p.id + 1), product(p.id + 2)].map(card).join('\n')}
+</aside>
+`
+}
+
+function detailHtml(p: Product, v: Variant): string {
+  const before = v.related ? relatedHtml(p, v) : ''
+  const warranty = warrantyRow(p, v)
   const description = `<section class="description"><p class="summary">${p.summary}</p><button class="read-more" type="button">Read more</button></section>`
   if (isCompactTemplate(p.id)) {
-    return `<article class="product-detail compact">
+    return `${before}<article class="product-detail compact">
 <header><h1 class="name">${p.name}</h1><p class="maker">by <a href="/brands/${p.brand.toLowerCase()}">${p.brand}</a></p></header>
 <p class="price">${p.price}</p>
-<table class="specs"><tr><th>SKU</th><td class="sku">${p.sku}</td></tr></table>
+<table class="specs"><tr><th>SKU</th><td class="sku">${p.sku}</td></tr>${warranty}</table>
 ${description}
 </article>`
   }
-  return `<article class="product-detail">
+  return `${before}<article class="product-detail">
 <h1 class="name">${p.name}</h1>
 <p class="price">${p.price}</p>
 <table class="specs">
 <tr><th>Brand</th><td class="brand">${p.brand}</td></tr>
 <tr><th>SKU</th><td class="sku">${p.sku}</td></tr>
-</table>
+${warranty ? `${warranty}\n` : ''}</table>
 ${description}
 </article>`
 }
 
-function renderScript(p: Product, lateMs: number): string {
+/** related=1：卡片的「Read more」把 teaser 补全后消失（和主记录的按钮一样是真的展开按钮）。 */
+const RELATED_SCRIPT = `
+  document.querySelectorAll('.related .read-more').forEach((more) => more.addEventListener('click', () => {
+    setTimeout(() => {
+      more.previousElementSibling.textContent += ' See its own page for more.';
+      more.remove();
+    }, 300);
+  }));`
+
+function renderScript(p: Product, lateMs: number, v: Variant): string {
+  // 有相关卡片时，主记录的按钮和摘要要限定在 article 里（卡片在前，document.querySelector 会先碰到卡片）。
+  const main = v.related ? 'article.product-detail ' : ''
   return `
-const DETAIL = ${JSON.stringify(detailHtml(p))};
+const DETAIL = ${JSON.stringify(detailHtml(p, v))};
 const FULL = ${JSON.stringify(p.fullText)};
 setTimeout(() => {
   document.getElementById('app').innerHTML = DETAIL;
-  const button = document.querySelector('.read-more');
+  const button = document.querySelector('${main}.read-more');
   button.addEventListener('click', () => {
     setTimeout(() => {
       const full = document.createElement('div');
       full.className = 'full-text';
       full.textContent = FULL;
-      document.querySelector('.summary').replaceWith(full);
+      document.querySelector('${main}.summary').replaceWith(full);
       button.remove();
     }, 300);
-  });
+  });${v.related ? RELATED_SCRIPT : ''}
 }, ${lateMs});`
 }
 
@@ -99,6 +137,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const flaky = query.get('flaky')
   const badge = query.get('badge') === '1'
   const run = query.get('run') ?? 'default'
+  const variant: Variant = { related: query.get('related') === '1', warranty: query.get('warranty') === '1' }
 
   const served = (requestsByRun.get(run) ?? 0) + 1
   requestsByRun.set(run, served)
@@ -133,5 +172,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const p = product(id)
   const body = `<nav class="crumbs"><a href="/dev-fixtures/playground/detail-links">Products</a> › ${p.name}</nav>
 <main id="app"><p class="loading">Loading…</p></main>${badge ? BADGE : ''}`
-  return htmlResponse(renderShell(p.name, body, { style: STYLE, script: renderScript(p, lateMs) }))
+  return htmlResponse(renderShell(p.name, body, { style: STYLE, script: renderScript(p, lateMs, variant) }))
 }

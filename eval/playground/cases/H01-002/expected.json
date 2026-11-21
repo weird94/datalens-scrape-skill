@@ -1,0 +1,38 @@
+{
+  "expectedRows": 24,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "ul.products > li.item",
+    "textPrefix": "Product "
+  },
+  "oracle": {
+    "strategy": "next-link",
+    "clickSelector": "a.next"
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 8
+  },
+  "trapVerifiedBy": "naive",
+  "detail": {
+    "linkSelector": "a.title",
+    "expectedStatus": { "ok": 20, "empty": 2, "failed": 0, "blocked": 0, "pending": 0, "no-link": 2 },
+    "noLink": [7, 17],
+    "deadLinks": [9, 18],
+    "secondLayout": [4, 8, 12, 16, 20, 24],
+    "root": "article.product-detail",
+    "fields": {
+      "name": "h1.name",
+      "brand": ".specs .brand, .maker a",
+      "sku": ".sku",
+      "warranty": ".specs .warranty",
+      "description": ".description .full-text"
+    },
+    "expand": [".read-more"],
+    "optionalField": "warranty",
+    "noWarranty": [3, 6, 12, 15, 21, 24],
+    "warrantyFill": "14/20",
+    "relatedBeforeRecord": 2,
+    "naiveNoRoot": { "brandFrom": "the first related card (product id+1)", "warrantyFill": "20/20" }
+  }
+}

@@ -15,7 +15,9 @@ export const DETAIL_STATUS_COLUMN = 'detail_status'
 
 /**
  * Open one detail page and read `spec.fields` on it (relative to `spec.root`, or to the whole page).
- * → { status: 'ok' | 'empty' | 'failed' | 'blocked', fields, error?, httpStatus?, notFound?, expandClicks? }
+ * → { status: 'ok' | 'empty' | 'failed' | 'blocked', fields, error?, httpStatus?, notFound?, expandClicks?, recordText? }
+ * recordText / recordScope: on an ok page where a field read blank, the text of `root` ('root'), else of the page's
+ * main ('main'), on one line, cut to 400 chars (then it ends with "…"); none on a page with neither.
  * Never throws: a page that could not be loaded or read comes back as 'failed'.
  */
 export async function readDetailPage(page, url, spec, lib) {
@@ -31,6 +33,8 @@ export async function readDetailPage(page, url, spec, lib) {
   const BEFORE_EXPAND_STABLE_MS = 1000
   const EXPAND_PASSES = 10
   const EXPAND_WAIT_MS = 8000
+  /** Characters of the record's text kept for a page where a field read blank. */
+  const RECORD_TEXT_MAX = 400
   const firstLine = error => String(error?.message ?? error).split('\n')[0]
 
   /** Retry page.evaluate across navigations; inject the page helpers if this document lacks them. */
@@ -120,12 +124,13 @@ export async function readDetailPage(page, url, spec, lib) {
       await page.waitForTimeout(400)
     }
     await settle(page, { quietMs: Number(spec.quietMs ?? 800), maxMs: 5000 })
-    // Parts that open on a click ("read more", a collapsed section): click every match, pass after pass.
+    // Parts that open on a click ("read more", a collapsed section): click every match (inside `root` when
+    // given: related items around the record have the same buttons), pass after pass.
     let expandClicks = 0
     if (spec.expand?.length) {
       for (let pass = 0; pass < EXPAND_PASSES; pass += 1) {
         const before = await inPage(sel => window.__dlk.contentMark(sel), rootSel).catch(() => '')
-        const clicked = await inPage(([expand, sel]) => window.__dlk.clickAll(expand, sel), [spec.expand, rootSel]).catch(() => 0)
+        const clicked = await inPage(([expand, sel, within]) => window.__dlk.clickAll(expand, sel, 60, false, within), [spec.expand, rootSel, spec.root || null]).catch(() => 0)
         if (!clicked) break
         expandClicks += clicked
         const deadline = Date.now() + EXPAND_WAIT_MS
@@ -136,7 +141,17 @@ export async function readDetailPage(page, url, spec, lib) {
     rec = await read()
     const wall = await wallCheck(httpStatus)
     const verdict = classifyDetail({ httpStatus, rec, fields, required, root: spec.root ?? null, wall })
-    return { ...verdict, ...(httpStatus !== null && httpStatus !== 200 ? { httpStatus } : {}), ...(expandClicks ? { expandClicks } : {}) }
+    // A field blank on a page that read: keep the record's text, so the summary can show where the value may be instead.
+    const excerpt =
+      verdict.status === 'ok' && names.some(name => blank(name, verdict.fields))
+        ? await inPage(([sel, max]) => window.__dlk.recordText(sel, max), [spec.root || null, RECORD_TEXT_MAX]).catch(() => null)
+        : null
+    return {
+      ...verdict,
+      ...(httpStatus !== null && httpStatus !== 200 ? { httpStatus } : {}),
+      ...(expandClicks ? { expandClicks } : {}),
+      ...(excerpt?.text ? { recordText: excerpt.text, recordScope: excerpt.scope } : {}),
+    }
   } catch (error) {
     return { status: 'failed', fields: {}, ...(httpStatus !== null ? { httpStatus } : {}), error: firstLine(error) }
   }
@@ -340,6 +355,31 @@ export function needsDetailFetch(entry, maxAttempts, { browser = null, retryEmpt
  * another spec are left out (so those pages are read again); `stale` counts those URLs.
  * → { entries: Map, stale }
  */
+/** How many checkpoint lines keep a record excerpt for each detail column (the summary quotes one per column). */
+export const RECORD_TEXT_KEEP = 3
+
+/**
+ * Decides which ok pages keep their record excerpt in the checkpoint: a page keeps it while some column it
+ * read blank has fewer than `limit` excerpts kept so far. A wrong selector would otherwise store the text of
+ * every page. `entries`: the checkpoint already read (current spec only). → (result) => boolean, which counts
+ * the excerpt it keeps.
+ */
+export function recordTextKeeper(entries, detailNames, limit = RECORD_TEXT_KEEP) {
+  const kept = new Map(detailNames.map(name => [name, 0]))
+  const blankIn = fields => detailNames.filter(name => String(fields?.[name] ?? '') === '')
+  for (const entry of entries.values()) {
+    if (entry.status !== 'ok' || !entry.recordText) continue
+    for (const name of blankIn(entry.fields)) kept.set(name, kept.get(name) + 1)
+  }
+  return result => {
+    if (result.status !== 'ok' || !result.recordText) return false
+    const blanks = blankIn(result.fields)
+    if (!blanks.some(name => kept.get(name) < limit)) return false
+    for (const name of blanks) kept.set(name, kept.get(name) + 1)
+    return true
+  }
+}
+
 export function readDetailCheckpoint(text, specKey = null) {
   const entries = new Map()
   const stale = new Set()

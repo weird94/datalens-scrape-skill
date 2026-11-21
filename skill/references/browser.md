@@ -28,7 +28,7 @@ node scripts/detail.mjs rows.csv detail.json --out full.csv --browser chrome
 
 - The first call connects to Chrome: Chrome opens a connect page; without a token the user approves it there (the script waits up to 3 minutes). That tab is then driven by the scripts. Later calls reuse it (session `scrape`, change with `--session` / `SCRAPE_SESSION`).
 - Tell the user not to use that tab while a run is going, and to **keep that Chrome window visible** (not minimized, not covered by another app). Chrome stops drawing hidden tabs, and then clicks, scrolling and lazy loading stall. The scripts switch the window to the scraping tab when it is in the background; if the window itself is hidden they stop with `tab-not-rendering` (inspect prints `HIDDEN`). Other tabs are untouched.
-- Same config, same output. `collect` runs the whole loop inside Chrome and only writes the CSV at the end, so there is no partial file during a run.
+- Same config, same output. `collect` runs the loop inside Chrome in calls of about 30 s and rewrites the CSV and summary after each call (`stopReason: "running"` until the run ends).
 - `detail.mjs` reads detail pages in that one tab, a few per call, one at a time (`concurrency` is ignored); the checkpoint is written between calls, so a stopped run resumes with the same command.
 - On macOS the scripts point the CLI at the standard Chrome location (`PLAYWRIGHT_MCP_EXECUTABLE_PATH`), because otherwise the CLI looks for the extension in Chrome's profile folder, which privacy protection can block ("Playwright Extension not found" although it is installed). Set the variable yourself for a non-standard install.
 

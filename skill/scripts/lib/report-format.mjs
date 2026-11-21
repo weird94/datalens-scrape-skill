@@ -188,7 +188,7 @@ const DETAIL_STOP_NOTES = {
     'either the selectors / "require" miss on these pages (inspect one of them, fix detail.json, rerun), or the site serves this browser empty pages (if inspect shows the data, ask the user before rerunning the same command with --browser chrome). The empty pages stay to be read again: a rerun reads the other links first, then these.',
   'tab-not-rendering':
     'the browser is not drawing this tab (window minimized or covered, or tab in the background), so late content never comes. Ask the user to bring that Chrome window to the front and keep it visible during the run, then rerun the same command.',
-  interrupted: 'stopped (Ctrl-C or a kill signal). Progress is kept: rerun the same command to resume.',
+  interrupted: 'stopped (Ctrl-C, SIGTERM or SIGHUP). Progress is kept: rerun the same command to resume.',
 }
 
 const pct = (n, of) => (of ? Math.round((100 * n) / of) : 0)
@@ -217,11 +217,25 @@ export function summarizeDetail({ rowUrls, entries, detailNames, stopReason, not
     const bestName = detailNames.find(name => fill[name] === best)
     for (const name of detailNames) {
       const emptyOn = okUrls.filter(url => String(entries.get(url).fields?.[name] ?? '') === '')
+      // The record's text on a page where the column is empty (kept in the checkpoint): the value may be in it, in another place.
+      // A cut-off excerpt (ends in "…") shows only the start of the record: not finding the value there proves nothing.
+      const quoted = emptyOn.find(url => entries.get(url).recordText)
+      const excerpt = quoted ? entries.get(quoted) : null
+      const cut = Boolean(excerpt?.recordText.endsWith('…'))
+      const where = excerpt?.recordScope === 'root' ? 'the record' : excerpt?.recordScope === 'main' ? 'the page\'s main content (no "root" set)' : 'the page'
+      const reads = excerpt ? `On ${quoted} ${where} ${cut ? 'starts' : 'reads'}: ${JSON.stringify(excerpt.recordText)}${cut ? ' (cut off)' : ''}.` : ''
       if (fill[name] === 0) {
-        warnings.push(`column "${name}" is empty on every ok page: wrong selector, or it only shows after a click (expand / setup). Check with inspect --probe on ${sample(okUrls, 2).join(' , ')}.`)
-      } else if (okUrls.length >= 3 && best - fill[name] >= Math.max(1, okUrls.length * 0.15)) {
         warnings.push(
-          `column "${name}" is filled on ${fill[name]}/${okUrls.length} ok pages while "${bestName}" is on ${best}: the pages may use more than one layout. Inspect one where it is empty (${sample(emptyOn).join(' , ')}) and widen the selector to cover both (a comma list), unless those items really lack it.`
+          `column "${name}" is empty on every ok page: wrong selector, or it only shows after a click (expand / setup).${reads ? ` ${reads}` : ''} Check with inspect --probe on ${sample(okUrls, 2).join(' , ')}.`
+        )
+      } else if (okUrls.length >= 3 && best - fill[name] >= Math.max(1, okUrls.length * 0.15)) {
+        const look = !reads
+          ? 'Inspect the whole record on one of them (--html "<root>"), not only the block where the field usually is'
+          : cut
+            ? `${reads} Look for the value there; if it is not in this part, inspect the whole record (--html "<root>") before deciding the item lacks it`
+            : `${reads} Look for the value there before deciding the item lacks it`
+        warnings.push(
+          `column "${name}" is filled on ${fill[name]}/${okUrls.length} ok pages while "${bestName}" is on ${best}: either those items lack this field, or they show it in another place. ${emptyOn.length === 1 && quoted ? '' : `It is empty on ${sample(emptyOn).join(' , ')}. `}${look}: if the value is there, widen the selector to cover both places (a comma list); if not, keep the selector and report the fill rate.`
         )
       }
     }

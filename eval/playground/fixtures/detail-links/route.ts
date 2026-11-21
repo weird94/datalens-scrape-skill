@@ -14,7 +14,7 @@ import { BASE, detailHref, hasNoLink, product } from './products'
  * - items：商品总数（默认 24，1–60）
  * - perPage：每页条数（默认 8，1–30）
  * - page：页码（默认 1；越界或非数字 404）
- * - lateMs / blockAfter / softBlockAfter / run / flaky：原样带进详情链接，调节详情页（见 [id]/route.ts）
+ * - lateMs / blockAfter / softBlockAfter / run / flaky / related / warranty：原样带进详情链接，调节详情页（见 [id]/route.ts）
  */
 
 const STYLE = `

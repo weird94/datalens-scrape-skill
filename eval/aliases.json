@@ -54,5 +54,13 @@
   "af9d45ac": {
     "id": "F05-001",
     "url": "/dev-fixtures/playground/hang-after?batchSize=10&hangAfter=3"
+  },
+  "5e3c9a71": {
+    "id": "H01-001",
+    "url": "/dev-fixtures/playground/detail-links?items=24&perPage=8"
+  },
+  "8336d491": {
+    "id": "H01-002",
+    "url": "/dev-fixtures/playground/detail-links?items=24&perPage=8&related=1&warranty=1"
   }
 }

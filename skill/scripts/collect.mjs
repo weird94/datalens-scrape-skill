@@ -12,8 +12,8 @@
 // Writes rows.csv and rows.json (summary: stop reason, per-round counts, page text tail) as the run goes:
 // both are rewritten after each read of the page (or each Chrome call), with stopReason "running" until the run
 // ends. Files already at --out stay until the run has a row to write. A save that fails is retried later.
-// SIGINT / SIGTERM (also a Ctrl-C that reached playwright-cli) write the rows so far with stopReason
-// "interrupted" and exit non-zero.
+// SIGINT / SIGTERM / SIGHUP (also a Ctrl-C that reached playwright-cli) write the rows so far with stopReason
+// "interrupted" and exit 130 / 143 / 129. A SIGKILL leaves the last save, at stopReason "running".
 // SCRAPE_CHUNK_STEPS / SCRAPE_CHUNK_SECONDS also split a bundled run into such calls (to test them).
 import fs from 'node:fs'
 import path from 'node:path'
@@ -93,7 +93,7 @@ function saveProgress(rows, rounds, { force = false, lastUrl } = {}) {
 }
 
 let stopping = false
-/** Write the rows so far as "interrupted" and exit (Ctrl-C, a kill signal). */
+/** Write the rows so far as "interrupted" and exit (Ctrl-C, SIGTERM, SIGHUP: a closed terminal). */
 function interrupt(signal) {
   if (stopping) return
   stopping = true
@@ -108,9 +108,11 @@ function interrupt(signal) {
     console.error(`could not write the rows so far to ${out}: ${error.message}`)
   }
   if (summary) console.log(JSON.stringify(summary, null, 2))
-  process.exit(signal === 'SIGINT' ? 130 : 143)
+  process.exit(SIGNAL_EXIT[signal])
 }
-for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => interrupt(signal))
+/** Exit code per stop signal (128 + its number). */
+const SIGNAL_EXIT = { SIGINT: 130, SIGTERM: 143, SIGHUP: 129 }
+for (const signal of Object.keys(SIGNAL_EXIT)) process.on(signal, () => interrupt(signal))
 /** Let a signal that came while the event loop was blocked (a playwright-cli call) reach its handler. */
 const yieldToSignals = () => new Promise(resolve => setImmediate(resolve))
 
@@ -140,7 +142,7 @@ function runInUserChrome(session) {
       const run = runInChrome(session, CHUNK_SOURCES, chunkCall(config, state, pauseAfter), { attach: n === 1 })
       // A Ctrl-C in the terminal reaches playwright-cli too, which then fails: that is the user stopping the run.
       await yieldToSignals()
-      if (run.signal === 'SIGINT' || run.signal === 'SIGTERM') interrupt(run.signal)
+      if (SIGNAL_EXIT[run.signal]) interrupt(run.signal)
       if (run.ok && (run.value?.paused || Array.isArray(run.value?.rows))) return run.value
       const kept = state ? ` (call ${n}; the rows of the calls before are kept)` : ''
       return { rows: state?.rows ?? [], rounds: state?.rounds ?? [], stopReason: 'error', note: `${run.error ?? 'no rows in run-code result'}${kept}`, tail: '', lastUrl: state?.url ?? '' }
