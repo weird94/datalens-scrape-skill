@@ -1,0 +1,12 @@
+{
+  "id": "C07-001",
+  "pattern": ["C7"],
+  "title": "懒加载图片：img 的 src 是 1×1 占位 gif，真实地址在 data-src，滚到视口才换，共 20 行",
+  "source": "合成（pattern C7 的形状，参考 TikTok 视频网格的占位 gif 与 data-src 懒加载）",
+  "variant": { "rows": 20 },
+  "url": "/dev-fixtures/playground/lazy-images?rows=20",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

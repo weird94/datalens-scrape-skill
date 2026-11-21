@@ -1,0 +1,12 @@
+{
+  "id": "A04-001",
+  "pattern": ["A4"],
+  "title": "表格数据行 class 按 hl / 无 / muted 循环，第 10 行与第 20 行后插入 colspan 分组行，共 30 行",
+  "source": "合成（参考 企查查搜索结果表格的形状：tr 的 class 三种混用 + 中间插「其他相关结果」类分组行）",
+  "variant": { "lang": "zh", "rows": 30 },
+  "url": "/dev-fixtures/playground/mixed-table?rows=30",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

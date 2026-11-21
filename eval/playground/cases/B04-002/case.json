@@ -1,0 +1,16 @@
+{
+  "id": "B04-002",
+  "pattern": ["B4"],
+  "title": "卡片内的行被当成行（atomic CSS）：12 张帖子卡，每张 3–4 行（头部 / 正文 / 媒体 / 操作栏）类名完全相同，按行计数得 45（卡片才是行）；1/4 的卡没有媒体行",
+  "source": "合成（形状来自 2026-10-17 一位用户在某社交平台账号主页的采集：一条帖子被拆成 3–4 行，见 docs/x-tweet-split-rows-root-cause-2026-10-20.md；类名、文案、属性都不是那个站的）",
+  "variant": { "lang": "zh", "classStyle": "atomic-hash", "cards": 12, "linesPerCard": "3–4", "cardsWithoutMedia": "1/4" },
+  "url": "/dev-fixtures/playground/card-atomic-lines?cards=12&bare=4",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "product": {
+    "status": "green",
+    "note": "select-structural-lists/__test__/playground-b04-atomic-card-lines.test.ts：main 17e07d61 上 red（行列表没被标 cardFieldList，选 {卡片列表, 行} 读出 45 行）；只有第一条修复的 bf2abc64 上也 red（所有行类名完全相同，容差分支覆盖不到）；PR #77 上 green（解析回 12 张卡）"
+  },
+  "relatedCode": ["packages/core/src/structural-list-tree.ts", "packages/backend/src/app/api/select-structural-lists/route.ts"],
+  "relatedDocs": ["docs/x-tweet-split-rows-root-cause-2026-10-20.md", "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

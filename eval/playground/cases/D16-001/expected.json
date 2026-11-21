@@ -1,0 +1,37 @@
+{
+  "expectedRows": 55,
+  "expectedStop": "single-page",
+  "rowMatch": {
+    "selector": ".comment-main, .reply-item",
+    "textPrefix": "用户 "
+  },
+  "oracle": {
+    "strategy": "click-accumulate",
+    "clickSelector": ".view-all, .reply-pager .pager-btn.next",
+    "waitMs": 400,
+    "quietMs": 600
+  },
+  "naive": {
+    "strategy": "click-more",
+    "clickSelector": ".view-all, .reply-pager .pager-btn.next",
+    "waitMs": 400,
+    "quietMs": 600,
+    "expectedRows": 22
+  },
+  "trapVerifiedBy": "naive",
+  "stopSignal": [
+    {
+      "selector": ".view-all",
+      "exists": false
+    },
+    {
+      "selector": ".reply-pager .pager-btn.next",
+      "exists": false
+    },
+    {
+      "selector": "header .count",
+      "exists": true,
+      "textIncludes": "共 55 条评论"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "expectedRows": 60,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": "li.item", "textPrefix": "Item " },
+  "oracle": { "strategy": "scroll-window" },
+  "naive": { "strategy": "static", "rowMatch": { "selector": "li.item", "textPrefix": "Item " }, "expectedRows": 15 },
+  "stopSignal": [{ "selector": "body", "textIncludes": "You've reached the end" }],
+  "trapVerifiedBy": "naive"
+}

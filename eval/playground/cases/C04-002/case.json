@@ -1,0 +1,15 @@
+{
+  "id": "C04-002",
+  "pattern": ["C4"],
+  "title": "斑马纹表格（英文文案，奇偶行用哈希式 class 交替），留出集，共 40 行",
+  "source": "合成（pattern C4 的形状的留出变体：英文文案 + 哈希式 class，用于防止对 C04-001 的类名与文案过拟合）",
+  "variant": { "rows": 40, "lang": "en", "classes": "hash" },
+  "url": "/dev-fixtures/playground/zebra-table?rows=40&lang=en&classes=hash",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/zebra-table/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/zebra-table.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

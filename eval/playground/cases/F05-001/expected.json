@@ -1,0 +1,20 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "stuck",
+  "rowMatch": {
+    "selector": "#list li",
+    "textPrefix": "商品 "
+  },
+  "oracle": {
+    "strategy": "click-more",
+    "clickSelector": "#load-more"
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 10
+  },
+  "stopSignal": [
+    { "selector": "#load-more", "exists": true, "textIncludes": "加载中" }
+  ],
+  "trapVerifiedBy": "stopSignal"
+}

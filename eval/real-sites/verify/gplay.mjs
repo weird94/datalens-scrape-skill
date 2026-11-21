@@ -1,0 +1,10 @@
+import {createRequire} from 'module';
+const {chromium}=createRequire(import.meta.url)('playwright');
+const b=await chromium.launch();const p=await b.newPage({viewport:{width:1300,height:900},locale:'en-US'});
+await p.goto('https://play.google.com/store/apps/details?id=com.devsisters.ck&hl=en&gl=NZ',{waitUntil:'networkidle'});
+await p.getByRole('button',{name:/See all reviews|Ratings and reviews/i}).first().click().catch(async e=>{console.log('click1 fail');});
+await p.waitForTimeout(3000);
+const d=p.locator('[role=dialog]').first();
+const t=await d.innerText().catch(()=> 'nodialog');
+console.log(t.slice(0,4000));
+await b.close();

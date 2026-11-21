@@ -1,0 +1,12 @@
+{
+  "url": "http://localhost:3031/t/8d5dd57d",
+  "rows": "#list > li",
+  "fields": {
+    "name": ".r1b4d6f",
+    "price": ".r3e8a0c"
+  },
+  "require": ["name"],
+  "next": { "type": "click", "selector": "div.r8f1a3b > a.r4f0b8c" },
+  "dedupe": ["name"],
+  "maxPages": 50
+}

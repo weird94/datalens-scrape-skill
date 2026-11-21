@@ -1,0 +1,9 @@
+{
+  "expectedRows": 0,
+  "expectedStop": "page-empty",
+  "expectedColumns": {},
+  "rowMatch": { "selector": "li", "textPrefix": "" },
+  "stopSignal": [{ "selector": "body", "textIncludes": "本店暂无评价" }],
+  "trapVerifiedBy": "stopSignal",
+  "oracle": { "strategy": "static" }
+}

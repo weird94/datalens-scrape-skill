@@ -1,0 +1,40 @@
+{
+  "id": "G01-002",
+  "pattern": [
+    "G1"
+  ],
+  "title": "创作者后台：用户要「每条帖子的播放、点赞、评论」，三项分散在几个视图里——主页动态有点赞和评论没有播放（滚动加载，每批 6 条），视频网格只有播放，内容库表格有播放、评论、分享但「列」菜单里没有点赞列，数据分析页只有全账号汇总；没有一个视图三项全有，24 条帖子",
+  "source": "合成（形状来自 2026-11-17 生产会话 thread 55a68588：社交平台个人主页 + 专业后台，agent 在内容库 / 主页动态 / 数据分析之间来回 36 步、三次打开列菜单、一次预览都没跑，积分耗尽、0 行、用户没收到任何结论）",
+  "variant": {
+    "lang": "en",
+    "posts": 24,
+    "batch": 6
+  },
+  "url": "/dev-fixtures/playground/creator-hub?view=profile&lang=en",
+  "message": "I want to see the views, like counts and comment counts of all videos and posts, and the overall total too",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "agentExpectation": "在有限步数内采到一个视图的全部 24 行（内容库：播放+评论；或主页动态：点赞+评论），并在回复里说明缺的那一项在哪个视图 / 拿不到；不在视图之间反复找同一列。",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/creator-hub/route.ts",
+    "packages/backend/src/server/agents/ai-scrape-agent.ts",
+    "packages/backend/src/server/agents/ai-scrape-skill-toolset.ts",
+    "packages/backend/src/server/agents/__test__/ai-scrape-trim-column-hunt.test.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ],
+  "product": {
+    "red": {
+      "commit": "967b1e57 (main)",
+      "path": "verify-ai-scrape-column-hunt.ts，扩展 1.21.0 商店 CI 构建，上限 30 次调用",
+      "result": "main 1/2 red（30 次封顶、0 预览、列菜单 3 次）；另 1 次 14 次调用采到 24 行"
+    },
+    "green": {
+      "commit": "fix/ai-scrape-column-hunt 8d03bf12",
+      "path": "同上",
+      "result": "2/2 green：20–23 次调用出确认卡，采内容库 24 行，回复说明 Reach 不是点赞、点赞不在表里",
+      "change": "summarizeInspectOutput 保留旧探查看到的文字（探查样本、展开树的文字、TEXT HEAD），尾注不再叫它重查；skill 提示词加「字段分散在几页时采字段最多的列表并说明缺什么」「看过的不重看（空/加载中/出错除外）」"
+    }
+  }
+}

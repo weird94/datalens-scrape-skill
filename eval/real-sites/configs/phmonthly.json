@@ -1,0 +1,14 @@
+{
+  "url": "https://www.producthunt.com/leaderboard/monthly/2025/9",
+  "rows": "section[data-test^='post-item']",
+  "fields": {
+    "name": "a[data-test^='post-name']",
+    "link": { "css": "a[data-test^='post-name']", "attr": "href" },
+    "row_text": "."
+  },
+  "require": ["name"],
+  "dedupe": ["link"],
+  "waitTimeoutMs": 20000,
+  "initialWaitMs": 5000,
+  "maxPages": 1
+}

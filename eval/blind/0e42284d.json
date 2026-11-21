@@ -1,0 +1,12 @@
+{
+  "url": "http://localhost:3031/t/0e42284d",
+  "rows": "ul.list > li.item:not(.more-row)",
+  "fields": {
+    "title": ".title",
+    "price": ".price"
+  },
+  "require": ["title", "price"],
+  "next": { "type": "load-more", "selector": "ul.list button.expand" },
+  "dedupe": ["title", "price"],
+  "maxPages": 50
+}

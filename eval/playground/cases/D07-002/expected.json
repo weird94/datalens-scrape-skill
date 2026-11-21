@@ -1,0 +1,8 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": ".p9s", "textPrefix": "Analyst role " },
+  "oracle": { "strategy": "next-link", "clickSelector": "button.n6r" },
+  "naive": { "strategy": "static", "expectedRows": 10 },
+  "trapVerifiedBy": "naive"
+}

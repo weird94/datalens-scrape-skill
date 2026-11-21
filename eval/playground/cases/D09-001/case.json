@@ -1,0 +1,12 @@
+{
+  "id": "D09-001",
+  "pattern": ["D9", "D8"],
+  "title": "IntersectionObserver 无限滚动，列表在内部 overflow:auto 容器里，8 批 × 30 行",
+  "source": "合成（pattern D9 的形状，参考 地图侧栏 / SPA 内部滚动）",
+  "variant": { "batches": 8, "batchSize": 30, "innerScroll": true, "endText": false, "delayMs": 300 },
+  "url": "/dev-fixtures/playground/io-scroll?batches=8&batchSize=30&innerScroll=1",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": ["packages/copilot-services/src/execution/execution-controller.ts"],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

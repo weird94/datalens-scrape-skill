@@ -1,0 +1,30 @@
+{
+  "id": "B04-003",
+  "pattern": [
+    "B4"
+  ],
+  "title": "卡片内的行被当成行（atomic CSS）：12 张帖子卡，每张 3–4 行（头部 / 正文 / 媒体 / 操作栏）类名完全相同，按行计数得 42（卡片才是行）；一半的卡没有媒体行（超过 30% 的卡行数不同，已知缺口）",
+  "source": "合成（形状来自 2026-10-17 一位用户在某社交平台账号主页的采集：一条帖子被拆成 3–4 行，见 docs/x-tweet-split-rows-root-cause-2026-10-20.md；类名、文案、属性都不是那个站的）",
+  "variant": {
+    "lang": "zh",
+    "classStyle": "atomic-hash",
+    "cards": 12,
+    "linesPerCard": "3–4",
+    "cardsWithoutMedia": "1/2"
+  },
+  "url": "/dev-fixtures/playground/card-atomic-lines?cards=12&bare=2",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "product": {
+    "status": "known-gap",
+    "note": "同一单测：main 与 PR #77 上都 red。行数不同的卡超过 30%，countConformingTables 的 0.7 门槛不满足，行列表不被标记；按要求不改阈值"
+  },
+  "relatedCode": [
+    "packages/core/src/structural-list-tree.ts",
+    "packages/backend/src/app/api/select-structural-lists/route.ts"
+  ],
+  "relatedDocs": [
+    "docs/x-tweet-split-rows-root-cause-2026-10-20.md",
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

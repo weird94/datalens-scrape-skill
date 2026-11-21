@@ -1,0 +1,12 @@
+{
+  "expectedRows": 12,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": ".album", "textPrefix": "专辑" },
+  "oracle": { "strategy": "static" },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": ".wrap > *", "textPrefix": "专辑" },
+    "expectedRows": 23
+  },
+  "trapVerifiedBy": "naive"
+}

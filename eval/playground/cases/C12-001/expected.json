@@ -1,0 +1,13 @@
+{
+  "expectedRows": 12,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "取消政策": ["免费取消", "免费取消", "免费取消", "免费取消", ""],
+    "预付": ["无需预付 – 到店付款", "无需预付 – 到店付款", "", "无需预付 – 到店付款", "无需预付 – 到店付款"],
+    "剩余房量": ["仅剩 2 间", "", "仅剩 4 间", "", "仅剩 6 间"]
+  },
+  "rowMatch": { "selector": "div.stay", "textPrefix": "住宿 " },
+  "oracle": { "strategy": "static" },
+  "trapVerifiedBy": "vitest",
+  "trapTest": "packages/backend/src/app/dev-fixtures/playground/__test__/optional-perk-slots.test.ts：第 4 张卡（没有含早餐）li:nth-of-type(3) 读到「无需预付」；按位置 5 取剩余房量少于实际条数；按 :has(图标标记) 取逐行正确"
+}

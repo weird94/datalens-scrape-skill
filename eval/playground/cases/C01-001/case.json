@@ -1,0 +1,12 @@
+{
+  "id": "C01-001",
+  "pattern": ["C1"],
+  "title": "多字段共用同一选择器：每行两个计数的 class 都是 stat，只能按先后顺序区分，共 20 行",
+  "source": "合成（pattern C1 的形状：同一行的两个数值字段 class 完全相同，取到同一个元素；区分靠出现顺序）",
+  "variant": { "rows": 20 },
+  "url": "/dev-fixtures/playground/shared-selector?rows=20",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

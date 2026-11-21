@@ -1,0 +1,23 @@
+{
+  "id": "D05-002",
+  "pattern": ["D5"],
+  "title": "整页跳转翻页，第 1 页列表外套页面级包装和一层带 class 的中间层、第 2 页起都消失；列表容器自己有 class（去掉开头祖先段即可找回），侧栏有同 class 的推荐块，共 3 页",
+  "source": "合成（形状来自 2026-10-25 B 站搜索登录态：第 2 页去掉了第 1 页的 search-page-all 包装，采集停在第 1 页；见 docs/scrape-loop-ai-stop-decision-spec-2026-10-19.md 第 14 节）",
+  "variant": { "lang": "zh", "classes": "semantic", "list": "classed", "pages": 3, "perPage": 10 },
+  "url": "/dev-fixtures/playground/wrapper-drop/1?pages=3&perPage=10&list=classed",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "product": {
+    "status": "green",
+    "note": "packages/e2e-harness/src/verify-pagination-root-relocate.ts（真插件，识别→分析→采集都走 AiToolService）：分析出的 root 是 div.result-wrap > div.video-list.row。main f2eb9e2e 上 red（10/30 行，partialReason navigated-away，停在第 1 页）；PR #96 cd7ed703 上 green（30/30，规则去掉祖先段找回 2 次，AI 0 次）"
+  },
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/wrapper-drop/[page]/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/wrapper-drop.test.ts",
+    "packages/copilot-services/src/execution/root-relocation.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md",
+    "docs/scrape-loop-ai-stop-decision-spec-2026-10-19.md"
+  ]
+}

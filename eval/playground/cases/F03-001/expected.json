@@ -1,0 +1,18 @@
+{
+  "expectedRows": 5,
+  "expectedStop": "gated",
+  "expectedColumns": {
+    "商品": ["商品 1", "商品 2", "商品 3"]
+  },
+  "rowMatch": {
+    "selector": "#list li",
+    "textPrefix": "商品 "
+  },
+  "oracle": {
+    "strategy": "scroll-window"
+  },
+  "stopSignal": [
+    { "selector": "body", "textIncludes": "登录后查看全部内容" }
+  ],
+  "trapVerifiedBy": "stopSignal"
+}

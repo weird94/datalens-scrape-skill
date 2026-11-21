@@ -1,0 +1,20 @@
+{
+  "url": "https://open.spotify.com/artist/7Dx7RhX0mFuXhCOUgB01uM",
+  "waitFor": "a[href$=\"/discography/all\"]",
+  "initialWaitMs": 2000,
+  "expand": ["a[href$=\"/discography/all\"]"],
+  "rows": "div:has(> div > div > [data-testid=\"release-date\"])",
+  "fields": {
+    "title": "a[href*=\"/album/\"]",
+    "type": "span:has(+ [data-separator] + [data-testid=\"release-date\"])",
+    "year": "[data-testid=\"release-date\"]",
+    "tracks": "[data-testid=\"release-date\"] + [data-separator] + span",
+    "link": { "css": "a[href*=\"/album/\"]", "attr": "href" },
+    "cover": { "css": "img", "attr": "src" }
+  },
+  "require": ["title", "link"],
+  "dedupe": ["link"],
+  "next": { "type": "scroll", "scroller": "#main-view .main-view-container__scroll-node > div", "step": 500 },
+  "quietMs": 1000,
+  "maxPages": 150
+}

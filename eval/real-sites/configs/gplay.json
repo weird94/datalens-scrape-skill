@@ -1,0 +1,20 @@
+{
+  "url": "https://play.google.com/store/apps/details?id=com.devsisters.ck&pcampaignid=merch_published_cluster_promotion_battlestar_deals_week_20off_top_games_cluster_websky",
+  "waitFor": "button[aria-label=\"See more information on Ratings and reviews\"]",
+  "expand": ["button[aria-label=\"See more information on Ratings and reviews\"]"],
+  "autoDismiss": false,
+  "rows": "[role=dialog] div.RHo1pe",
+  "fields": {
+    "review_id": { "css": "header[data-review-id]", "attr": "data-review-id" },
+    "user": "div.X5PpBb",
+    "rating": { "css": "header [role=img][aria-label]", "attr": "aria-label" },
+    "date": "span.bp9Aid",
+    "text": "div.h3YV2d",
+    "helpful": "div.AJTPZc"
+  },
+  "require": ["review_id", "text"],
+  "next": { "type": "scroll", "scroller": "[role=dialog] div.fysCi" },
+  "dedupe": ["review_id"],
+  "maxRows": 50,
+  "maxPages": 8
+}

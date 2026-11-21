@@ -1,0 +1,12 @@
+{
+  "id": "C09-001",
+  "pattern": ["C9"],
+  "title": "段落直接持有文本：7 段中只有第 1 段的文字包在 span 里，其余 6 段文字直接在 p 上",
+  "source": "合成（pattern C9 的形状：正文段落里只有部分文字包在 span 中，直接持有文本的段落在只认 span 的选择器下会丢失）",
+  "variant": { "paras": 7, "withSpan": 1 },
+  "url": "/dev-fixtures/playground/paragraph-text?paras=7&withSpan=1",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

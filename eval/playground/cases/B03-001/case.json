@@ -1,0 +1,12 @@
+{
+  "id": "B03-001",
+  "pattern": ["B3"],
+  "title": "可排序表头（3 个排序按钮）+ 表下 12 条脚注，tbody 里 12 行商品数据",
+  "source": "合成（pattern B3 的形状，参考 百科类可排序数据表与表下脚注）",
+  "variant": { "rows": 12 },
+  "url": "/dev-fixtures/playground/sortable-table?rows=12",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

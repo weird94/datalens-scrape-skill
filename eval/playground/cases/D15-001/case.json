@@ -1,0 +1,25 @@
+{
+  "id": "D15-001",
+  "pattern": [
+    "D15"
+  ],
+  "title": "点击处理挂在按钮里的标签上：10 条主评论，6 条带「展开N条回复」，按钮是 button > div.label > span，只有 label 上有处理；回复与主评论同 class、嵌在主评论里，每次先出 3 条，再点「展开更多」每次 +10，「收起」与「展开更多」共用基础 class，共 58 条（含回复）",
+  "source": "合成（形状来自 2026-11-10 短视频站视频评论区：侧栏 AI 采集评论时，引擎对「展开N条回复」按钮调 el.click() 什么都不发生，只采到主评论；直接点按钮里的 span 才展开）",
+  "variant": {
+    "lang": "zh",
+    "classes": "semantic",
+    "comments": 10
+  },
+  "url": "/dev-fixtures/playground/reply-threads?comments=10",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/reply-threads/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/reply-threads.test.ts",
+    "packages/scrape-skill/scripts/lib/in-page.mjs",
+    "packages/scrape-skill/eval/dev/D15-001.json"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

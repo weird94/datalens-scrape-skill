@@ -1,0 +1,15 @@
+{
+  "expectedRows": 0,
+  "expectedStop": "blocked",
+  "rowMatch": {
+    "selector": "li",
+    "textPrefix": ""
+  },
+  "oracle": {
+    "strategy": "static"
+  },
+  "stopSignal": [
+    { "selector": "body", "textIncludes": "访问被拒绝（403）" }
+  ],
+  "trapVerifiedBy": "stopSignal"
+}

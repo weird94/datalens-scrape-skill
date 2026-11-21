@@ -1,0 +1,25 @@
+{
+  "expectedRows": 54,
+  "expectedStop": "single-page",
+  "rowMatch": {
+    "selector": ".x7c2a1",
+    "textPrefix": "user "
+  },
+  "oracle": {
+    "strategy": "click-more",
+    "clickSelector": "button.u8b4a6 .w9a2f7, button.y3c9e5:not(.p0d6b1) .w9a2f7",
+    "waitMs": 500,
+    "quietMs": 800
+  },
+  "stopSignal": [
+    {
+      "selector": "button.u8b4a6",
+      "exists": false
+    },
+    {
+      "selector": "button.y3c9e5:not(.p0d6b1)",
+      "exists": false
+    }
+  ],
+  "trapVerifiedBy": "vitest"
+}

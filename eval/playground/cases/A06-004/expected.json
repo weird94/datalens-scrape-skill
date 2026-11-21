@@ -1,0 +1,9 @@
+{
+  "expectedRows": 127,
+  "expectedStop": "end-of-list",
+  "filledTextPrefix": "member_",
+  "rowMatch": {
+    "selector": "thread-reply",
+    "textPrefix": "member_"
+  }
+}

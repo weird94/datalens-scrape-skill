@@ -1,0 +1,13 @@
+{
+  "expectedRows": 15,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {},
+  "rowMatch": { "selector": "ul.list > li.item", "textPrefix": "アイテム " },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "ul.list li", "textPrefix": "" },
+    "expectedRows": 16
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "click-more", "clickSelector": "button.expand" }
+}

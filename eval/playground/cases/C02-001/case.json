@@ -1,0 +1,12 @@
+{
+  "id": "C02-001",
+  "pattern": ["C2"],
+  "title": "列表共 30 行，每隔 10 行的标题外多一层 div.top 包装且行内多一个缩略图块",
+  "source": "合成（pattern C2 的形状，参考 eBay 评价 / 贝壳租房：带晒图的行多一层包装，对齐时同一字段被拆成两列）",
+  "variant": { "rows": 30, "wrapEvery": 10 },
+  "url": "/dev-fixtures/playground/wrapper-rows?rows=30&wrapEvery=10",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

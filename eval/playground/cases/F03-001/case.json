@@ -1,0 +1,15 @@
+{
+  "id": "F03-001",
+  "pattern": ["F3"],
+  "title": "登录墙：前 5 行可见，列表末端被登录遮罩覆盖且不再加载；站点实际有 20 条",
+  "source": "合成（pattern F3 的形状：列表前几行可见，之后被登录遮罩挡住且滚到底不再追加；参考 §1 F3 的登录墙现场）",
+  "variant": { "visible": 5, "total": 20 },
+  "url": "/dev-fixtures/playground/wall-overlay?visible=5&total=20",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/wall-overlay/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/wall-overlay.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

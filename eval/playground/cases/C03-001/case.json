@@ -1,0 +1,12 @@
+{
+  "id": "C03-001",
+  "pattern": ["C3"],
+  "title": "价格块 class 是哈希值，有折扣的行多一个划线原价，位置选择器取到原价",
+  "source": "合成（pattern C3 的形状：易变哈希 class 被判为不稳定、退回位置选择器；有折扣的行多一个划线原价，位置选择器取错列）",
+  "variant": { "rows": 20, "discountEvery": 3 },
+  "url": "/dev-fixtures/playground/volatile-price?rows=20&discountEvery=3",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

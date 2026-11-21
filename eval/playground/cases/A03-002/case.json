@@ -1,0 +1,13 @@
+{
+  "id": "A03-002",
+  "pattern": ["A3"],
+  "title": "递归嵌套包装，英文文案、哈希类名、7 层（形状同 A03-001，层数不同）",
+  "source": "合成（pattern A3 的形状，同 A03-001；换成英文文案与哈希类名、层数改为 7）",
+  "variant": { "lang": "en", "albums": 7, "classes": "hash-1" },
+  "url": "/dev-fixtures/playground/recursive-wrap?albums=7&lang=en&classes=hash-1",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "notes": "rowMatch.textPrefix 判不出嵌套 wrap 行（兄弟组 13 个节点都以「Album 」开头）；拦截靠 expectedRows=7 与 rowMatch.selector 的卡片身份判据。扩展尚未对此 URL 实跑，red 未观测。",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

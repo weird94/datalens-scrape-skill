@@ -1,0 +1,13 @@
+{
+  "expectedRows": 16,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "Cancellation": ["Free cancellation", "Free cancellation", "Free cancellation", "Free cancellation", ""],
+    "Prepayment": ["No prepayment needed – pay at the property", "No prepayment needed – pay at the property", "", "No prepayment needed – pay at the property", "No prepayment needed – pay at the property"],
+    "Rooms left": ["Only 2 left at this price", "", "Only 4 left at this price", "", "Only 6 left at this price"]
+  },
+  "rowMatch": { "selector": "div.e2r", "textPrefix": "Stay " },
+  "oracle": { "strategy": "static" },
+  "trapVerifiedBy": "vitest",
+  "trapTest": "packages/backend/src/app/dev-fixtures/playground/__test__/optional-perk-slots.test.ts（同 C12-001，marker=class 变体）"
+}

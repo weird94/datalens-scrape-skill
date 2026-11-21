@@ -1,0 +1,14 @@
+{
+  "expectedRows": 20,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "#list > li",
+    "textPrefix": "商品 "
+  },
+  "oracle": {
+    "strategy": "static-wait",
+    "waitMs": 2500
+  },
+  "trapVerifiedBy": "vitest",
+  "trapTest": "陷阱存在：首行价格每秒变化，整表文本指纹在两次读取间不同，数据行数却始终是 20"
+}

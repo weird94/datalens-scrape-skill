@@ -1,0 +1,1 @@
+{"url":"http://localhost:3031/dev-fixtures/playground/shadow-thread?total=30&perBatch=10","rows":"comment-card","fields":{"id":{"css":".","attr":"data-id"},"author":".author","time":".time","score":{"css":".score","number":true},"text":"p[slot=body]"},"require":["id"],"dedupe":["id"],"next":{"type":"load-more","selector":"button.more"}}

@@ -1,0 +1,12 @@
+{
+  "id": "A05-003",
+  "pattern": ["A5"],
+  "title": "门控：请先登录后查看，页面只有标题、说明和一个登录按钮（不弹窗），没有列表项",
+  "source": "合成（pattern A5 的形状：未登录时的门控页，只有标题、说明与一个登录按钮，没有列表；按钮不弹窗、不跳转）",
+  "variant": { "lang": "zh", "kind": "gated" },
+  "url": "/dev-fixtures/playground/thin-pages?kind=gated",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "C05-001",
+  "pattern": ["C5"],
+  "title": "分组表格，每组第一行用 rowspan 合并分组单元格，同组后续行只有两个单元格，共 5 组 × 4 行 = 20 行",
+  "source": "合成（pattern C5 的形状，参考 Wikipedia 最大公司表的 rowspan 合并单元格）",
+  "variant": { "lang": "zh", "groups": 5, "perGroup": 4 },
+  "url": "/dev-fixtures/playground/rowspan-table?groups=5&perGroup=4",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

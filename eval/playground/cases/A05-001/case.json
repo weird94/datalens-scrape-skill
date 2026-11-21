@@ -1,0 +1,12 @@
+{
+  "id": "A05-001",
+  "pattern": ["A5"],
+  "title": "瘦页：本店暂无评价，页面只有一个标题和一句说明，没有任何列表项",
+  "source": "合成（pattern A5 的形状：评价区为空的商品页，只剩标题与说明，没有列表；参考中文电商评价区为空时的瘦页）",
+  "variant": { "lang": "zh", "kind": "empty" },
+  "url": "/dev-fixtures/playground/thin-pages?kind=empty",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

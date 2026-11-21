@@ -1,0 +1,1 @@
+{"url":"http://localhost:3031/dev-fixtures/playground/captcha-after/1?pages=10&perPage=10&wallAt=4","rows":"#list > li.item","fields":{"text":"."},"next":{"type":"click","selector":"a.next"}}

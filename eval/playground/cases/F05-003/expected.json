@@ -1,0 +1,20 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "stuck",
+  "rowMatch": {
+    "selector": "#list li",
+    "textPrefix": "アイテム "
+  },
+  "oracle": {
+    "strategy": "click-more",
+    "clickSelector": "#load-more"
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 5
+  },
+  "stopSignal": [
+    { "selector": "#load-more", "exists": true, "textIncludes": "読み込み中" }
+  ],
+  "trapVerifiedBy": "stopSignal"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "G03-001",
+  "pattern": ["G3"],
+  "title": "连续调工具时长时间不说话：ERP 订单表，订单头一行 + 每单 1–3 个商品行，用户要「商品信息和 1688 商品信息两列」，两列都在列表单元格里、不用下钻；15 单 30 个商品行",
+  "source": "合成（形状来自 2026-11-18 生产会话 374671ad：跨境电商 ERP 订单表，agent 第 0 步说「我先看一下页面结构」后 14 步、2 分 33 秒没再说话，165 分零产出，用户断开）",
+  "variant": { "lang": "zh", "orders": 15 },
+  "url": "/dev-fixtures/playground/order-table?orders=15",
+  "message": "采集商品信息和1688商品信息两列",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "agentExpectation": "开采前每连续 4 次以内的工具调用就有一句给用户的话（说已经看到什么、接下来查什么），全程无文字的连续步数 ≤4；最终采到商品行（每个商品一行）。",
+  "relatedCode": [
+    "packages/backend/src/server/agents/ai-scrape-agent.ts",
+    "packages/backend/src/server/agents/ai-scrape-step-facts.ts",
+    "packages/backend/src/app/dev-fixtures/playground/order-table/route.ts",
+    "packages/e2e-harness/src/verify-ai-scrape-reply-habits.ts"
+  ],
+  "relatedDocs": ["docs/ai-scrape-skill-drill-down-design-2026-11-19.md"]
+}

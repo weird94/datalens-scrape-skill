@@ -1,0 +1,17 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": ".item", "textPrefix": "视频 " },
+  "oracle": { "strategy": "next-link", "clickSelector": ".pager a.next" },
+  "naive": {
+    "strategy": "next-link",
+    "clickSelector": ".pager a.next",
+    "rowMatch": { "selector": ".search-page-all .item", "textPrefix": "视频 " },
+    "expectedRows": 10
+  },
+  "stopSignal": [
+    { "selector": ".pager a.next", "exists": false },
+    { "selector": ".pager button.next[disabled]", "textIncludes": "已是最后一页" }
+  ],
+  "trapVerifiedBy": "naive"
+}

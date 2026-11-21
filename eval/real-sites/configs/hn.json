@@ -1,0 +1,21 @@
+{
+  "url": "https://news.ycombinator.com/news",
+  "rows": "tr.athing.submission",
+  "fields": {
+    "rank": "span.rank",
+    "id": { "css": ".", "attr": "id" },
+    "title": "span.titleline > a",
+    "url": { "css": "span.titleline > a", "attr": "href" },
+    "site": "span.sitestr",
+    "points": { "css": "span.score", "sibling": 1 },
+    "author": { "css": "a[href^='user?id=']", "sibling": 1 },
+    "posted_at": { "css": "span.age", "attr": "title", "sibling": 1 },
+    "age": { "css": "span.age", "sibling": 1 },
+    "comments": { "css": "a[href^='item?id=']", "index": 1, "sibling": 1 },
+    "discussion_url": { "css": "span.age a", "attr": "href", "sibling": 1 }
+  },
+  "require": ["title"],
+  "next": { "type": "click", "selector": "a.morelink" },
+  "dedupe": ["id"],
+  "maxPages": 3
+}

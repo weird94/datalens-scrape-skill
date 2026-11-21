@@ -1,0 +1,21 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "wall",
+  "rowMatch": {
+    "selector": ".r7c2e9a",
+    "textPrefix": "Item "
+  },
+  "oracle": {
+    "strategy": "next-link",
+    "clickSelector": "a.r4f0b8c"
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 10
+  },
+  "stopSignal": [
+    { "selector": "a.r4f0b8c", "exists": false },
+    { "selector": "body", "textIncludes": "Security check" }
+  ],
+  "trapVerifiedBy": "stopSignal"
+}

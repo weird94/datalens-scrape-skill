@@ -1,0 +1,6 @@
+{
+  "expectedRows": 24,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": "tbody tr[data-index]", "textPrefix": "" },
+  "oracle": { "strategy": "static-wait", "waitMs": 1500 }
+}

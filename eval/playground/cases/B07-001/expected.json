@@ -1,0 +1,13 @@
+{
+  "expectedRows": 5,
+  "expectedStop": "end-of-list",
+  "expectedColumns": { "姓名": ["成员 1", "成员 2", "成员 3"] },
+  "rowMatch": { "selector": "div.person", "textPrefix": "一号院区" },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "div.rel", "textPrefix": "" },
+    "expectedRows": 10
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "static" }
+}

@@ -1,0 +1,8 @@
+{
+  "expectedRows": 20,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": "ul.list > li.item", "textPrefix": "商品 " },
+  "oracle": { "strategy": "static" },
+  "trapVerifiedBy": "vitest",
+  "trapTest": "服务端 HTML 里每张图的 src 都是 1×1 占位 gif，真实地址在 data-src 上（陷阱存在）"
+}

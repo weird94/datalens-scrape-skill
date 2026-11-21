@@ -1,0 +1,12 @@
+{
+  "id": "A02-001",
+  "pattern": ["A2"],
+  "title": "虚拟列表：固定 400px 视口只挂 10 行，滚动时回收旧行重渲染，共 200 行",
+  "source": "合成（pattern A2 的形状，参考 微博帖子评论区的虚拟滚动列表）",
+  "variant": { "lang": "zh", "total": 200, "window": 10, "itemHeight": 40 },
+  "url": "/dev-fixtures/playground/virtual-list?total=200&window=10&itemHeight=40",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

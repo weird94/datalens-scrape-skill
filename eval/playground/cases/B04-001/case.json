@@ -1,0 +1,12 @@
+{
+  "id": "B04-001",
+  "pattern": ["B4"],
+  "title": "卡片内副标题行被当成行：12 张卡、每张 3 行副标题，按 meta-row 计数得 36（卡片才是行）",
+  "source": "合成（pattern B4 的形状：卡片列表里每张卡带三行副标题（类型、日期、来源），副标题行与卡片标题共用同一容器，按副标题行计数会翻三倍；参考通用活动 / 演出列表卡片）",
+  "variant": { "lang": "zh", "cards": 12, "subrows": 3 },
+  "url": "/dev-fixtures/playground/card-subrows?cards=12",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

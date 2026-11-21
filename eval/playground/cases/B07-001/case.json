@@ -1,0 +1,28 @@
+{
+  "id": "B07-001",
+  "pattern": ["B7"],
+  "title": "卡片之间夹着一排没有 name 的隐藏 input，真正的卡片列表进不了候选：5 张卡，每张后面 17 个隐藏 input（其中 4 个没有 name，共 20 个，比卡片多）；候选里只剩每张卡内部那两半（同 class 的兄弟），根锚在该卡自己的 id 上",
+  "source": "合成（形状来自 2026-10-30 一位用户在某医院医生目录页的采集：同一页 3 次都只采到 1 行，用户重试了 3 次；见 docs/card-hidden-fields-root-cause-2026-11-06.md；类名、文案、属性都不是那个站的）",
+  "variant": { "lang": "zh", "classes": "semantic", "cards": 5, "hiddenPerCard": 17, "barePerCard": 4 },
+  "url": "/dev-fixtures/playground/card-hidden-fields?cards=5&hidden=17&bare=4",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "product": {
+    "status": "green",
+    "note": "packages/backend/src/app/api/select-structural-lists/__test__/playground-b07-card-hidden-fields.test.ts（core 源码 → 结构树 → 选表路由，不走真 AI）：修复前（origin/main c96b016f）red——结构树里没有卡片列表（容器 #member-list），只有 5 个 `#person-<id> > div.person-body` + `div.rel ×2` 的半张卡节点，形状与线上配置逐字对应；选其中任意一个只读出 2 行。修复：packages/core/src/utils/children.ts 的 isBlankElement 把 input[type=hidden] 判为空白（它排在「input 都算内容」的名单之前），不再参与兄弟分组。修复后 green：卡片列表是候选（根 #member-list、×5、无分组规则），选它读出 5 行；把修复关掉这个测试 3 条全红。隐藏 input 个数（含全不带 name、很少、很多）都不再影响。另用 2026-11-05 存下的真实渲染 DOM 复验：修复后候选里出现 `#doctors-list > div.doctor-info-detail ×5`（runtimeRows 5），修复前没有。真实扩展 harness 没跑（需 build，仓库规定不在这里 build）。"
+  },
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/card-hidden-fields/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/card-hidden-fields.test.ts",
+    "packages/backend/src/app/api/select-structural-lists/__test__/playground-b07-card-hidden-fields.test.ts",
+    "packages/core/src/utils/children.ts",
+    "packages/core/src/utils/__test__/children.test.ts",
+    "packages/core/src/__test__/detect-hidden-form-fields-between-rows.test.ts",
+    "packages/core/src/detect-tables.ts",
+    "packages/core/src/utils/identifier.ts"
+  ],
+  "relatedDocs": [
+    "docs/card-hidden-fields-root-cause-2026-11-06.md",
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "C06-001",
+  "pattern": ["C6"],
+  "title": "人数只在 aria-label 里，可见文本为空，共 12 行",
+  "source": "合成（pattern C6 的形状，参考住宿类列表里只有图标的入住人数列）",
+  "variant": { "rows": 12 },
+  "url": "/dev-fixtures/playground/aria-values?rows=12",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

@@ -1,0 +1,17 @@
+{
+  "expectedRows": 40,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": ".item",
+    "textPrefix": "商品 "
+  },
+  "oracle": {
+    "strategy": "dismiss-then-scroll",
+    "dismissSelector": ".popup-close"
+  },
+  "naive": {
+    "strategy": "scroll-window",
+    "expectedRows": 20
+  },
+  "trapVerifiedBy": "naive"
+}

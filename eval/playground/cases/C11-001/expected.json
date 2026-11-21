@@ -1,0 +1,24 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": ".advisor-card",
+    "textPrefix": "顾问 "
+  },
+  "filledTextPrefix": "顾问 ",
+  "oracle": {
+    "strategy": "next-link",
+    "clickSelector": ".pager a.next"
+  },
+  "stopSignal": [
+    {
+      "selector": ".pager a.next",
+      "exists": false
+    },
+    {
+      "selector": ".pager button.next[disabled]",
+      "textIncludes": "已是最后一页"
+    }
+  ],
+  "trapVerifiedBy": "vitest"
+}

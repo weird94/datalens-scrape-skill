@@ -1,0 +1,13 @@
+{
+  "expectedRows": 3,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {},
+  "rowMatch": { "selector": "li.review", "textPrefix": "评价 " },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "li.card", "textPrefix": "推荐 " },
+    "expectedRows": 20
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "static" }
+}

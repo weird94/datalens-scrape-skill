@@ -1,0 +1,15 @@
+{
+  "id": "F05-002",
+  "pattern": ["F5"],
+  "title": "续载挂起（英文文案，哈希式 class，留出集）：每批 8 行，累计 4 批（32 行）后 Load more 变 Loading…，之后点击不再追加、按钮不消失",
+  "source": "合成（pattern F5 的形状的留出变体：英文文案 + 哈希式 class + 不同批量与批数，用于防止对 F05-001 的类名、文案与数字过拟合）",
+  "variant": { "lang": "en", "classes": "hash", "batchSize": 8, "hangAfter": 4 },
+  "url": "/dev-fixtures/playground/hang-after?batchSize=8&hangAfter=4&lang=en&classes=hash",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/hang-after/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/hang-after.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

@@ -1,0 +1,30 @@
+{
+  "expectedRows": 177,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "#user-name a",
+    "textPrefix": "用户 "
+  },
+  "oracle": {
+    "strategy": "click-accumulate",
+    "clickSelector": "#view-more text-button, #pagination-body text-button:has-text(\"下一页\")",
+    "scrollToEnd": true,
+    "waitMs": 3200,
+    "quietMs": 600
+  },
+  "naive": {
+    "strategy": "scroll-window",
+    "expectedRows": 36
+  },
+  "trapVerifiedBy": "naive",
+  "stopSignal": [
+    {
+      "selector": "#end",
+      "exists": true
+    },
+    {
+      "selector": "#view-more",
+      "exists": false
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "D15-002",
+  "pattern": [
+    "D15"
+  ],
+  "title": "点击处理挂在按钮里的标签上（留出集）：英文文案、哈希类名，8 条主评论，5 条带「View N replies」，共 54 条（含回复）",
+  "source": "合成（D15-001 的留出变体）",
+  "variant": {
+    "lang": "en",
+    "classes": "hash",
+    "comments": 8
+  },
+  "url": "/dev-fixtures/playground/reply-threads?comments=8&lang=en&classes=hash",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/reply-threads/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/reply-threads.test.ts",
+    "packages/scrape-skill/scripts/lib/in-page.mjs"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

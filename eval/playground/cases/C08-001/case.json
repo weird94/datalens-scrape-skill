@@ -1,0 +1,12 @@
+{
+  "id": "C08-001",
+  "pattern": ["C8"],
+  "title": "列表第 10 行后有「查看全部」控件行，其后 5 行 hidden 隐藏，共 15 行",
+  "source": "合成（pattern C8 的形状，参考 微博回复「共 61 条回复」展开行）",
+  "variant": { "rows": 15, "lang": "zh", "cls": "semantic" },
+  "url": "/dev-fixtures/playground/expand-list?rows=15",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

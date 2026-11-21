@@ -1,0 +1,1 @@
+{"url":"http://localhost:3031/dev-fixtures/playground/stacked-slides?slides=5&current=3&comments=12","setup":[{"click":"button.comment-btn"}],"rows":"aside.comments li.comment","fields":{"text":"."}}

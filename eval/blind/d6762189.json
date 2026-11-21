@@ -1,0 +1,12 @@
+{
+  "url": "http://localhost:3031/t/d6762189",
+  "rows": "table.grid > tbody > tr.row",
+  "fields": {
+    "分组": "td.group",
+    "商品": "td.title",
+    "价格": "td.price"
+  },
+  "require": ["商品"],
+  "fillDown": ["分组"],
+  "dedupe": ["分组", "商品"]
+}

@@ -1,0 +1,38 @@
+{
+  "id": "A06-004",
+  "pattern": [
+    "A6"
+  ],
+  "title": "评论套回复要拆成各层各自一行：同一个标签一层套一层（最深 6 层），部分回复要点「N more replies」才出来；只有顶层评论带额外的布局类，识别出的条目选择器带着它就选不中嵌套回复。不靠任何站点规则，要采到全部 12 条主评论 + 115 条回复 = 127 行",
+  "source": "合成（同 A06-003 的 deep-thread mock，缩小体量。2026-11-12 真 Reddit：递归规则按字符串没套上 → 无 isTree → 分析把评论连同回复并成一格、没有展开按钮列，只采到 58 行顶层评论、一个回复都没展开）",
+  "variant": {
+    "lang": "en",
+    "top": 12,
+    "first": 12,
+    "perBatch": 4,
+    "clutter": 0,
+    "topClass": "top-level col-start-2"
+  },
+  "url": "/dev-fixtures/playground/deep-thread?top=12&first=12&perBatch=4&clutter=0&topClass=top-level%20col-start-2",
+  "heldOut": false,
+  "status": "draft",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/deep-thread/route.ts",
+    "packages/scraper-copilot/background/services/table-analyze-service.ts",
+    "packages/core/src/recursive-item-tree.ts",
+    "packages/copilot-services/src/execution/helper/list-records.ts"
+  ],
+  "relatedDocs": [
+    "docs/recursive-tree-ai-detection-plan-2026-11-12.md"
+  ],
+  "product": {
+    "red": {
+      "commit": "fix/expand-container-stall dc71eb7d",
+      "result": "30/127：无 isTree，回复被配成一层 nestedLists，隐藏回复没展开"
+    },
+    "green": {
+      "commit": "feat/ai-recursive-tree（未提交）",
+      "result": "127/127 COMPLETED，连续 5 次通过（加分析提示后 3/3、修 analyze-row 后 1/1）"
+    }
+  }
+}

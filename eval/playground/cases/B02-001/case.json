@@ -1,0 +1,12 @@
+{
+  "id": "B02-001",
+  "pattern": ["B2"],
+  "title": "主体为空：顶部 6 个频道导航 li，主体只有 3 个筛选按钮和「登录后即可查看内容」，结果区域 0 行",
+  "source": "合成（pattern B2 的形状：主体为空，只剩导航与筛选条，被当成列表；参考 登录墙前的频道首页）",
+  "variant": { "navItems": 6 },
+  "url": "/dev-fixtures/playground/nav-only-empty?navItems=6",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

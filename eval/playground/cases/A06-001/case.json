@@ -1,0 +1,25 @@
+{
+  "id": "A06-001",
+  "pattern": [
+    "A6"
+  ],
+  "title": "内容在 Web Component 的 shadow root 里：评论卡片是自定义元素，作者 / 时间 / 赞数只画在各自的 shadow root，正文经 slot 投入；页头「共 30 条评论」和加载更多按钮也在 shadow root，30 条分 3 批",
+  "source": "合成（形状来自 2026-11-10 Reddit 帖子评论区：shreddit-comment 正文在 light DOM，帖子的「N comments」总数只在 shreddit-post 的 shadow root 里；字段整个画在 shadow root 里是 Lit 一类组件库站点的常见做法）",
+  "variant": {
+    "lang": "zh",
+    "total": 30,
+    "perBatch": 10
+  },
+  "url": "/dev-fixtures/playground/shadow-thread?total=30&perBatch=10",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/shadow-thread/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/shadow-thread.test.ts",
+    "packages/scrape-skill/scripts/lib/in-page.mjs",
+    "packages/scrape-skill/eval/dev/A06-001.json"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

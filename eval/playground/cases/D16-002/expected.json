@@ -1,0 +1,33 @@
+{
+  "expectedRows": 55,
+  "expectedStop": "single-page",
+  "rowMatch": {
+    "selector": ".b9d1f6, .j6b2a8",
+    "textPrefix": "user "
+  },
+  "oracle": {
+    "strategy": "click-accumulate",
+    "clickSelector": ".o5a9d3, .l2e8c6 .k7f2c0:visible",
+    "waitMs": 400,
+    "quietMs": 600
+  },
+  "naive": {
+    "strategy": "click-more",
+    "clickSelector": ".o5a9d3, .l2e8c6 .k7f2c0:visible",
+    "waitMs": 400,
+    "quietMs": 600,
+    "expectedRows": 22
+  },
+  "trapVerifiedBy": "naive",
+  "stopSignal": [
+    {
+      "selector": ".o5a9d3",
+      "exists": false
+    },
+    {
+      "selector": "header .count",
+      "exists": true,
+      "textIncludes": "55 comments"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "expectedRows": 0,
+  "expectedStop": "dead-link",
+  "expectedColumns": {},
+  "rowMatch": { "selector": "li", "textPrefix": "" },
+  "stopSignal": [{ "selector": "body", "textIncludes": "当前内容已被删除，无法查看" }],
+  "trapVerifiedBy": "stopSignal",
+  "oracle": { "strategy": "static" }
+}

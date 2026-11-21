@@ -1,0 +1,29 @@
+{
+  "expectedRows": 58,
+  "expectedStop": "single-page",
+  "rowMatch": {
+    "selector": ".comment-item",
+    "textPrefix": "用户 "
+  },
+  "oracle": {
+    "strategy": "click-more",
+    "clickSelector": "button.reply-expand .label, button.reply-more:not(.collapse) .label",
+    "waitMs": 500,
+    "quietMs": 800
+  },
+  "stopSignal": [
+    {
+      "selector": "button.reply-expand",
+      "exists": false
+    },
+    {
+      "selector": "button.reply-more:not(.collapse)",
+      "exists": false
+    },
+    {
+      "selector": "header .count",
+      "textIncludes": "共 58 条评论"
+    }
+  ],
+  "trapVerifiedBy": "vitest"
+}

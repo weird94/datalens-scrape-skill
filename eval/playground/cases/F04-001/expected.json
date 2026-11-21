@@ -1,0 +1,21 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "wall",
+  "rowMatch": {
+    "selector": ".item",
+    "textPrefix": "商品 "
+  },
+  "oracle": {
+    "strategy": "next-link",
+    "clickSelector": "a.next"
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 10
+  },
+  "stopSignal": [
+    { "selector": "a.next", "exists": false },
+    { "selector": "body", "textIncludes": "安全验证" }
+  ],
+  "trapVerifiedBy": "stopSignal"
+}

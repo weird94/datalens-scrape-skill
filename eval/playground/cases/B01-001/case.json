@@ -1,0 +1,12 @@
+{
+  "id": "B01-001",
+  "pattern": ["B1"],
+  "title": "详情页 + 3 条评价 + 20 项推荐轮播：主列表是评价，轮播更大（选错会得到 20 行）",
+  "source": "合成（pattern B1 的形状：商品详情页主体是详情，可选的只有 3 条评价，页面另有一个更大的横向推荐轮播；参考 Play 应用详情 / Alibaba 商品页）",
+  "variant": { "lang": "zh", "reviews": 3, "carousel": 20 },
+  "url": "/dev-fixtures/playground/detail-page?reviews=3&carousel=20",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

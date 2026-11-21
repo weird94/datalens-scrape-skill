@@ -1,0 +1,12 @@
+{
+  "id": "E03-001",
+  "pattern": ["E3"],
+  "title": "标题自称 160 条，实际只能滚出 123 条：封顶后没有到底文案、没有加载指示",
+  "source": "合成（pattern E3 的形状：评论区标题写的总数大于可加载的行数，滚动续载到上限后停止，没有到底文案，也没有加载指示）",
+  "variant": { "shown": 123, "claimed": 160, "perBatch": 20 },
+  "url": "/dev-fixtures/playground/total-mismatch?shown=123&claimed=160&perBatch=20",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

@@ -1,0 +1,13 @@
+{
+  "expectedRows": 15,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {},
+  "rowMatch": { "selector": "ul.css-lz8f2q > li.css-rw3k9t", "textPrefix": "Item " },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "ul.css-lz8f2q li", "textPrefix": "" },
+    "expectedRows": 16
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "click-more", "clickSelector": "button.css-xb9e2c" }
+}

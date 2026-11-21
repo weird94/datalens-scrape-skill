@@ -1,0 +1,12 @@
+{
+  "id": "D03-D04-D06-001",
+  "pattern": ["D3", "D4", "D6"],
+  "title": "推荐页：换一换、频道切换组、轮播箭头、展开、标签链接、spinner 与唯一真翻页「加载更多」，共 40 行",
+  "source": "合成（参考 今日头条 右栏换一换 + 频道栏、TapTap 标签链接、Xbox/seekho 轮播箭头）",
+  "variant": { "lang": "zh", "totalRows": 40 },
+  "url": "/dev-fixtures/playground/distractors?totalRows=40",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": ["packages/copilot-services/src/utils/pagination-control.ts"],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

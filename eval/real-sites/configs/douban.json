@@ -1,0 +1,21 @@
+{
+  "url": "https://movie.douban.com/top250",
+  "rows": "div.article > ol.grid_view > li",
+  "fields": {
+    "rank": ".pic em",
+    "title": ".hd span.title",
+    "original_title": { "css": ".hd span.title", "index": 1 },
+    "other_titles": ".hd span.other",
+    "link": { "css": ".hd a", "attr": "href" },
+    "playable": ".hd span.playable",
+    "director_cast_year_region_genre": ".bd > p:not(.quote)",
+    "rating": ".rating_num",
+    "votes": ".rating_num ~ span:last-child",
+    "quote": "p.quote",
+    "poster": { "css": ".pic img", "attr": "src" }
+  },
+  "require": ["title", "link"],
+  "next": { "type": "click", "selector": "div.paginator span.next > a" },
+  "dedupe": ["link"],
+  "maxPages": 10
+}

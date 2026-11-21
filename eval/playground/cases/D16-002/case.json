@@ -1,0 +1,25 @@
+{
+  "id": "D16-002",
+  "pattern": [
+    "D16"
+  ],
+  "title": "每条评论的回复区各自翻页（留出集）：英文文案、哈希类名，翻页时按位置复用节点——回复元素和分页器都还是原来那几个、只换文字，「Next」始终是同一个元素、最后一页隐藏；8 条主评论，共 55 条（含回复）",
+  "source": "合成（D16-001 的变体：按位置复用节点的前端框架，翻页不产生新元素）",
+  "variant": {
+    "lang": "en",
+    "classes": "hash",
+    "comments": 8,
+    "render": "patch"
+  },
+  "url": "/dev-fixtures/playground/reply-pages?comments=8&lang=en&classes=hash&render=patch",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/reply-pages/route.ts",
+    "packages/scrape-skill/scripts/lib/collector.mjs",
+    "packages/scrape-skill/scripts/lib/in-page.mjs"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

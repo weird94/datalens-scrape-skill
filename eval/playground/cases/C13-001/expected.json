@@ -1,0 +1,13 @@
+{
+  "expectedRows": 24,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "作者": ["林木", "周舟", "许一", "陈默", "白鹭"],
+    "发表于": ["发表于 2026-11-01 08:00", "发表于 2026-11-02 09:07", "发表于 2026-11-03 10:14", "发表于 2026-11-04 11:21", "发表于 2026-11-05 12:28"]
+  },
+  "rowMatch": { "selector": ".post-card", "textPrefix": "" },
+  "oracle": { "strategy": "scroll-window" },
+  "stopSignal": [{ "selector": ".feed-status", "textIncludes": "没有更多了" }],
+  "trapVerifiedBy": "vitest",
+  "trapTest": "packages/backend/src/app/dev-fixtures/playground/__test__/excerpt-cards.test.ts：折叠模板没有作者行和时间、摘要以作者名开头而全文不带；packages/scrape-skill/scripts/expand-opened-record.test.mjs：main 上作者列全空（red），修复后全满"
+}

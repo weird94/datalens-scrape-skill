@@ -1,0 +1,28 @@
+{
+  "id": "C10-001",
+  "pattern": [
+    "C10"
+  ],
+  "title": "价格的整数和小数各占一个 div，靠 flex 横排画在同一行，rich_text 读成「70\\n\\n.8」",
+  "source": "合成（pattern C10 的形状：2026-11-03 淘宝搜索真机采集，34/100 行价格被拆成两行；同一行有间距的产地块、上下两段的描述块作对照）",
+  "variant": {
+    "rows": 12,
+    "layout": "flex",
+    "lang": "zh",
+    "classes": "semantic"
+  },
+  "url": "/dev-fixtures/playground/split-value?rows=12",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "product": {
+    "status": "green",
+    "note": "copilot-services/src/execution/__test__/playground-c10-split-value.test.ts：main 553ab658 上 red（价格 \"67\\n\\n.1\"、产地 \"浙江\\n\\n杭州\" / \"Oregon\\n\\nPortland\"）；修复后 green（67.1、产地空格隔开、描述两段仍分行）。走的是 extractDataFromElements 的 rich_text 分支（jsdom），未在扩展实跑"
+  },
+  "relatedCode": [
+    "packages/core/src/utils/query-selector.ts",
+    "packages/copilot-services/src/execution/helper/utils.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

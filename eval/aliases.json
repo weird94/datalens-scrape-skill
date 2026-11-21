@@ -1,0 +1,58 @@
+{
+  "f2be2aa1": {
+    "id": "A01-002",
+    "url": "/dev-fixtures/playground/late-list?delayMs=3000&rows=20"
+  },
+  "536c28bd": {
+    "id": "A02-001",
+    "url": "/dev-fixtures/playground/virtual-list?total=200&window=10&itemHeight=40"
+  },
+  "eefd6f82": {
+    "id": "A04-001",
+    "url": "/dev-fixtures/playground/mixed-table?rows=30"
+  },
+  "78f7fa18": {
+    "id": "B01-001",
+    "url": "/dev-fixtures/playground/detail-page?reviews=3&carousel=20"
+  },
+  "d6762189": {
+    "id": "C05-001",
+    "url": "/dev-fixtures/playground/rowspan-table?groups=5&perGroup=4"
+  },
+  "0e42284d": {
+    "id": "C08-001",
+    "url": "/dev-fixtures/playground/expand-list?rows=15"
+  },
+  "a8c71761": {
+    "id": "D03-D04-D06-001",
+    "url": "/dev-fixtures/playground/distractors?totalRows=40"
+  },
+  "af2f9f7a": {
+    "id": "D05-003",
+    "url": "/dev-fixtures/playground/wrapper-drop/1?pages=3&perPage=10&list=bare"
+  },
+  "b84dcae6": {
+    "id": "D07-001",
+    "url": "/dev-fixtures/playground/numbered-pager/1?pages=12&perPage=10"
+  },
+  "11a60f46": {
+    "id": "D09-001",
+    "url": "/dev-fixtures/playground/io-scroll?batches=8&batchSize=30&innerScroll=1"
+  },
+  "b5a72811": {
+    "id": "D10-001",
+    "url": "/dev-fixtures/playground/split-batches?pages=3&perPage=10&splitMs=400"
+  },
+  "df66aacf": {
+    "id": "D11-001",
+    "url": "/dev-fixtures/playground/popup-lock?rows=40&popupAfterMs=2000&popupAfterBatch=2"
+  },
+  "8d5dd57d": {
+    "id": "F04-002",
+    "url": "/dev-fixtures/playground/captcha-after/1?pages=10&perPage=10&wallAt=4&lang=en&classes=hash"
+  },
+  "af9d45ac": {
+    "id": "F05-001",
+    "url": "/dev-fixtures/playground/hang-after?batchSize=10&hangAfter=3"
+  }
+}

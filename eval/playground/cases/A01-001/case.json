@@ -1,0 +1,15 @@
+{
+  "id": "A01-001",
+  "pattern": ["A1"],
+  "title": "列表晚渲染：首屏只有「加载中…」，1.5 秒后插入 20 行数据",
+  "source": "合成（pattern A1 的形状：CSR 列表在页面加载完成后才由脚本插入，参考通用 CSR 站点的列表晚渲染）",
+  "variant": { "lang": "zh", "classes": "semantic", "delayMs": 1500, "rows": 20 },
+  "url": "/dev-fixtures/playground/late-list?delayMs=1500&rows=20",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/copilot-services/src/content/lazy-content-priming.ts",
+    "packages/copilot-services/src/content/table-service.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

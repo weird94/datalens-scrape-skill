@@ -1,0 +1,12 @@
+{
+  "expectedRows": 10,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": "div.h3k > div.x7d > div.r5t", "textPrefix": "" },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "div.h3k > div.x7d", "textPrefix": "" },
+    "expectedRows": 3
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "static" }
+}

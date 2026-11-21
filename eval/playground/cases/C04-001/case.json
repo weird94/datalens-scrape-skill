@@ -1,0 +1,15 @@
+{
+  "id": "C04-001",
+  "pattern": ["C4"],
+  "title": "斑马纹表格，tbody 行 tr.odd / tr.even 交替，共 40 行",
+  "source": "合成（pattern C4 的形状，参考 同花顺 个股列表的奇偶行 class 交替）",
+  "variant": { "rows": 40, "lang": "zh", "classes": "semantic" },
+  "url": "/dev-fixtures/playground/zebra-table?rows=40",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/zebra-table/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/zebra-table.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

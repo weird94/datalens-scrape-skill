@@ -1,0 +1,3984 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-11T14:17:57.274Z",
+  "generatedBy": "packages/e2e-harness/src/walkthrough/import-sites.ts",
+  "inputs": [
+    "test/website.csv",
+    "packages/e2e-harness/first-run-targets.scenarios.json",
+    "test/sites/overrides.json"
+  ],
+  "stats": {
+    "total": 227,
+    "byPriority": {
+      "p0": 55,
+      "p1": 65,
+      "p2": 107
+    },
+    "hosts": 117,
+    "duplicatesMerged": 13,
+    "skippedRows": [
+      {
+        "source": "test/website.csv#row116",
+        "reason": "no URL in 地址"
+      }
+    ]
+  },
+  "sites": [
+    {
+      "id": "amazon-com-gp-goldbox-45daec",
+      "url": "https://www.amazon.com/gp/goldbox?ref_=nav_cs_gb",
+      "host": "www.amazon.com",
+      "name": "amazon / 今日热卖",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row6"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "amazon-com-product-reviews-39180b",
+      "url": "https://www.amazon.com/product-reviews/B092LJ58QN/ref=cm_cr_dp_d_show_all_btm?ie=UTF8&reviewerType=all_reviews",
+      "host": "www.amazon.com",
+      "name": "amazon / 商品评论",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row8"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "amazon-com-s-4b6fab",
+      "url": "https://www.amazon.com/s?i=specialty-aps&bbn=16225020011&rh=n%3A7141123011%2Cn%3A16225020011%2Cn%3A1040664&ref=nav_em__nav_desktop_sa_intl_clothing_0_2_15_2",
+      "host": "www.amazon.com",
+      "name": "amazon / 搜索商品",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row7"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "amazon-com-s-a31c6a",
+      "url": "https://www.amazon.com/s?i=mobile-apps&rh=n%3A9209902011&s=popularity-rank&fs=true&ref=lp_9209902011_sar",
+      "host": "www.amazon.com",
+      "name": "amazon / AppStore",
+      "region": "全球",
+      "category": "应用",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row9"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "ebay-com-fdbk-mweb-profile-25b7a2",
+      "url": "https://www.ebay.com/fdbk/mweb_profile?fdbkType=FeedbackReceivedAsSeller&item_id=385640129467&username=irobot&filter=feedback_page%3ARECEIVED_AS_SELLER&q=385640129467&sort=RELEVANCEV2",
+      "host": "www.ebay.com",
+      "name": "ebay / 商品评论",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row33"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "ebay-com-globaldeals-featured-837265",
+      "url": "https://www.ebay.com/globaldeals/featured/collectibles",
+      "host": "www.ebay.com",
+      "name": "ebay / 每日藏品",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row32"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "ebay-com-sch-i-html-9b4823",
+      "url": "https://www.ebay.com/sch/i.html?_nkw=Jeremy+Lin+jersey&_sacat=0&_from=R40&_trksid=p2334524.m570.l1313&_odkw=Jeremy+Lin+jersey",
+      "host": "www.ebay.com",
+      "name": "ebay / 搜索商品",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row31"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "en-wikipedia-org-wiki-list-of-largest-c059db",
+      "url": "https://en.wikipedia.org/wiki/List_of_largest_companies_by_revenue",
+      "host": "en.wikipedia.org",
+      "name": "first-run target / wikipedia-companies",
+      "region": "",
+      "category": "",
+      "priority": "p0",
+      "source": [
+        "packages/e2e-harness/first-run-targets.scenarios.json#wikipedia-companies"
+      ],
+      "expect": {
+        "minRows": 20
+      },
+      "tags": [
+        "first-run-target"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "google-com-hk-search-4674ef",
+      "url": "https://www.google.com.hk/search?newwindow=1&sca_esv=f8206cb02fd506d7&sxsrf=AE3TifNhUB0cYnBzQLPLngnZf-cCqAWkxQ:1757236146366&q=agentic+ai&tbm=nws&source=univ&tbo=u&sa=X&ved=2ahUKEwjvs6nipsaPAxXuIUQIHW9pDWgQt8YBKAF6BAhYEAM&biw=1649&bih=960&dpr=1.5",
+      "host": "www.google.com.hk",
+      "name": "google / news",
+      "region": "全球",
+      "category": "新闻",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row4"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "google-com-hk-search-748044",
+      "url": "https://www.google.com.hk/search?q=my+cc&newwindow=1&sca_esv=f8206cb02fd506d7&biw=1649&bih=960&sxsrf=AE3TifOVReFbQXelOs2RDzb5W_p_971psw%3A1757236198872&ei=5ku9aMuHNYO-kPIP6O6c6Q0&ved=0ahUKEwjLkq77psaPAxUDH0QIHWg3J904ChDh1QMIEA&uact=5&oq=my+cc&gs_lp=Egxnd3Mtd2l6LXNlcnAiBW15IGNjMgoQABiABBiKBRhDMgcQABiABBgKMggQLhiABBixAzIKEAAYgAQYigUYQzIIEC4YgAQYsQMyDBAAGIAEGIoFGEMYCjIKEAAYgAQYigUYQzIKEAAYgAQYsQMYCjIIEAAYgAQYsQMyBRAAGIAESIUNUABY8QpwAHgBkAEAmAHGAqABsAmqAQUyLTIuMrgBA8gBAPgBAZgCBKACvgnCAgQQIxgnwgIOEC4YgAQYigUYsQMYgwHCAgsQABiABBixAxiDAcICDhAuGIMBGLEDGIAEGIoFwgIOEAAYgAQYigUYsQMYgwHCAgsQABiABBiKBRiRAsICEBAuGIAEGIoFGEMYxwEY0QPCAgsQLhiABBixAxiDAZgDAJIHBTItMi4yoAf9K7IHBTItMi4yuAe-CcIHBTAuMy4xyAcL&sclient=gws-wiz-serp",
+      "host": "www.google.com.hk",
+      "name": "google / 搜索",
+      "region": "全球",
+      "category": "搜索",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row5"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "google-com-maps-place-latina-31-a5fcc1",
+      "url": "https://www.google.com/maps/place/Latina/@31.2354365,121.4936711,16z/data=!4m12!1m2!2m1!1sRestaurants!3m8!1s0x35b270fa9973fca5:0x1755489eafb16641!8m2!3d31.235458!4d121.5009438!9m1!1b1!15sCgtSZXN0YXVyYW50c1oNIgtyZXN0YXVyYW50c5IBEndlc3Rlcm5fcmVzdGF1cmFudJoBI0NoWkRTVWhOTUc5blMwVkpRMEZuU1VObE1TMDJXRU4zRUFFqgFEEAEqDyILcmVzdGF1cmFudHMoADIeEAEiGuInnWVrUEwRITwVosFBOxis3ebJVx8poGpoMg8QAiILcmVzdGF1cmFudHPgAQD6AQQIDxAi!16s%2Fg%2F1tdkk6p_?entry=ttu&g_ep=EgoyMDI1MDkwMy4wIKXMDSoASAFQAw%3D%3D",
+      "host": "www.google.com",
+      "name": "google / google map 评论",
+      "region": "全球",
+      "category": "本地生活",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row3"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "google-com-maps-search-restaurants-3363eb",
+      "url": "https://www.google.com/maps/search/Restaurants/@31.2354365,121.4936711,16z/data=!3m1!4b1?entry=ttu&g_ep=EgoyMDI1MDkwMy4wIKXMDSoASAFQAw%3D%3D",
+      "host": "www.google.com",
+      "name": "google / google map 内容",
+      "region": "全球",
+      "category": "本地生活",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row2"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "instagram-com-explore-b3668f",
+      "url": "https://www.instagram.com/explore/",
+      "host": "www.instagram.com",
+      "name": "instagram / explore",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row34"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "instagram-com-p-c29xaaltvai-e3addc",
+      "url": "https://www.instagram.com/p/C29XAAltVAI/",
+      "host": "www.instagram.com",
+      "name": "instagram / 帖子评论",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row36"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "instagram-com-robot-boii-d01d19",
+      "url": "https://www.instagram.com/robot_boii/",
+      "host": "www.instagram.com",
+      "name": "instagram / 个人发布帖子",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row35"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "linkedin-com-feed-f495d1",
+      "url": "https://www.linkedin.com/feed/",
+      "host": "www.linkedin.com",
+      "name": "linkedIn / 帖子feed",
+      "region": "全球",
+      "category": "职场",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row19"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "linkedin-com-jobs-search-4f52ed",
+      "url": "https://www.linkedin.com/jobs/search/?currentJobId=4296036510&origin=JOBS_HOME_JYMBII",
+      "host": "www.linkedin.com",
+      "name": "linkedIn / 工作 job",
+      "region": "全球",
+      "category": "招聘",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row20"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "linkedin-com-mynetwork-4c454a",
+      "url": "https://www.linkedin.com/mynetwork/",
+      "host": "www.linkedin.com",
+      "name": "linkedIn / 联系人采集",
+      "region": "全球",
+      "category": "职场",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row22"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "linkedin-com-posts-yann-lecun-hey-ai-bbc0a7",
+      "url": "https://www.linkedin.com/posts/yann-lecun_hey-ai-journalists-and-pundits-not-everyone-activity-7368660655102377986-A-QN/?utm_source=share&utm_medium=member_desktop&rcm=ACoAABAQq1gBhuxcZzNNuD-sXeiRRM0ouFHLaPE",
+      "host": "www.linkedin.com",
+      "name": "linkedIn / 帖子评论",
+      "region": "全球",
+      "category": "职场",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row21"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "localhost-dev-fixtures-pagination-232719",
+      "url": "http://localhost:3008/dev-fixtures/pagination-blank/1",
+      "host": "localhost",
+      "name": "回归夹具 / target=_blank 分页列表",
+      "region": "本地",
+      "category": "夹具",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row238"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "local-fixture"
+      ],
+      "notes": "采集商品列表（商品名称、价格），共 5 页 25 条。回归点：下一页是 target=\"_blank\" 的同站链接，2026-08-27 的外链闸曾把它判成外链 → 整站「没有下一页」，第 1 页就收工。需 backend dev server 在跑。"
+    },
+    {
+      "id": "movie-douban-com-top250-a5d051",
+      "url": "https://movie.douban.com/top250",
+      "host": "movie.douban.com",
+      "name": "first-run target / douban-top250",
+      "region": "",
+      "category": "",
+      "priority": "p0",
+      "source": [
+        "packages/e2e-harness/first-run-targets.scenarios.json#douban-top250"
+      ],
+      "expect": {
+        "minRows": 20
+      },
+      "tags": [
+        "first-run-target"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "news-ycombinator-com-news-7ce933",
+      "url": "https://news.ycombinator.com/news",
+      "host": "news.ycombinator.com",
+      "name": "first-run target / hacker-news",
+      "region": "",
+      "category": "",
+      "priority": "p0",
+      "source": [
+        "packages/e2e-harness/first-run-targets.scenarios.json#hacker-news"
+      ],
+      "expect": {
+        "minRows": 20
+      },
+      "tags": [
+        "first-run-target"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "play-google-com-store-apps-details-8e6d8b",
+      "url": "https://play.google.com/store/apps/details?id=com.devsisters.ck&pcampaignid=merch_published_cluster_promotion_battlestar_deals_week_20off_top_games_cluster_websky",
+      "host": "play.google.com",
+      "name": "google play / 评论",
+      "region": "全球",
+      "category": "应用",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row40"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "play-google-com-store-apps-ef2986",
+      "url": "https://play.google.com/store/apps",
+      "host": "play.google.com",
+      "name": "google play / app",
+      "region": "全球",
+      "category": "应用",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row37"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "play-google-com-store-books-bdf914",
+      "url": "https://play.google.com/store/books",
+      "host": "play.google.com",
+      "name": "google play / ebook",
+      "region": "全球",
+      "category": "内容",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row38"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "play-google-com-store-search-3e3fe8",
+      "url": "https://play.google.com/store/search?q=robot&c=books",
+      "host": "play.google.com",
+      "name": "google play / 搜索页",
+      "region": "全球",
+      "category": "应用",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row39"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "producthunt-com-chrismessina-f959f7",
+      "url": "https://www.producthunt.com/@chrismessina",
+      "host": "www.producthunt.com",
+      "name": "producthunt / 作者首页",
+      "region": "国际",
+      "category": "产品",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row86"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "producthunt-com-leaderboard-monthly-5f81fb",
+      "url": "https://www.producthunt.com/leaderboard/monthly/2025/9",
+      "host": "www.producthunt.com",
+      "name": "producthunt / 月榜",
+      "region": "国际",
+      "category": "产品",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row82"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "producthunt-com-products-creao-ai-1d538d",
+      "url": "https://www.producthunt.com/products/creao-ai",
+      "host": "www.producthunt.com",
+      "name": "producthunt / 评论页",
+      "region": "国际",
+      "category": "产品",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row85"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "producthunt-com-search-2c4a31",
+      "url": "https://www.producthunt.com/search?q=scraper&page=1",
+      "host": "www.producthunt.com",
+      "name": "producthunt / 搜索页",
+      "region": "国际",
+      "category": "产品",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row83"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "producthunt-com-topics-artificial-a3e07e",
+      "url": "https://www.producthunt.com/topics/artificial-intelligence",
+      "host": "www.producthunt.com",
+      "name": "producthunt / 主题页",
+      "region": "国际",
+      "category": "产品",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row84"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "reddit-com-r-all-b1dabe",
+      "url": "https://www.reddit.com/r/all/",
+      "host": "www.reddit.com",
+      "name": "reddit / 全部帖子",
+      "region": "全球",
+      "category": "社区",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row10"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "reddit-com-r-ama-a6276d",
+      "url": "https://www.reddit.com/r/AMA/",
+      "host": "www.reddit.com",
+      "name": "reddit / AMA频道",
+      "region": "全球",
+      "category": "社区",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row11"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "reddit-com-r-ama-comments-1mt1qar-9b6392",
+      "url": "https://www.reddit.com/r/AMA/comments/1mt1qar/im_a_former_maximum_security_correctional_officer/",
+      "host": "www.reddit.com",
+      "name": "reddit / 评论",
+      "region": "全球",
+      "category": "社区",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row12"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "threads-com-a93d4e",
+      "url": "https://www.threads.com/",
+      "host": "www.threads.com",
+      "name": "threads / 主页推荐",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row43"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "threads-com-calltoactivism-post-083002",
+      "url": "https://www.threads.com/@calltoactivism/post/DOTx_gfjs7T",
+      "host": "www.threads.com",
+      "name": "threads / 评论",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row45"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "threads-com-search-96142f",
+      "url": "https://www.threads.com/search?q=robot&serp_type=default",
+      "host": "www.threads.com",
+      "name": "threads / 搜索页",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row44"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "tiktok-com-explore-79c6c3",
+      "url": "https://www.tiktok.com/explore",
+      "host": "www.tiktok.com",
+      "name": "tiktok / 探索列表",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row13"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "tiktok-com-jaymavity-video-e26fac",
+      "url": "https://www.tiktok.com/@jaymavity/video/7543851472681831694?q=robot",
+      "host": "www.tiktok.com",
+      "name": "tiktok / 视频评论",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row17"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "tiktok-com-live-2b3c78",
+      "url": "https://www.tiktok.com/live",
+      "host": "www.tiktok.com",
+      "name": "tiktok / 直播评论 （进去后选择一个live）",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row18"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "tiktok-com-live-category-gaming-562467",
+      "url": "https://www.tiktok.com/live/category/gaming",
+      "host": "www.tiktok.com",
+      "name": "tiktok / 直播列表",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row14"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "tiktok-com-search-live-210f2e",
+      "url": "https://www.tiktok.com/search/live?q=robot",
+      "host": "www.tiktok.com",
+      "name": "tiktok / 直播",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row16"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "tiktok-com-search-video-3e4daf",
+      "url": "https://www.tiktok.com/search/video?q=robot",
+      "host": "www.tiktok.com",
+      "name": "tiktok / 搜索",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row15"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "top-baidu-com-board-f47d2a",
+      "url": "https://top.baidu.com/board?tab=realtime",
+      "host": "top.baidu.com",
+      "name": "first-run target / baidu-hot",
+      "region": "",
+      "category": "",
+      "priority": "p0",
+      "source": [
+        "packages/e2e-harness/first-run-targets.scenarios.json#baidu-hot"
+      ],
+      "expect": {
+        "minRows": 20
+      },
+      "tags": [
+        "first-run-target"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "toutiao-com-03a424",
+      "url": "https://www.toutiao.com/",
+      "host": "www.toutiao.com",
+      "name": "今日头条 / 首页推荐信息流",
+      "region": "中国",
+      "category": "内容",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row236",
+        "test/website.csv#row237"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "采集中间那栏「推荐」信息流里的文章卡片（标题、来源、评论数、封面图），不要右侧的头条热榜。回归点：模型曾把右栏热榜的「换一换」button.refresh 当成下一页，它一直在视口里，捷径每轮点它、循环永不滚动，要 200 条只出 7 条。看 yieldRatio 是否接近 1。 | 采集右侧「头条热榜」列表（排名、标题、链接）。回归点：「换一换」是这张表真正的取数控件，不能被死分页控件的兜底逻辑误停用（基线约 75 条）。 | also listed as: 今日头条 / 头条热榜"
+    },
+    {
+      "id": "x-com-elonmusk-status-b714a1",
+      "url": "https://x.com/elonmusk/status/1964379498566271392",
+      "host": "x.com",
+      "name": "X / 帖子评论",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row29"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "x-com-home-42a89c",
+      "url": "https://x.com/home",
+      "host": "x.com",
+      "name": "X / 首页帖子",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row28"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "x-com-search-5e744e",
+      "url": "https://x.com/search?q=robot&src=typed_query",
+      "host": "x.com",
+      "name": "X / 搜索帖子",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row30"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "yelp-com-biz-greek-bistro-50fe17",
+      "url": "https://www.yelp.com/biz/greek-bistro-glendale",
+      "host": "www.yelp.com",
+      "name": "yelp / 评论",
+      "region": "全球",
+      "category": "本地生活",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row42"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "yelp-com-search-88494f",
+      "url": "https://www.yelp.com/search?find_desc=Lunch&find_loc=La+Crescenta-Montrose%2C+CA+91214",
+      "host": "www.yelp.com",
+      "name": "yelp / 搜索页",
+      "region": "全球",
+      "category": "本地生活",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row41"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "youtube-com-feed-subscriptions-9a3a92",
+      "url": "https://www.youtube.com/feed/subscriptions/UCCj956IF62FbT7Gouszaj9w",
+      "host": "www.youtube.com",
+      "name": "youtube / 频道",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row25"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "youtube-com-fef0e9",
+      "url": "https://www.youtube.com/",
+      "host": "www.youtube.com",
+      "name": "youtube / 首页推荐",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row23"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "youtube-com-results-a9fad8",
+      "url": "https://www.youtube.com/results?search_query=robot",
+      "host": "www.youtube.com",
+      "name": "youtube / 搜索页",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row24"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "youtube-com-theaigrid-videos-2f1513",
+      "url": "https://www.youtube.com/@TheAiGrid/videos",
+      "host": "www.youtube.com",
+      "name": "youtube / 达人视频明细",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row26"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "youtube-com-watch-a5ee72",
+      "url": "https://www.youtube.com/watch?v=5MWT_doo68k",
+      "host": "www.youtube.com",
+      "name": "youtube / 视频评论",
+      "region": "全球",
+      "category": "自媒体",
+      "priority": "p0",
+      "source": [
+        "test/website.csv#row27"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "agoda-com-search-9f3d67",
+      "url": "https://www.agoda.com/search?city=16808&locale=en-us&ckuid=d1d028fa-81d0-4f2c-9e0d-4a515d5bb2f4&prid=0&currency=HKD&correlationId=ea34a966-3b4e-4422-824f-efd5f7ec3e5e&analyticsSessionId=-2085335160332861529&pageTypeId=5501&realLanguageId=1&languageId=1&origin=HK&cid=-1&userId=d1d028fa-81d0-4f2c-9e0d-4a515d5bb2f4&whitelabelid=1&loginLvl=0&storefrontId=3&currencyId=3&currencyCode=HKD&htmlLanguage=en-us&cultureInfoName=en-us&machineName=sg-pc-6f-acm-web-user-7bd46ff578-2ss7h&trafficGroupId=4&trafficSubGroupId=4&aid=130243&useFullPageLogin=true&cttp=4&isRealUser=true&mode=production&browserFamily=Chrome&cdnDomain=agoda.net&checkIn=2025-09-16&checkOut=2025-09-17&rooms=1&adults=1&children=0&priceCur=HKD&los=1&textToSearch=Hong+Kong&travellerType=0&familyMode=off&ds=H2m24xP8h0ejLUhv&productType=-1",
+      "host": "www.agoda.com",
+      "name": "agoda / 酒店列表",
+      "region": "国际",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row105"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "agoda-com-the-peninsula-hong-kong-d26ec7",
+      "url": "https://www.agoda.com/the-peninsula-hong-kong/hotel/hong-kong-hk.html?countryId=132&finalPriceView=1&isShowMobileAppPrice=false&cid=-1&numberOfBedrooms=&familyMode=false&adults=1&children=0&rooms=1&maxRooms=0&checkIn=2025-09-16&isCalendarCallout=false&childAges=&numberOfGuest=0&missingChildAges=false&travellerType=0&showReviewSubmissionEntry=false&currencyCode=HKD&isFreeOccSearch=false&tspTypes=16%2C-1&los=1&searchrequestid=23dd2473-ba38-4560-b415-b642910606df&ds=H2m24xP8h0ejLUhv",
+      "host": "www.agoda.com",
+      "name": "agoda / 酒店评价",
+      "region": "国际",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row106"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "airbnb-com-rooms-44637473-746a59",
+      "url": "https://www.airbnb.com/rooms/44637473?check_in=2025-10-14&check_out=2025-10-18&search_mode=regular_search&source_impression_id=p3_1757244389_P3RacPT2h0jQbYWw&previous_page_section_name=1000&federated_search_id=1aecc17a-995c-46e6-8857-c71646858047",
+      "host": "www.airbnb.com",
+      "name": "airbnb / 住宿评论",
+      "region": "全球",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row64"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "airbnb-com-s-tokyo-japan-homes-83f062",
+      "url": "https://www.airbnb.com/s/Tokyo--Japan/homes?refinement_paths%5B%5D=%2Fhomes&place_id=ChIJXSModoWLGGARILWiCfeu2M0&date_picker_type=calendar&checkin=2025-10-14&checkout=2025-10-18&source=structured_search_input_header&search_type=AUTOSUGGEST",
+      "host": "www.airbnb.com",
+      "name": "airbnb / 住宿列表",
+      "region": "全球",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row63"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "bbc-com-news-world-africa-8ccf21",
+      "url": "https://www.bbc.com/news/world/africa",
+      "host": "www.bbc.com",
+      "name": "bbc / 新闻列表",
+      "region": "国际",
+      "category": "新闻",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row100"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "bbc-com-search-7b0951",
+      "url": "https://www.bbc.com/search?q=robot&edgeauth=eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJrZXkiOiAiZmFzdGx5LXVyaS10b2tlbi0xIiwiZXhwIjogMTc1NzI0OTYzMiwibmJmIjogMTc1NzI0OTI3MiwicmVxdWVzdHVyaSI6ICIlMkZzZWFyY2glM0ZxJTNEcm9ib3QifQ.wGQqUHErGmz-mj-K2KynDfrjvSW5Pov8i-7ZBN_n-zE",
+      "host": "www.bbc.com",
+      "name": "bbc / 搜索新闻",
+      "region": "国际",
+      "category": "新闻",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row101"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "bloomberg-com-industries-entertainment-5aeead",
+      "url": "https://www.bloomberg.com/industries/entertainment",
+      "host": "www.bloomberg.com",
+      "name": "bloomberg / 专题页",
+      "region": "国际",
+      "category": "新闻",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row94"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "bloomberg-com-search-ce7d56",
+      "url": "https://www.bloomberg.com/search?query=robot",
+      "host": "www.bloomberg.com",
+      "name": "bloomberg / 搜索页",
+      "region": "国际",
+      "category": "新闻",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row95"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "booking-com-hotel-jp-the-square-e54393",
+      "url": "https://www.booking.com/hotel/jp/the-square-ginza.en-gb.html?aid=304142&label=gen173nr-10CAEoggI46AdIM1gEaGKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4ApLo9cUGwAIB0gIkYTZlZWMwMmItMjRiMC00OWVjLTg0NTktNzBmN2Y2NDRiZWQx2AIB4AIB&sid=c67a15cf9b0d55841ef1b1cb43674a05&all_sr_blocks=384486101_243123910_2_2_0&checkin=2025-09-19&checkout=2025-09-26&dest_id=-246227&dest_type=city&dist=0&group_adults=2&group_children=0&hapos=2&highlighted_blocks=384486101_243123910_2_2_0&hpos=2&matching_block_id=384486101_243123910_2_2_0&no_rooms=1&req_adults=2&req_children=0&room1=A%2CA&sb_price_type=total&sr_order=popularity&sr_pri_blocks=384486101_243123910_2_2_0__17802080&srepoch=1757250327&srpvid=4deb5c04b4ff037c&type=total&ucfs=1&#tab-reviews",
+      "host": "www.booking.com",
+      "name": "booking / 酒店评价",
+      "region": "国际",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row99"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "booking-com-searchresults-en-gb-html-0c8bd5",
+      "url": "https://www.booking.com/searchresults.en-gb.html?ss=Tokyo%2C+Japan&efdco=1&label=gen173nr-10CAEoggI46AdIM1gEaGKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4ApLo9cUGwAIB0gIkYTZlZWMwMmItMjRiMC00OWVjLTg0NTktNzBmN2Y2NDRiZWQx2AIB4AIB&sid=c67a15cf9b0d55841ef1b1cb43674a05&aid=304142&lang=en-gb&sb=1&src_elem=sb&src=index&dest_id=-246227&dest_type=city&checkin=2025-09-19&checkout=2025-09-26&group_adults=2&no_rooms=1&group_children=0",
+      "host": "www.booking.com",
+      "name": "booking / 酒店",
+      "region": "国际",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row97"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "coupang-com-np-search-876896",
+      "url": "https://www.coupang.com/np/search?component=&q=robot&traceId=mf9mb8i8&channel=user",
+      "host": "www.coupang.com",
+      "name": "coupang / 搜索页",
+      "region": "韩国",
+      "category": "电商",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row71"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "coupang-com-vp-products-6673828650-951943",
+      "url": "https://www.coupang.com/vp/products/6673828650?itemId=24152586942&vendorItemId=92880017168&sourceType=srp_product_ads&clickEventId=f6cdfa20-8bde-11f0-80de-6eea12c62c3a&korePlacement=15&koreSubPlacement=1&clickEventId=f6cdfa20-8bde-11f0-80de-6eea12c62c3a&korePlacement=15&koreSubPlacement=1&traceId=mf9mbsxi",
+      "host": "www.coupang.com",
+      "name": "coupang / 商品评论",
+      "region": "韩国",
+      "category": "电商",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row72"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "coursera-org-learn-ai-for-everyone-dfd959",
+      "url": "https://www.coursera.org/learn/ai-for-everyone/reviews",
+      "host": "www.coursera.org",
+      "name": "coursera / 课程评论",
+      "region": "国际",
+      "category": "教育",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row103"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "coursera-org-search-472bfb",
+      "url": "https://www.coursera.org/search?query=AI",
+      "host": "www.coursera.org",
+      "name": "coursera / 课程搜索",
+      "region": "国际",
+      "category": "教育",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row102"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "disboard-org-servers-tag-community-32637a",
+      "url": "https://disboard.org/servers/tag/community",
+      "host": "disboard.org",
+      "name": "discord / discord 频道介绍",
+      "region": "全球",
+      "category": "社区",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row51"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "doordash-com-home-2bd9f4",
+      "url": "https://www.doordash.com/home",
+      "host": "www.doordash.com",
+      "name": "doordash / 列表",
+      "region": "国际",
+      "category": "本地生活",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row114"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "doordash-com-search-store-seafood-7ad5f6",
+      "url": "https://www.doordash.com/search/store/seafood?event_type=click&origin=search_box_tap&suggestion_type=autocomplete_recent_searches",
+      "host": "www.doordash.com",
+      "name": "doordash / 搜索",
+      "region": "国际",
+      "category": "本地生活",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row115"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "etsy-com-hk-en-c-baby-b67b0a",
+      "url": "https://www.etsy.com/hk-en/c/baby?ref=catnav-12545",
+      "host": "www.etsy.com",
+      "name": "etsy.com / 商品搜索",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row49"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "etsy-com-hk-en-listing-e99618",
+      "url": "https://www.etsy.com/hk-en/listing/1142263787/vintage-scrap-collage-phone-case-for?ls=a&ga_order=most_relevant&ga_search_type=all&ga_view_type=gallery&ga_search_query=&ref=sc_gallery-1-2&pro=1&sts=1&plkey=ef0e6daccb82a50cf8f5f1326993df54d345d8b8%3A1142263787",
+      "host": "www.etsy.com",
+      "name": "etsy.com / 商品评论",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row50"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "expedia-com-flights-search-ff04ae",
+      "url": "https://www.expedia.com/Flights-Search?flight-type=on&mode=search&trip=roundtrip&leg1=from:%E9%A6%99%E6%B8%AF(HKG-%E9%A6%99%E6%B8%AF%E5%9B%BD%E9%99%85%E6%9C%BA%E5%9C%BA),to:%E4%B8%9C%E4%BA%AC,%20%E4%B8%9C%E4%BA%AC%E9%83%BD,%20%E6%97%A5%E6%9C%AC,departure:9/26/2025TANYT,fromType:U,toType:CITY&leg2=from:%E4%B8%9C%E4%BA%AC,%20%E4%B8%9C%E4%BA%AC%E9%83%BD,%20%E6%97%A5%E6%9C%AC,to:%E9%A6%99%E6%B8%AF(HKG-%E9%A6%99%E6%B8%AF%E5%9B%BD%E9%99%85%E6%9C%BA%E5%9C%BA),departure:9/28/2025TANYT,fromType:CITY,toType:U&options=cabinclass:economy&fromDate=9/26/2025&toDate=9/28/2025&d1=2025-9-26&d2=2025-9-28&passengers=adults:1,infantinlap:N",
+      "host": "www.expedia.com",
+      "name": "expedia / 航班",
+      "region": "全球",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row60"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "expedia-com-hotel-search-1c9b88",
+      "url": "https://www.expedia.com/Hotel-Search?destination=%E4%B8%9C%E4%BA%AC%2C%20%E4%B8%9C%E4%BA%AC%E9%83%BD%2C%20%E6%97%A5%E6%9C%AC&regionId=3593&latLong=35.681143%2C139.767208&flexibility=0_DAY&d1=2025-09-08&startDate=2025-09-08&d2=2025-09-11&endDate=2025-09-11&adults=2&rooms=1&sort=RECOMMENDED&theme=&userIntent=&semdtl=&categorySearch=&useRewards=false",
+      "host": "www.expedia.com",
+      "name": "expedia / 住宿",
+      "region": "全球",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row59"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "flights-booking-com-fly-anywhere-4f07f1",
+      "url": "https://flights.booking.com/fly-anywhere/?adplat=www-searchresults_irene-web_shell_header-flight-missing_creative-4nla2zXQ6VdKiKbFhd9A8i&adults=1&aid=304142&ca_source=flights_index_sb&cabinClass=ECONOMY&children=&depart=2025-10-11&from=TYO.CITY&fromCountry=JP&fromLocationName=Tokyo&label=gen173nr-10CAEoggI46AdIM1gEaGKIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4ApLo9cUGwAIB0gIkYTZlZWMwMmItMjRiMC00OWVjLTg0NTktNzBmN2Y2NDRiZWQx2AIB4AIB&return=2025-10-18&sort=BEST&toCountry=&toLocationName=&travelPurpose=leisure&type=ROUNDTRIP&to=Anywhere",
+      "host": "flights.booking.com",
+      "name": "booking / 飞机",
+      "region": "国际",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row98"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "forebet-com-en-football-tips-and-6c5af6",
+      "url": "https://www.forebet.com/en/football-tips-and-predictions-for-today/predictions-1x2",
+      "host": "www.forebet.com",
+      "name": "forebet / 赌博列表",
+      "region": "国际",
+      "category": "数据",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row104"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "g2-com-categories-chatbots-b33a06",
+      "url": "https://www.g2.com/categories/chatbots",
+      "host": "www.g2.com",
+      "name": "G2 / 产品列表",
+      "region": "全球",
+      "category": "SaaS",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row61"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "g2-com-products-zendesk-3c9c8b",
+      "url": "https://www.g2.com/products/zendesk-support-suite/reviews",
+      "host": "www.g2.com",
+      "name": "G2 / 评论",
+      "region": "全球",
+      "category": "SaaS",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row62"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "gartner-com-en-audit-risk-6bbd22",
+      "url": "https://www.gartner.com/en/audit-risk",
+      "host": "www.gartner.com",
+      "name": "gartner / 洞见列表",
+      "region": "国际",
+      "category": "SaaS",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row107"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "gartner-com-en-search-2afc48",
+      "url": "https://www.gartner.com/en/search?keywords=data&page=1",
+      "host": "www.gartner.com",
+      "name": "gartner / 搜索列表",
+      "region": "国际",
+      "category": "SaaS",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row108"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "imdb-com-chart-top-0a2349",
+      "url": "https://www.imdb.com/chart/top/?ref_=sr_nv_menu",
+      "host": "www.imdb.com",
+      "name": "imdb.com / 250大",
+      "region": "全球",
+      "category": "内容",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row53"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "imdb-com-search-title-a0f8dd",
+      "url": "https://www.imdb.com/search/title/?explore=genres",
+      "host": "www.imdb.com",
+      "name": "imdb.com / Advanced title search",
+      "region": "全球",
+      "category": "内容",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row52"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "medium-com-data-science-collective-88e066",
+      "url": "https://medium.com/data-science-collective/youre-using-chatgpt-wrong-here-s-how-to-prompt-like-a-pro-1814b4243064",
+      "host": "medium.com",
+      "name": "medium / 帖子评论",
+      "region": "国际",
+      "category": "自媒体",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row92"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "medium-com-search-066e16",
+      "url": "https://medium.com/search?q=robot",
+      "host": "medium.com",
+      "name": "medium / 搜索页",
+      "region": "国际",
+      "category": "自媒体",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row93"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "medium-com-wesleyedits-490ee8",
+      "url": "https://medium.com/@wesleyedits",
+      "host": "medium.com",
+      "name": "medium / 帖子列表",
+      "region": "国际",
+      "category": "自媒体",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row91"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "nature-com-articles-s41467-025-f7e8d9",
+      "url": "https://www.nature.com/articles/s41467-025-63209-4",
+      "host": "www.nature.com",
+      "name": "nature / References",
+      "region": "全球",
+      "category": "学术",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row68"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "nature-com-nature-videos-96e9a9",
+      "url": "https://www.nature.com/nature/videos",
+      "host": "www.nature.com",
+      "name": "nature / videos",
+      "region": "全球",
+      "category": "学术",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row66"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "nature-com-research-analysis-da8d52",
+      "url": "https://www.nature.com/research-analysis",
+      "host": "www.nature.com",
+      "name": "nature / research-analysis",
+      "region": "全球",
+      "category": "学术",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row65"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "nature-com-search-f03e2d",
+      "url": "https://www.nature.com/search?q=robot&journal=",
+      "host": "www.nature.com",
+      "name": "nature / 搜索页",
+      "region": "全球",
+      "category": "学术",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row67"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "notion-com-templates-category-a11d50",
+      "url": "https://www.notion.com/templates/category/portfolio",
+      "host": "www.notion.com",
+      "name": "notion / 模板页",
+      "region": "国际",
+      "category": "工具",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row87"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "notion-com-templates-creators-747da7",
+      "url": "https://www.notion.com/templates/creators",
+      "host": "www.notion.com",
+      "name": "notion / 主题页",
+      "region": "国际",
+      "category": "工具",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row88"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "open-spotify-com-artist-7dx7rhx0mfuxhcoug-604825",
+      "url": "https://open.spotify.com/artist/7Dx7RhX0mFuXhCOUgB01uM/discovered-on",
+      "host": "open.spotify.com",
+      "name": "spotify / 专辑",
+      "region": "国际",
+      "category": "内容",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row75"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "open-spotify-com-artist-7dx7rhx0mfuxhcoug-765317",
+      "url": "https://open.spotify.com/artist/7Dx7RhX0mFuXhCOUgB01uM/discography/all",
+      "host": "open.spotify.com",
+      "name": "spotify / 专辑&音乐",
+      "region": "国际",
+      "category": "内容",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row74"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "open-spotify-com-playlist-37i9dqzf1dwwqc4-df46df",
+      "url": "https://open.spotify.com/playlist/37i9dQZF1DWWqC43bGTcPc",
+      "host": "open.spotify.com",
+      "name": "spotify / 音乐列表",
+      "region": "国际",
+      "category": "内容",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row73"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "quora-com-what-terrible-things-b06b50",
+      "url": "https://www.quora.com/What-terrible-things-did-Muammar-Gaddafi-do/answer/Sangram-Sagar-1?ch=10&oid=1477743845949717&share=e6c3e75f&srid=u4tomS&target_type=answer",
+      "host": "www.quora.com",
+      "name": "quora / posts帖子评论",
+      "region": "国际",
+      "category": "社区",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row90"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "seekho-in-category-ai-a26579",
+      "url": "https://seekho.in/category/ai",
+      "host": "seekho.in",
+      "name": "电影hub / 列表",
+      "region": "全球",
+      "category": "内容",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row54"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "shopee-co-id-flare-pants-highwaist-7db7f9",
+      "url": "https://shopee.co.id/Flare-Pants-Highwaist-Flare-Pants-Celana-Kulot-Semi-Cutbray-Wanita-i.536898082.26312002898",
+      "host": "shopee.co.id",
+      "name": "shopee / 商品评论",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row56"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "shopee-co-id-search-9a7e20",
+      "url": "https://shopee.co.id/search?keyword=robot",
+      "host": "shopee.co.id",
+      "name": "shopee / 商品列表",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row55"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "steamcommunity-com-app-730-reviews-53f0d5",
+      "url": "https://steamcommunity.com/app/730/reviews/?browsefilter=toprated&snr=1_5_100010_",
+      "host": "steamcommunity.com",
+      "name": "steam / 游戏评论",
+      "region": "国际",
+      "category": "游戏",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row113"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "store-steampowered-com-category-sports-b3c4fb",
+      "url": "https://store.steampowered.com/category/sports?offset=38",
+      "host": "store.steampowered.com",
+      "name": "steam / 游戏列表",
+      "region": "国际",
+      "category": "游戏",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row111"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "store-steampowered-com-search-010313",
+      "url": "https://store.steampowered.com/search/?filter=topsellers",
+      "host": "store.steampowered.com",
+      "name": "steam / top列表",
+      "region": "国际",
+      "category": "游戏",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row112"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "temu-com-ca-channel-best-sellers-bcdb27",
+      "url": "https://www.temu.com/ca/channel/best-sellers.html?filter_items=1%3A1&scene=home_title_bar_recommend&refer_page_el_sn=201341&_x_sessn_id=x5uctdfrma&refer_page_name=home&refer_page_id=10005_1757238371735_apyb8sls4t&refer_page_sn=10005",
+      "host": "www.temu.com",
+      "name": "temu / 热卖商品",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row46"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "temu-com-ca-mens-autumn-and-e71224",
+      "url": "https://www.temu.com/ca/mens-autumn-and-winter-casual-sports-sweatshirt-set-hip-hop-style-printed-hoodie-2pcs-sports-set-g-601099775742970.html?top_gallery_url=https%3A%2F%2Fimg.kwcdn.com%2Fproduct%2Ffancy%2Ff86ce575-a789-4ba9-b8d4-e3aafd5da997.jpg&spec_id=16078&spec_gallery_id=19894&refer_page_sn=10009&refer_source=0&freesia_scene=2&_oak_freesia_scene=2&_oak_rec_ext_1=MzY2MQ&_oak_gallery_order=1664533456%2C1610217481%2C270835625%2C305644181%2C508493438&_oak_name_id=2967130602135557443&_oak_mp_inf=EPqn7pSn1ogBGiAzMWJjODE2MzNjNGE0MDI0YWVlMGIxM2ZhYWU2ZDlkMCDT4%2BickjM%3D&spec_ids=16078%2C3002%2C15075%2C15071&search_key=trendy%20clothes&refer_page_el_sn=200049&_x_sessn_id=x5uctdfrma&refer_page_name=search_result&refer_page_id=10009_1757238933521_sv1fvtg8at",
+      "host": "www.temu.com",
+      "name": "temu / 商品评论",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row48"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "temu-com-search-result-html-d6a318",
+      "url": "https://www.temu.com/search_result.html?search_key=trendy%20clothes&search_method=hot&refer_page_el_sn=200256&srch_enter_source=top_search_entrance_10125&_x_sessn_id=x5uctdfrma&refer_page_name=best_sellers&refer_page_id=10125_1757238380491_owaq9gmhwb&refer_page_sn=10125",
+      "host": "www.temu.com",
+      "name": "temu / 搜索页",
+      "region": "全球",
+      "category": "电商",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row47"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "tokyoartbeat-com-articles-condid-feature-ed9356",
+      "url": "https://www.tokyoartbeat.com/articles/condId/feature",
+      "host": "www.tokyoartbeat.com",
+      "name": "tokyoartbeat / 大事记列表",
+      "region": "日本",
+      "category": "内容",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row57"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "tokyoartbeat-com-events-condid-most-5bc617",
+      "url": "https://www.tokyoartbeat.com/events/condId/most_popular",
+      "host": "www.tokyoartbeat.com",
+      "name": "tokyoartbeat / 展会",
+      "region": "日本",
+      "category": "内容",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row58"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "tripadvisor-com-cheapflightssearchresult-3e5bd7",
+      "url": "https://www.tripadvisor.com/CheapFlightsSearchResults-g32655-a_airport0.HKG-a_airport1.LAX-a_cos.0-a_cr.0-a_date0.20250921-a_date1.20250928-a_nearby0.no-a_nearby1.no-a_nonstop.no-a_pax0.a-a_time0.0024-a_time1.0024-a_travelers.1-Los_Angeles_California.html",
+      "host": "www.tripadvisor.com",
+      "name": "tripadvisor / 航班",
+      "region": "国际",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row78"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "tripadvisor-com-hotels-g32655-los-3e78d0",
+      "url": "https://www.tripadvisor.com/Hotels-g32655-Los_Angeles_California-Hotels.html",
+      "host": "www.tripadvisor.com",
+      "name": "tripadvisor / 酒店",
+      "region": "国际",
+      "category": "旅行",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row76"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "tripadvisor-com-restaurants-g32655-los-07541f",
+      "url": "https://www.tripadvisor.com/Restaurants-g32655-Los_Angeles_California.html",
+      "host": "www.tripadvisor.com",
+      "name": "tripadvisor / 餐厅",
+      "region": "国际",
+      "category": "本地生活",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row77"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "udemy-com-course-the-python-mega-efff7c",
+      "url": "https://www.udemy.com/course/the-python-mega-course/?couponCode=LETSLEARNNOW#reviews",
+      "host": "www.udemy.com",
+      "name": "udemy / 课程评论",
+      "region": "国际",
+      "category": "教育",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row81"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "udemy-com-courses-search-e45d50",
+      "url": "https://www.udemy.com/courses/search/?src=ukw&q=ai",
+      "host": "www.udemy.com",
+      "name": "udemy / 课程搜索",
+      "region": "国际",
+      "category": "教育",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row80"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "udemy-com-topic-prompt-engineering-ae86ab",
+      "url": "https://www.udemy.com/topic/prompt-engineering/",
+      "host": "www.udemy.com",
+      "name": "udemy / 课程",
+      "region": "国际",
+      "category": "教育",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row79"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "udn-com-news-breaknews-1-70a910",
+      "url": "https://udn.com/news/breaknews/1",
+      "host": "udn.com",
+      "name": "udn.com / breaknews",
+      "region": "台湾",
+      "category": "新闻",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row69"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "udn-com-search-word-1-robot-2dc942",
+      "url": "https://udn.com/search/word/1/robot",
+      "host": "udn.com",
+      "name": "udn.com / 搜索页",
+      "region": "台湾",
+      "category": "新闻",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row70"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "upwork-com-nx-search-talent-6f608d",
+      "url": "https://www.upwork.com/nx/search/talent/",
+      "host": "www.upwork.com",
+      "name": "upwork / 搜索页",
+      "region": "国际",
+      "category": "招聘",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row96"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "worldhistoryreal-quora-com-26bfe4",
+      "url": "https://worldhistoryreal.quora.com/",
+      "host": "worldhistoryreal.quora.com",
+      "name": "quora / posts帖子采集",
+      "region": "国际",
+      "category": "社区",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row89"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "xbox-com-en-hk-games-all-games-a00bcd",
+      "url": "https://www.xbox.com/en-HK/games/all-games/console?PlayWith=XboxSeriesX%7CS%2CXboxOne&xr=shellnav",
+      "host": "www.xbox.com",
+      "name": "xbox / 游戏列表",
+      "region": "国际",
+      "category": "游戏",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row109"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "xbox-com-en-hk-games-store-52c9f4",
+      "url": "https://www.xbox.com/en-HK/games/store/roblox/BQ1TN1T79V9K/0001",
+      "host": "www.xbox.com",
+      "name": "xbox / 游戏评论",
+      "region": "国际",
+      "category": "游戏",
+      "priority": "p1",
+      "source": [
+        "test/website.csv#row110"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "100kp-com-job-list-0-0-0-0-0-0-0-e8f0dd",
+      "url": "https://100kp.com/job/list/0-0-0-0_0_0_0_0_0_0_0-0-0-0-1.html?%E8%BF%90%E8%90%A5",
+      "host": "100kp.com",
+      "name": "快聘网 / 关键词招聘职位列表",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row211",
+        "test/website.csv#row212"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: 快聘网 / 关键词招聘职位列表+职位描述"
+    },
+    {
+      "id": "36kr-com-search-articles-ai-fbd619",
+      "url": "https://36kr.com/search/articles/AI%E5%B7%A5%E5%85%B7",
+      "host": "36kr.com",
+      "name": "36氪 / 关键词文章列表采集",
+      "region": "",
+      "category": "新闻",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row168",
+        "test/website.csv#row169"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: 36氪 / 关键词文章正文采集"
+    },
+    {
+      "id": "airbnb-cn-rooms-47256473-bf55b2",
+      "url": "https://www.airbnb.cn/rooms/47256473?check_in=2022-08-28&check_out=2022-08-31&federated_search_id=2590d88e-ac7e-4316-9ac3-62d13d40de5d&source_impression_id=p3_1661420106_dRV6ih9MahiSsA5z",
+      "host": "www.airbnb.cn",
+      "name": "爱彼迎 / 评论信息",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row218"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "airbnb-cn-s-homes-a20692",
+      "url": "https://www.airbnb.cn/s/%E5%B7%B4%E9%BB%8E--%E6%B3%95%E5%9B%BD/homes?refinement_paths%5B%5D=/homes&place_id=ChIJD7fiBh9u5kcRYJSMaMOCCwQ&date_picker_type=calendar&checkin=2025-12-19&checkout=2025-12-20&search_type=AUTOSUGGEST",
+      "host": "www.airbnb.cn",
+      "name": "爱彼迎 / 房源列表",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row217"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "alibaba-com-product-detail-10-inch-400462",
+      "url": "https://www.alibaba.com/product-detail/10-Inch-20GB-128GB-5g-Wifi_1600389350824.html?spm=a2700.prosearch.topad_classic.d_image.2f4c67afsjTMmu&selectedCarrierCode=SEMI_MANAGED_PREMIUM@@PREMIUM&priceId=8650c78d7b3d4268978fa9cf6ebe6f4c",
+      "host": "www.alibaba.com",
+      "name": "阿里巴巴 / 商品评论页面",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row172"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "alibaba-com-search-page-cb14f0",
+      "url": "https://www.alibaba.com/search/page?spm=a2700.product_home_fy25.home_login_first_screen_fy23_pc_search_bar.searchButton&SearchScene=proSearch&SearchText=%E5%B8%A6%E9%94%AE%E7%9B%98%E7%9A%84%E5%B9%B3%E6%9D%BF&pro=true&from=pcHomeContent",
+      "host": "www.alibaba.com",
+      "name": "阿里巴巴 / 搜索页商品列表",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row171"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "baidu-com-s-331082",
+      "url": "https://www.baidu.com/s?wd=%E8%A1%A8%E7%AD%94%E5%AE%98%E7%BD%91%E5%85%A5%E5%8F%A3",
+      "host": "www.baidu.com",
+      "name": "百度 / 搜索关键词采集",
+      "region": "",
+      "category": "搜索",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row139"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "bbs-pcauto-com-cn-forum-20851-html-6b71ac",
+      "url": "https://bbs.pcauto.com.cn/forum-20851.html",
+      "host": "bbs.pcauto.com.cn",
+      "name": "太平洋汽车网 / 论坛帖子",
+      "region": "",
+      "category": "社区",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row224"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "beijing-liebiao-com-ershouche-9a5db3",
+      "url": "http://beijing.liebiao.com/ershouche/",
+      "host": "beijing.liebiao.com",
+      "name": "列表网 / 二手车列表及详情页采集",
+      "region": "",
+      "category": "本地生活",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row205"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "bilibili-com-bangumi-play-ss28747-0f3520",
+      "url": "https://www.bilibili.com/bangumi/play/ss28747?spm_id_from=333.337.0.0",
+      "host": "www.bilibili.com",
+      "name": "B站 / 用户评论",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row146"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "category-vip-com-suggest-php-a67887",
+      "url": "https://category.vip.com/suggest.php?keyword=%E5%8F%A3%E7%BA%A2",
+      "host": "category.vip.com",
+      "name": "唯品会 / 搜索页",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row162"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "channels-weixin-qq-com-platform-post-list-5fdf4e",
+      "url": "https://channels.weixin.qq.com/platform/post/list",
+      "host": "channels.weixin.qq.com",
+      "name": "视频号 / 创作者本人后台视频列表",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row202"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "chunyuyisheng-com-pc-health-news-d1d431",
+      "url": "https://www.chunyuyisheng.com/pc/health_news/?channel_id=21#channel",
+      "host": "www.chunyuyisheng.com",
+      "name": "春雨医生 / 健康咨询列表",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row235"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "data-10jqka-com-cn-funds-ggzjl-086599",
+      "url": "https://data.10jqka.com.cn/funds/ggzjl/",
+      "host": "data.10jqka.com.cn",
+      "name": "同花顺 / 个股资金流即时",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row196"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "data-10jqka-com-cn-market-dzjy-e71a3d",
+      "url": "https://data.10jqka.com.cn/market/dzjy/",
+      "host": "data.10jqka.com.cn",
+      "name": "同花顺 / 大宗交易",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row195"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "data-10jqka-com-cn-market-ggsd-23e10b",
+      "url": "https://data.10jqka.com.cn/market/ggsd/",
+      "host": "data.10jqka.com.cn",
+      "name": "同花顺 / 公告速递列表",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row194"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "data-10jqka-com-cn-market-longhu-98f36d",
+      "url": "https://data.10jqka.com.cn/market/longhu/",
+      "host": "data.10jqka.com.cn",
+      "name": "同花顺 / 新股申购与中签",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row190",
+        "test/website.csv#row191",
+        "test/website.csv#row192"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: 同花顺 / 龙虎榜营业部排名 | also listed as: 同花顺 / A股市场指数列表"
+    },
+    {
+      "id": "data-10jqka-com-cn-market-zdfph-5605f2",
+      "url": "https://data.10jqka.com.cn/market/zdfph/",
+      "host": "data.10jqka.com.cn",
+      "name": "同花顺 / 涨跌幅排行",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row197"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "deal-ggzy-gov-cn-ds-deal-deallist-jsp-780727",
+      "url": "https://deal.ggzy.gov.cn/ds/deal/dealList.jsp",
+      "host": "deal.ggzy.gov.cn",
+      "name": "全国公共资源交易平台 / 交易公开列表+公告",
+      "region": "",
+      "category": "数据",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row234"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "detail-tmall-com-item-htm-abff04",
+      "url": "https://detail.tmall.com/item.htm?ali_refid=a3_430673_1006%3A1120967949%3AH%3ADPBOrfVtSFZ6OPsH1h08Zw%3D%3D%3A06999ce7357c58f8e5201bd430ddf80d&ali_trackid=318_06999ce7357c58f8e5201bd430ddf80d&id=43976578483&loginBonus=1&mi_id=000030wnIsaAGuGzMyHX5PofdajX_vyrb7Dg9_GkD9de6yk&mm_sceneid=0_0_109440433_0&priceTId=2147873717660456089288585e0e21&skuId=3959207965780&spm=a21n57.sem.item.1&utparam=%7B%22aplus_abtest%22%3A%228bfc33bac307757f0744d81414fc9c39%22%7D&xxc=ad_ztc",
+      "host": "detail.tmall.com",
+      "name": "淘宝 / 商品详情页问大家",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row118"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "dongchedi-com-community-6187-52334e",
+      "url": "https://www.dongchedi.com/community/6187",
+      "host": "www.dongchedi.com",
+      "name": "懂车帝 / 车友圈",
+      "region": "",
+      "category": "社区",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row219"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "dongchedi-com-usedcar-20-a7f383",
+      "url": "https://www.dongchedi.com/usedcar/20",
+      "host": "www.dongchedi.com",
+      "name": "懂车帝 / 二手车列表",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row220"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "douban-com-search-dd847b",
+      "url": "https://www.douban.com/search?q=%E8%B4%A2%E6%96%B0",
+      "host": "www.douban.com",
+      "name": "豆瓣 / 搜索页",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row151"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "douyin-com-jingxuan-search-1d3aee",
+      "url": "https://www.douyin.com/jingxuan/search/%E7%9B%B4%E6%92%AD%E9%97%B4?type=live",
+      "host": "www.douyin.com",
+      "name": "抖音 / 直播间关键词列表采集",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row129"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "douyin-com-jingxuan-search-ai-71dd51",
+      "url": "https://www.douyin.com/jingxuan/search/AI%E5%B7%A5%E5%85%B7?type=video",
+      "host": "www.douyin.com",
+      "name": "抖音 / 视频详情页数据采集",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row127"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "douyin-com-root-search-4bf35f",
+      "url": "https://www.douyin.com/root/search/%E8%A1%A8%E7%AD%94?type=user",
+      "host": "www.douyin.com",
+      "name": "抖音 / 用户搜索页采集",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row130"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "douyin-com-user-ms4wljabaaaavr-cc1391",
+      "url": "https://www.douyin.com/user/MS4wLjABAAAAVR_s5aeKDx5yGPKZ3NoF5M8-uFmBGXl8U3l1qQUwBIlFlpUZG_Dmi2JoiuUY06FL?from_tab_name=main",
+      "host": "www.douyin.com",
+      "name": "抖音 / 用户主页采集",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row128"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "douyin-com-user-self-search-767b91",
+      "url": "https://www.douyin.com/user/self/search/%E8%A1%A8%E7%AD%94?type=video",
+      "host": "www.douyin.com",
+      "name": "抖音 / 关键词视频搜索页采集",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row126"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "finance-sina-com-cn-china-61f2d5",
+      "url": "https://finance.sina.com.cn/china/",
+      "host": "finance.sina.com.cn",
+      "name": "新浪财经 / 新闻信息列表+全文",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row203",
+        "test/website.csv#row204"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: 新浪财经 / 新闻信息标题列表"
+    },
+    {
+      "id": "gdrc-com-index-php-d11e01",
+      "url": "https://www.gdrc.com/index.php?m=&c=jobs&a=jobs_list&key=%E5%B7%A5%E7%A8%8B%E5%B8%88&search_type=full&page=1",
+      "host": "www.gdrc.com",
+      "name": "广东省人才网 / 关键词招聘职位列表",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row213",
+        "test/website.csv#row214"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: 广东省人才网 / 关键词招聘职位列表+职位描述"
+    },
+    {
+      "id": "ggzyfw-beijing-gov-cn-jyxxggjtbyqs-index-html-a84db0",
+      "url": "https://ggzyfw.beijing.gov.cn/jyxxggjtbyqs/index.html",
+      "host": "ggzyfw.beijing.gov.cn",
+      "name": "公共资源交易平台（北京） / 招标公告",
+      "region": "",
+      "category": "数据",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row233"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "goofish-com-search-f83c41",
+      "url": "https://www.goofish.com/search?q=ipad&spm=a21ybx.search.searchInput.0",
+      "host": "www.goofish.com",
+      "name": "闲鱼 / 搜索关键词列表采集",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row137"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "google-com-search-7edc8f",
+      "url": "https://www.google.com/search?q=GPT&sca_esv=6c98331b2701dd74&ei=qhNGaazLOK_n0PEP0rSF-Ak&ved=0ahUKEwisyOvMmMuRAxWvMzQIHVJaAZ8Q4dUDCBE&uact=5&oq=GPT&gs_lp=Egxnd3Mtd2l6LXNlcnAiA0dQVEgAUABYAHAAeACQAQCYAQCgAQCqAQC4AQPIAQCYAgCgAgCYAwCSBwCgBwCyBwC4BwDCBwDIBwCACAA&sclient=gws-wiz-serp",
+      "host": "www.google.com",
+      "name": "谷歌 / 搜索",
+      "region": "",
+      "category": "搜索",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row221"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "gzlrck-com-jobs-jobs-list-key-3a4918",
+      "url": "https://www.gzlrck.com/jobs/jobs_list/key/%E9%94%80%E5%94%AE/search_type/jobs_commpany/page/1.htm",
+      "host": "www.gzlrck.com",
+      "name": "二丫网人才库 / 关键词招聘职位列表",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row210"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "hotels-ctrip-com-hotels-detail-40513b",
+      "url": "https://hotels.ctrip.com/hotels/detail/?cityEnName=Shanghai&cityId=2&hotelId=121234856&checkIn=2025-11-28&checkOut=2025-11-29&adult=1&children=0&crn=1&ages=&curr=CNY&barcurr=CNY&masterhotelid_tracelogid=100053755-0a386994-490088-51063&detailFilters=16%7C5~16~5*30%7C%E5%B8%8C%E5%B0%94%E9%A1%BF~30~%E5%B8%8C%E5%B0%94%E9%A1%BF*17%7C1~17~1*80%7C2~80~2*29%7C1~29~1%7C1&hotelType=normal&display=incavg&subStamp=1960&isCT=true&isFlexible=F&isFirstEnterDetail=T",
+      "host": "hotels.ctrip.com",
+      "name": "携程 / 酒店评论",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row132"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "hotels-ctrip-com-hotels-list-494513",
+      "url": "https://hotels.ctrip.com/hotels/list?countryId=1&city=2&provinceId=0&checkin=2025/11/28&checkout=2025/11/29&starlist=5&optionId=2&optionType=City&directSearch=1&optionName=%E5%B8%8C%E5%B0%94%E9%A1%BF&display=%E5%B8%8C%E5%B0%94%E9%A1%BF&crn=1&adult=1&children=0&searchBoxArg=t&travelPurpose=0&ctm_ref=ix_sb_dl&domestic=1&&v2_mod=0&v2_version=E",
+      "host": "hotels.ctrip.com",
+      "name": "携程 / 酒店搜索列表",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row131"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "iguopin-com-job-list-3788d8",
+      "url": "https://www.iguopin.com/job/list?keyword=%E5%B7%A5%E7%A8%8B%E5%B8%88",
+      "host": "www.iguopin.com",
+      "name": "国聘网 / 关键词招聘职位列表",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row215"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "item-jd-com-100012727677-html-d802ee",
+      "url": "https://item.jd.com/100012727677.html",
+      "host": "item.jd.com",
+      "name": "京东 / 商品详情页问大家",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row120"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "item-taobao-com-item-htm-cac7e1",
+      "url": "https://item.taobao.com/item.htm?id=799382165033&mi_id=00004xmTrYc8k_ULnko9RDvSJpdcr1iXhBYL0oNDzpmiYFk&priceTId=214784c217660458619425884e103b&pvid=ee6938fe-948d-499f-8eb6-0df9404e1a0d&scm=1007.56401.415219.0&skuId=5445721800644&spm=tbpc.pc_sem_alimama%2Fa.201876.d5.3cad2a89uWhVVl&xxc=home_recommend",
+      "host": "item.taobao.com",
+      "name": "天猫 / 电商",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row119"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "iwencai-com-unifiedwap-result-ca33e4",
+      "url": "https://www.iwencai.com/unifiedwap/result?typed=1&preParams=&ts=1&f=1&qs=1&selfsectsn=&querytype=&searchfilter=&tid=stockpick&w=%E6%9C%BA%E5%99%A8",
+      "host": "www.iwencai.com",
+      "name": "同花顺 / 股票关键词搜索列表",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row198"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "k-autohome-com-cn-3207-stopselling-a62165",
+      "url": "https://k.autohome.com.cn/3207/stopselling",
+      "host": "k.autohome.com.cn",
+      "name": "汽车之家",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row183"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "k-autohome-com-cn-detail-view-6e143b",
+      "url": "https://k.autohome.com.cn/detail/view_01bhq019n364v30c1m68sg0000.html#pvareaid=2112108",
+      "host": "k.autohome.com.cn",
+      "name": "汽车之家 / 口碑内容列表+完整口碑",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row184"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "kuaishou-com-short-video-f2e8a9",
+      "url": "https://www.kuaishou.com/short-video/3xx32rzgdc5aw9i?authorId=3x6tg55ifx2aq7g&streamSource=brilliant&hotChannelId=00&area=brilliantxxcarefully",
+      "host": "www.kuaishou.com",
+      "name": "快手 / 视频评论",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row206"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "m-weibo-cn-p-index-e43a04",
+      "url": "https://m.weibo.cn/p/index?containerid=100808d99e24ce34ce04b3de57975dc91f51f2",
+      "host": "m.weibo.cn",
+      "name": "微博 / 超话-内容",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row209"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "mafengwo-cn-hotel-10065-5776ce",
+      "url": "https://www.mafengwo.cn/hotel/10065/",
+      "host": "www.mafengwo.cn",
+      "name": "马蜂窝 / 酒店搜索列表",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row134"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "mafengwo-cn-hotel-10198-95dd5e",
+      "url": "https://www.mafengwo.cn/hotel/10198/",
+      "host": "www.mafengwo.cn",
+      "name": "马蜂窝 / 关键词酒店列表采集",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row164"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "mafengwo-cn-hotel-97816-html-473b0a",
+      "url": "https://www.mafengwo.cn/hotel/97816.html?iMddid=10198",
+      "host": "www.mafengwo.cn",
+      "name": "马蜂窝 / 酒店评论采集",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row165"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "mafengwo-cn-poi-3474-html-fc989e",
+      "url": "https://www.mafengwo.cn/poi/3474.html",
+      "host": "www.mafengwo.cn",
+      "name": "马蜂窝 / 景点点评采集",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row163"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "mafengwo-cn-travel-scenic-spot-95becf",
+      "url": "https://www.mafengwo.cn/travel-scenic-spot/mafengwo/10198.html",
+      "host": "www.mafengwo.cn",
+      "name": "马蜂窝 / 景点游记",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row166"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "mobile-yangkeduo-com-mall-certificates-html-c8e771",
+      "url": "https://mobile.yangkeduo.com/mall_certificates.html?_t_rpn=mall_comment&mall_id=999500123&msn=4m3yqgzox643unce3yyrbiwhee_axbuy&goods_id=864331809045&_x_query=%E6%81%B0%E6%81%B0&refer_page_name=goods_detail&refer_page_id=10014_1764561063100_ereq2x09z7&refer_page_sn=10014",
+      "host": "mobile.yangkeduo.com",
+      "name": "拼多多 / 商品评论采集",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row136"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "mobile-yangkeduo-com-search-result-html-0c48f3",
+      "url": "https://mobile.yangkeduo.com/search_result.html?search_key=%E6%9C%8D%E9%A5%B0&search_met_track=history&search_type=goods&source=index&options=1&refer_search_met_pos=0&refer_page_el_sn=99887&refer_page_name=search_result&refer_page_id=10015_1764560181189_88kbbypr48&refer_page_sn=10015",
+      "host": "mobile.yangkeduo.com",
+      "name": "拼多多 / 拼多多",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row135"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "movie-douban-com-cinema-later-beijing-08b397",
+      "url": "https://movie.douban.com/cinema/later/beijing/",
+      "host": "movie.douban.com",
+      "name": "豆瓣 / 电影城市影讯即将上映电影",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row153"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "movie-douban-com-explore-627668",
+      "url": "https://movie.douban.com/explore",
+      "host": "movie.douban.com",
+      "name": "豆瓣 / 热门电影",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row152"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "music-douban-com-subject-3390002-comments-b4c7b5",
+      "url": "https://music.douban.com/subject/3390002/comments/",
+      "host": "music.douban.com",
+      "name": "豆瓣 / 音乐评论",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row154"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "news-qq-com-2cddc6",
+      "url": "https://news.qq.com/",
+      "host": "news.qq.com",
+      "name": "腾讯新闻 / 要闻",
+      "region": "",
+      "category": "新闻",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row187"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "news-qq-com-rain-a-20251218a03izt00-764e4e",
+      "url": "https://news.qq.com/rain/a/20251218A03IZT00?#to-comment",
+      "host": "news.qq.com",
+      "name": "腾讯新闻 / 单条新闻用户评论",
+      "region": "",
+      "category": "新闻",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row188"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "news-qq-com-search-a3e572",
+      "url": "https://news.qq.com/search?query=ai&page=1",
+      "host": "news.qq.com",
+      "name": "腾讯新闻 / 关键词搜索列表",
+      "region": "",
+      "category": "新闻",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row189"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "noon-com-uae-en-reviews-207264",
+      "url": "https://www.noon.com/uae-en/reviews/N53419040A/?o=e2a62e8b03cc85fc",
+      "host": "www.noon.com",
+      "name": "noon / 商品评论",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row223"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "noon-com-uae-en-z200-stereo-67ab13",
+      "url": "https://www.noon.com/uae-en/z200-stereo-speakers-midnight-black/N11411462A/p?o=daabc97c1b14bfef",
+      "host": "www.noon.com",
+      "name": "noon / 关键词商品列表",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row222"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "q-10jqka-com-cn-e85e54",
+      "url": "https://q.10jqka.com.cn/",
+      "host": "q.10jqka.com.cn",
+      "name": "同花顺 / A股个股行情",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row193"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "q-10jqka-com-cn-xsb-4ce3de",
+      "url": "https://q.10jqka.com.cn/xsb/",
+      "host": "q.10jqka.com.cn",
+      "name": "同花顺 / 新三板行情",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row199"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "qcc-com-web-search-41fe01",
+      "url": "https://www.qcc.com/web/search?key=%E9%98%BF%E9%87%8C%E5%B7%B4%E5%B7%B4",
+      "host": "www.qcc.com",
+      "name": "企查查 / 企业搜索列表",
+      "region": "",
+      "category": "数据",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row176"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "s-taobao-com-search-b0decd",
+      "url": "https://s.taobao.com/search?commend=all&ie=utf8&initiative_id=tbindexz_20170306&page=1&preLoadOrigin=https://www.taobao.com&q=%E6%9C%8D%E9%A5%B0&search_type=item&sourceId=tb.index&spm=a21bo.jianhua/a.search_manual.0&ssid=s5-e&tab=all",
+      "host": "s.taobao.com",
+      "name": "淘宝",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row117"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "s-weibo-com-weibo-1d5e7f",
+      "url": "https://s.weibo.com/weibo?q=%E6%B0%B8%E8%BE%89",
+      "host": "s.weibo.com",
+      "name": "微博 / 搜索关键词",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row140"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "s-weibo-com-weibo-66165b",
+      "url": "https://s.weibo.com/weibo?q=%E6%B0%B8%E8%BE%89&typeall=1&suball=1&timescope=custom%3A2025-11-04-2%3A2025-12-04-2&Refer=g",
+      "host": "s.weibo.com",
+      "name": "微博 / 搜索关键词-按时间段筛选",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row142"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "search-bilibili-com-all-73418b",
+      "url": "https://search.bilibili.com/all?keyword=%E5%87%A1%E4%BA%BA%E4%BF%AE%E4%BB%99%E4%BC%A0&search_source=1",
+      "host": "search.bilibili.com",
+      "name": "B站 / 搜索关键词",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row145"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "search-damai-cn-search-htm-3e2c60",
+      "url": "https://search.damai.cn/search.htm?spm=a2oeg.home.category.ditem_0.591b23e1boTTBk&ctl=%E6%BC%94%E5%94%B1%E4%BC%9A&order=1&cty=%E6%B7%B1%E5%9C%B3",
+      "host": "search.damai.cn",
+      "name": "大麦 / 演出列表信息",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row170"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "search-jd-com-search-3429ae",
+      "url": "https://search.jd.com/Search?keyword=%E5%AE%A0%E7%89%A9&enc=utf-8&suggest=3.his.0.0&wq=&pvid=57b9fc0aa349402ca954078759a75a2c",
+      "host": "search.jd.com",
+      "name": "京东 / 关键词搜索列表",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row121"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "sh-lianjia-com-ershoufang-pudong-l2-4d7ebe",
+      "url": "https://sh.lianjia.com/ershoufang/pudong/l2/",
+      "host": "sh.lianjia.com",
+      "name": "链家 / 二手房列表",
+      "region": "",
+      "category": "本地生活",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row155"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "shenzhen-anjuke-com-8c4cb4",
+      "url": "https://shenzhen.anjuke.com/",
+      "host": "shenzhen.anjuke.com",
+      "name": "安居客 / 二手房所有房源列表",
+      "region": "",
+      "category": "本地生活",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row225"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "shenzhen-anjuke-com-sale-056e04",
+      "url": "https://shenzhen.anjuke.com/sale/?from=HomePage_TopBar",
+      "host": "shenzhen.anjuke.com",
+      "name": "安居客 / 二手房所有房源列表+信息",
+      "region": "",
+      "category": "本地生活",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row226"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "showstart-com-event-283874-bd6f89",
+      "url": "https://www.showstart.com/event/283874",
+      "host": "www.showstart.com",
+      "name": "秀动 / 演出列表+演出详情",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row186"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "showstart-com-event-list-ac12be",
+      "url": "https://www.showstart.com/event/list?pageNo=1&pageSize=20&cityCode=10",
+      "host": "www.showstart.com",
+      "name": "秀动 / 演出列表",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row185"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "so-toutiao-com-search-df714b",
+      "url": "https://so.toutiao.com/search?dvpf=pc&source=input&keyword=AI&pd=information&actiontype=searchsubtabswitch&pagenum=0&from=news&curtabtitle=news&page_num=0",
+      "host": "so.toutiao.com",
+      "name": "今日头条 / 资讯关键词搜索列表",
+      "region": "",
+      "category": "新闻",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row167"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "space-bilibili-com-330415548-upload-video-3a3b46",
+      "url": "https://space.bilibili.com/330415548/upload/video",
+      "host": "space.bilibili.com",
+      "name": "B站 / 用户主页视频列表",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row147"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "sz-58-com-cantfwy-231d12",
+      "url": "http://sz.58.com/cantfwy/?PGTID=0d202408-0000-4ee2-acfb-fd98aaebcc33&ClickID=1",
+      "host": "sz.58.com",
+      "name": "58同城 / 关键词招聘职位列表",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row207"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "sz-58-com-songcany-90774c",
+      "url": "https://sz.58.com/songcany/?PGTID=0d365000-0000-48b4-510f-2d0dc7cb67cc&ClickID=3&fullPath=674,413538,413690,413829",
+      "host": "sz.58.com",
+      "name": "58同城 / 关键词招聘职位列表+岗位描述",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row208"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "sz-fang-anjuke-com-9087ba",
+      "url": "https://sz.fang.anjuke.com/?from=HomePage_TopBar",
+      "host": "sz.fang.anjuke.com",
+      "name": "安居客 / 新房所有房源列表",
+      "region": "",
+      "category": "本地生活",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row227"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "sz-fang-ke-com-loupan-c0e7cc",
+      "url": "https://sz.fang.ke.com/loupan/",
+      "host": "sz.fang.ke.com",
+      "name": "贝壳找房 / 新房列表",
+      "region": "",
+      "category": "本地生活",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row180"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "sz-ke-com-ershoufang-b8de3d",
+      "url": "https://sz.ke.com/ershoufang/",
+      "host": "sz.ke.com",
+      "name": "贝壳找房 / 二手房详情页",
+      "region": "",
+      "category": "本地生活",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row179"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "sz-zu-ke-com-zufang-45646b",
+      "url": "https://sz.zu.ke.com/zufang/",
+      "host": "sz.zu.ke.com",
+      "name": "贝壳找房 / 租房列表",
+      "region": "",
+      "category": "本地生活",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row181",
+        "test/website.csv#row182"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: 贝壳找房 / 租房列表+详情页"
+    },
+    {
+      "id": "taptap-cn-app-168332-review-5b0fef",
+      "url": "https://www.taptap.cn/app/168332/review?os=pc&sort=new",
+      "host": "www.taptap.cn",
+      "name": "TapTap / 某游戏最新评价",
+      "region": "",
+      "category": "游戏",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row174"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "taptap-cn-app-168332-review-974b12",
+      "url": "https://www.taptap.cn/app/168332/review?os=pc&sort=new&mapping=%E5%B7%AE%E8%AF%84&label=0",
+      "host": "www.taptap.cn",
+      "name": "TapTap / 某游戏差评",
+      "region": "",
+      "category": "游戏",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row175"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "taptap-cn-app-168332-review-f5220b",
+      "url": "https://www.taptap.cn/app/168332/review?os=pc",
+      "host": "www.taptap.cn",
+      "name": "TapTap / 某游戏综合评价",
+      "region": "",
+      "category": "游戏",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row173"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "thepaper-cn-channel-25950-c62707",
+      "url": "https://www.thepaper.cn/channel_25950",
+      "host": "www.thepaper.cn",
+      "name": "澎湃新闻 / 不同栏目新闻列表",
+      "region": "",
+      "category": "新闻",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row228",
+        "test/website.csv#row229"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: 澎湃新闻 / 不同栏目新闻列表+正文"
+    },
+    {
+      "id": "thepaper-cn-newsdetail-forward-f8f3b5",
+      "url": "https://www.thepaper.cn/newsDetail_forward_32213697",
+      "host": "www.thepaper.cn",
+      "name": "澎湃新闻 / 新闻评论",
+      "region": "",
+      "category": "新闻",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row232"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "thepaper-cn-searchresult-5f9d88",
+      "url": "https://www.thepaper.cn/searchResult?id=AI%E5%B7%A5%E5%85%B7",
+      "host": "www.thepaper.cn",
+      "name": "澎湃新闻 / 关键词新闻列表",
+      "region": "",
+      "category": "新闻",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row230",
+        "test/website.csv#row231"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: 澎湃新闻 / 关键词新闻列表+正文"
+    },
+    {
+      "id": "tianyancha-com-nsearch-148a75",
+      "url": "https://www.tianyancha.com/nsearch?key=%E9%98%BF%E9%87%8C%E5%B7%B4%E5%B7%B4",
+      "host": "www.tianyancha.com",
+      "name": "天眼查 / 公司搜索列表",
+      "region": "",
+      "category": "数据",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row177",
+        "test/website.csv#row178"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: 天眼查 / 公司详情页工商信息"
+    },
+    {
+      "id": "weibo-com-6105713761-qh8jwpf3v-272fbd",
+      "url": "https://weibo.com/6105713761/Qh8jwpF3V",
+      "host": "weibo.com",
+      "name": "微博 / 用户评论",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row141"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "weibo-com-hot-search-2b2c4e",
+      "url": "https://weibo.com/hot/search",
+      "host": "weibo.com",
+      "name": "微博 / 热搜榜",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row143"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "weibo-com-u-3197845214-9eb239",
+      "url": "https://weibo.com/u/3197845214",
+      "host": "weibo.com",
+      "name": "微博 / 用户主页",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row144"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "weixin-sogou-com-weixin-73b043",
+      "url": "https://weixin.sogou.com/weixin?type=2&query=%E6%97%A7%E8%A1%A3%E6%9C%8D%E5%9B%9E%E6%94%B6",
+      "host": "weixin.sogou.com",
+      "name": "搜狗微信 / 关键词搜索公众号文章",
+      "region": "",
+      "category": "内容",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row138"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "xiaohongshu-com-search-result-131b35",
+      "url": "https://www.xiaohongshu.com/search_result?keyword=%25E8%25A1%25A8%25E7%25AD%2594&source=unknown",
+      "host": "www.xiaohongshu.com",
+      "name": "小红书 / 关键词搜索页采集",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row122"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "xiaohongshu-com-search-result-3ed6e4",
+      "url": "https://www.xiaohongshu.com/search_result?keyword=%E8%A1%A8%E7%AD%94&source=unknown",
+      "host": "www.xiaohongshu.com",
+      "name": "小红书 / 笔记详情页内容+赞藏评数采集",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row123"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "xiaohongshu-com-user-profile-54ff14",
+      "url": "https://www.xiaohongshu.com/user/profile/67d40b58000000000d0080e7?xsec_token=AB8fSHbouHQRcRKmstfhhbbWER17BlDlMDffIuo2-GBq8=&xsec_source=pc_note",
+      "host": "www.xiaohongshu.com",
+      "name": "小红书 / 用户主页笔记详情页内容+赞藏评数采集",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row125"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "xiaohongshu-com-user-profile-b1bd74",
+      "url": "https://www.xiaohongshu.com/user/profile/5b8cc0472611925a1caca48a?xsec_token=ABwYODgL82NmWhmgGdnLmAuEPpvVgIEt3DCHL-nV8Elq4=&xsec_source=pc_search",
+      "host": "www.xiaohongshu.com",
+      "name": "小红书 / 用户主页笔记采集",
+      "region": "",
+      "category": "自媒体",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row124"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "xueqiu-com-9687478359-366664817-00ff3a",
+      "url": "https://xueqiu.com/9687478359/366664817",
+      "host": "xueqiu.com",
+      "name": "雪球 / 关键词下最新讨论（含全文）",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row200"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "xueqiu-com-k-e13f7c",
+      "url": "https://xueqiu.com/k?q=%E9%93%9C",
+      "host": "xueqiu.com",
+      "name": "雪球 / 关键词下最新讨论标题列表",
+      "region": "",
+      "category": "金融",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row201"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "you-163-com-search-8498db",
+      "url": "https://you.163.com/search?keyword=%E7%8C%AB&timestamp=1766060498801&_stat_search=userhand&searchWordSource=1#sortType=0&descSorted=true&categoryId=0&page=1&matchType=1&floorPrice=-1&upperPrice=-1&stillSearch=false",
+      "host": "you.163.com",
+      "name": "网易严选 / 关键词商品列表",
+      "region": "",
+      "category": "电商",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row216"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "you-ctrip-com-sight-shenzhen26-d0f09f",
+      "url": "https://you.ctrip.com/sight/shenzhen26/1508177.html?renderPlatform=",
+      "host": "you.ctrip.com",
+      "name": "携程 / 景点评论",
+      "region": "",
+      "category": "旅行",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row133"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "zhaopin-com-jobdetail-401b15",
+      "url": "https://www.zhaopin.com/jobdetail/CC823346590J40882170902.htm?refcode=4019&srccode=401901&preactionid=d986ac9c-c119-46e5-8ed3-c2661e9928bb",
+      "host": "www.zhaopin.com",
+      "name": "智联招聘 / 职位描述",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row161"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "zhaopin-com-sou-jl763-kw010g0i8-p1-73a939",
+      "url": "https://www.zhaopin.com/sou/jl763/kw010G0I8/p1?kt=3",
+      "host": "www.zhaopin.com",
+      "name": "智联招聘 / 职位搜索列表",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row160"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "id": "zhihu-com-hot-f89c66",
+      "url": "https://www.zhihu.com/hot",
+      "host": "www.zhihu.com",
+      "name": "知乎 / 热榜采集",
+      "region": "",
+      "category": "社区",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row149"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "zhihu-com-question-650630730-2e9501",
+      "url": "https://www.zhihu.com/question/650630730",
+      "host": "www.zhihu.com",
+      "name": "知乎 / 问答评论",
+      "region": "",
+      "category": "社区",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row150"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "zhihu-com-search-a5fef4",
+      "url": "https://www.zhihu.com/search?type=content&q=%E8%A1%A8%E7%AD%94AI",
+      "host": "www.zhihu.com",
+      "name": "知乎 / 关键词搜索结果页采集",
+      "region": "",
+      "category": "社区",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row148"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [
+        "login-likely"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "zhipin-com-web-geek-jobs-2686d1",
+      "url": "https://www.zhipin.com/web/geek/jobs?city=101280600&query=%E5%B7%A5%E7%A8%8B%E5%B8%88",
+      "host": "www.zhipin.com",
+      "name": "Boss直聘 / 职位搜索列表",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row156",
+        "test/website.csv#row157"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: Boss直聘 / 职位描述"
+    },
+    {
+      "id": "zhipin-com-web-geek-jobs-fae436",
+      "url": "https://www.zhipin.com/web/geek/jobs?city=101280600",
+      "host": "www.zhipin.com",
+      "name": "Boss直聘",
+      "region": "",
+      "category": "招聘",
+      "priority": "p2",
+      "source": [
+        "test/website.csv#row158",
+        "test/website.csv#row159"
+      ],
+      "expect": {
+        "minRows": 5
+      },
+      "tags": [],
+      "notes": "also listed as: Boss直聘 / 城市全量招聘岗位描述"
+    }
+  ]
+}

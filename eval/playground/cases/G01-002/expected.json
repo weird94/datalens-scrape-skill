@@ -1,0 +1,8 @@
+{
+  "expectedRows": 24,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": "[role=\"article\"]", "textPrefix": "Sample Creator" },
+  "oracle": { "strategy": "scroll-window", "waitMs": 1200, "quietMs": 900 },
+  "naive": { "strategy": "static", "expectedRows": 6 },
+  "trapVerifiedBy": "naive"
+}

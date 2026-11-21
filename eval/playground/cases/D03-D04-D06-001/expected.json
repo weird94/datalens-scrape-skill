@@ -1,0 +1,29 @@
+{
+  "expectedRows": 40,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "li.item",
+    "textPrefix": "商品 "
+  },
+  "mustNotPaginateWith": [
+    "换一换",
+    "swiper-button-next",
+    "展开",
+    "chan"
+  ],
+  "mustNotPaginateWithOracleChecked": false,
+  "mustNotPaginateWithNote": "playground-oracle.ts 不读取 mustNotPaginateWith，runner 不会检查这些诱饵是否存在。它们由 packages/backend/src/app/dev-fixtures/playground/__test__/playground.test.ts 的 distractors 用例断言：换一换、swiper-button-next、class=\"chan\" 共 4 个、class=\"expand\" 的展开按钮。",
+  "oracle": {
+    "strategy": "click-more",
+    "clickSelector": "#load-more"
+  },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": {
+      "selector": "li.item",
+      "textPrefix": "商品 "
+    },
+    "expectedRows": 10
+  },
+  "trapVerifiedBy": "naive"
+}

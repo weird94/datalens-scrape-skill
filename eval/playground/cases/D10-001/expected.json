@@ -1,0 +1,18 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "#list li.item",
+    "textPrefix": "商品 "
+  },
+  "oracle": {
+    "strategy": "click-more",
+    "clickSelector": "#load-more"
+  },
+  "naive": {
+    "strategy": "click-once-now",
+    "clickSelector": "#load-more",
+    "expectedRows": 14
+  },
+  "trapVerifiedBy": "naive"
+}

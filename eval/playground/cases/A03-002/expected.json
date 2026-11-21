@@ -1,0 +1,12 @@
+{
+  "expectedRows": 7,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": ".css-91be04", "textPrefix": "Album " },
+  "oracle": { "strategy": "static" },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": ".css-7f3c2a > *", "textPrefix": "Album " },
+    "expectedRows": 13
+  },
+  "trapVerifiedBy": "naive"
+}

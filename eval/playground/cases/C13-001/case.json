@@ -1,0 +1,45 @@
+{
+  "id": "C13-001",
+  "pattern": [
+    "C13"
+  ],
+  "title": "信息流卡片点「展开阅读」就地展开：折叠时只有标题、「作者：摘要…」和操作栏，作者行（头像、作者链接、徽章）和「发表于」只在展开后出现，展开后的正文不再带「作者：」前缀；每第 4 篇的摘要截断在「&amp;」中间，每第 5 篇是一句话短回答（其中每第 10 篇不带「…」）；滚动分批加载（每批 8 张），共 24 张",
+  "source": "合成（形状来自 2026-11-18 生产会话 thread b3c8f3f9：某问答社区首页推荐流，「Scrape the feed of posts」。agent 第一次试采作者列只填 1/12，此后 15 步反复 inspect、重开页面找作者选择器，24 步、约 290 积分才开采；选择器其实一直是对的。类名、按钮与徽章文案、正文都是编的）",
+  "variant": {
+    "lang": "zh",
+    "classes": "semantic",
+    "posts": 24,
+    "batch": 8
+  },
+  "url": "/dev-fixtures/playground/excerpt-cards?posts=24&batch=8",
+  "message": "采集这个信息流里的帖子",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "agentExpectation": "第一次预览作者 / 作者链接 / 发布时间就全满、正文是全文，不出现「showed other values after an expand click」告警；agent 不为找作者列反复 inspect。",
+  "product": {
+    "red": {
+      "commit": "origin/main 8dfa2477（生产同款引擎，扩展 1.21.1）",
+      "path": "packages/scrape-skill/eval/dev/C13-001.json 用 scripts/collect.mjs 跑（与插件的 collectOnPage 同一份引擎）；scripts/expand-opened-record.test.mjs",
+      "result": "24 行，作者 / 作者链接 / 发表于 0/24，正文 24 行都是「作者：摘要…」，expandReplaced 24（告警让人去找「行内分页器」）；单测 6 张卡作者全空",
+      "evidence": "生产会话 4 次预览的告警行数与作者列空行数一一对应（11/12、35/36、12/48、0/48）；最后一次全满只是因为前几次预览已经把 48 张卡都点开了。引擎：collector.mjs mergeRead 只认「新文本以旧文本开头」为变长，「作者：摘要…」→ 全文不算，判成元素换了记录；去重键相同 → 整行保留第一次（折叠时）的值"
+    },
+    "green": {
+      "commit": "fix/ai-scrape-zhihu-field-hunt",
+      "path": "同上",
+      "result": "24 行，作者 / 作者链接 / 发表于 24/24，徽章 8/24（只有每第 3 篇有），正文全文 0 行带前缀、0 行截断，无 expandReplaced；单测 2 条（含行内分页器反例）通过",
+      "change": "collector.mjs grew()：折叠文本去掉前面 ≤40 字、以空格或标点结尾的标签后（不论是否带「…」），忽略空白比较，≥8 字且完整是新文本的开头即算同一段文字；带「…」的截断文本允许截断处 ≤4 字不一致，但新文本须明显更长（≥10 字）。仍判为内容被换、保留首值时：只有这些格子都是「…」截断→完整（记录被点开）才把之前为空的格子取新值（行内分页器换成另一项时不混）。expandReplaced 告警写明哪一列、前后片段、补了哪些列，并区分「行内分页器换了内容」和「同一内容再显示」",
+      "realSite": "2026-11-18 同一份配置（第 2 次试采那份，去掉 setup，maxPages 2 / maxRows 60）在 Wei 的 Chrome 新开知乎首页标签里注入引擎跑：main 12 行，作者 / 作者链接 / 头像 / 发布时间 0/12、正文 12 行带「作者：」前缀、expandReplaced 12；最终版分支 3 轮各 12 行，四列 12/12、正文 0 行带前缀 0 行截断、0 告警。中间版本暴露过的真站形状都已进单测 / mock：一句话短回答带或不带「…」、摘要在行内链接两侧加空格、公式回答 LaTeX→MathML 重绘（保留首值，告警写明列和片段）"
+    }
+  },
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/excerpt-cards/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/excerpt-cards/posts.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/excerpt-cards.test.ts",
+    "packages/scrape-skill/scripts/lib/collector.mjs",
+    "packages/scrape-skill/scripts/expand-opened-record.test.mjs",
+    "packages/scrape-skill/eval/dev/C13-001.json"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

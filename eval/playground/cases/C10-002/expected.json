@@ -1,0 +1,12 @@
+{
+  "expectedRows": 9,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "Price": ["67.1", "74.2", "81"],
+    "Origin": ["Oregon Portland", "Oregon Portland", "Oregon Portland"]
+  },
+  "rowMatch": { "selector": "ul.list > li", "textPrefix": "Item " },
+  "oracle": { "strategy": "static" },
+  "trapVerifiedBy": "vitest",
+  "trapTest": "陷阱：价格块按标签名转 Markdown 得到「67\\n\\n.1」；按排版读得到 67.1，描述的两段仍分两行"
+}

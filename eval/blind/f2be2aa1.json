@@ -1,0 +1,11 @@
+{
+  "url": "http://localhost:3031/t/f2be2aa1",
+  "rows": "#list > li.item",
+  "fields": {
+    "商品": ".title",
+    "价格": ".price"
+  },
+  "require": ["商品"],
+  "waitFor": "#list > li.item",
+  "waitTimeoutMs": 20000
+}

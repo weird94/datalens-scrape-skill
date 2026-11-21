@@ -1,0 +1,11 @@
+{
+  "expectedRows": 20,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "帖子": ["帖子 1", "帖子 2", "帖子 3"]
+  },
+  "rowMatch": { "selector": "li.post", "textPrefix": "帖子 " },
+  "oracle": { "strategy": "static" },
+  "trapVerifiedBy": "vitest",
+  "trapTest": "陷阱存在：同一行的两个 span.stat 数值不同（n 与 2n），按 class 选择会得到两列相同的结果"
+}

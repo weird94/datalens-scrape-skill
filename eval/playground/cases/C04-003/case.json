@@ -1,0 +1,15 @@
+{
+  "id": "C04-003",
+  "pattern": ["C4"],
+  "title": "斑马纹表格（日文文案，odd / even 交替），共 40 行",
+  "source": "合成（pattern C4 的形状的日文变体，用于 §3.4 要求的中 / 英 / 日文案随机化）",
+  "variant": { "rows": 40, "lang": "ja", "classes": "semantic" },
+  "url": "/dev-fixtures/playground/zebra-table?rows=40&lang=ja",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/zebra-table/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/zebra-table.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

@@ -1,0 +1,22 @@
+{
+  "expectedRows": 0,
+  "expectedStop": "gated",
+  "expectedColumns": {},
+  "rowMatch": {
+    "selector": "main .result li",
+    "textPrefix": ""
+  },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": {
+      "selector": "nav li",
+      "textPrefix": "频道 "
+    },
+    "expectedRows": 6
+  },
+  "stopSignal": [
+    { "selector": "main", "textIncludes": "登录后即可查看内容" }
+  ],
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "static" }
+}

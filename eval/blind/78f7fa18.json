@@ -1,0 +1,8 @@
+{
+  "url": "http://localhost:3031/t/78f7fa18",
+  "rows": "section:has(> h2) > ul.reviews > li.review",
+  "fields": {
+    "review": "."
+  },
+  "require": ["review"]
+}

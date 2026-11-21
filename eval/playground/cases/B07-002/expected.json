@@ -1,0 +1,13 @@
+{
+  "expectedRows": 8,
+  "expectedStop": "end-of-list",
+  "expectedColumns": { "name": ["Member 1", "Member 2", "Member 3"] },
+  "rowMatch": { "selector": "div.k7q", "textPrefix": "Campus A" },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "div.r9x", "textPrefix": "" },
+    "expectedRows": 16
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "static" }
+}

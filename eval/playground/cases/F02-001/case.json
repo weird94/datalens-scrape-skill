@@ -1,0 +1,12 @@
+{
+  "id": "F02-001",
+  "pattern": ["F2"],
+  "title": "403 拦截页：整页返回 403「访问被拒绝」，没有任何列表项，也没有重试按钮",
+  "source": "合成（pattern F2 的形状：整页直接返回 403 拦截页，只有「访问被拒绝」提示，没有列表）",
+  "variant": { "statusCode": 403 },
+  "url": "/dev-fixtures/playground/blocked-page",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

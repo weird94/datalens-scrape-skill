@@ -1,0 +1,29 @@
+{
+  "id": "B06-001",
+  "pattern": [
+    "B6"
+  ],
+  "title": "网格按行分组：12 张帖子卡分 4 行、每行 3 张，卡片只有帖子链接和封面图、没有文字；识别选中「行」，主行没有字段、卡片是嵌套列表（数据行是卡片，不是行）",
+  "source": "合成（形状来自 2026-11-03 在一个图片社交平台账号主页帖子网格上的复现：分析成功、采集 0 行，NO_ROWS_EXTRACTED；类名、属性、文案都不是那个站的）",
+  "variant": {
+    "lang": "en",
+    "classStyle": "semantic",
+    "posts": 12,
+    "cols": 3
+  },
+  "url": "/dev-fixtures/playground/grid-row-posts?posts=12&cols=3",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/copilot-services/src/execution/flatten-fieldless-parent.ts",
+    "packages/copilot-services/src/execution/execution-controller.ts",
+    "packages/copilot-services/src/content/table-service.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ],
+  "product": {
+    "status": "green",
+    "note": "copilot-services execution/__test__/playground-b06-grid-row-posts.test.ts（真 ExecutionServiceImpl 读 mock 的服务端 HTML，配置照真机分析的形状：主行 fields: []、唯一子列表 posts、容器就是行）：main 1d87110f 上 red（fetchData 0 行，主行全被当空行丢掉，子列表没机会抽）；fix/fieldless-parent-grid-rows 上 green（12/12 行，每行帖子链接 + 封面图，合并进会话不重复）。没跑扩展 harness（仓库规则不跑 build），真机待下一个商店版本复验"
+  }
+}

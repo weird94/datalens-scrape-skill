@@ -1,0 +1,15 @@
+{
+  "id": "F04-003",
+  "pattern": ["F4"],
+  "title": "翻到第 4 页后出现滑块验证码（日文文案，类名语义式）；前 3 页每页 10 行，共 30 行",
+  "source": "合成（pattern F4 的形状的日文变体，用于 §3.4 要求的中 / 英 / 日文案随机化）",
+  "variant": { "lang": "ja", "classes": "semantic", "pages": 10, "perPage": 10, "wallAt": 4 },
+  "url": "/dev-fixtures/playground/captcha-after/1?pages=10&perPage=10&wallAt=4&lang=ja",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/captcha-after/[page]/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/captcha-after.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

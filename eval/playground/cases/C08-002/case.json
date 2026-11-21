@@ -1,0 +1,12 @@
+{
+  "id": "C08-002",
+  "pattern": ["C8"],
+  "title": "列表第 10 行后有「View all」控件行（英文文案，hash class 名）；其后 5 行 hidden，共 15 行",
+  "source": "合成（pattern C8 的形状，换成英文文案与随机 hash class 名，留出变体：检查采集器是否只认语义 class 与中文文案）",
+  "variant": { "rows": 15, "lang": "en", "cls": "hash" },
+  "url": "/dev-fixtures/playground/expand-list?rows=15&lang=en&cls=hash",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": ["packages/backend/src/app/dev-fixtures/playground/expand-list/route.ts"],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

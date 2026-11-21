@@ -1,0 +1,12 @@
+{
+  "id": "D07-001",
+  "pattern": ["D7", "E1"],
+  "title": "数字页码分页器 1 2 3 … 12，箭头只有图标，共 12 页、每页 10 行",
+  "source": "合成（pattern D7 的形状）",
+  "variant": { "lang": "zh", "arrowOnly": true, "pages": 12, "perPage": 10 },
+  "url": "/dev-fixtures/playground/numbered-pager/1?pages=12&perPage=10",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

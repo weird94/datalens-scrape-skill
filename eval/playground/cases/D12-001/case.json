@@ -1,0 +1,12 @@
+{
+  "id": "D12-001",
+  "pattern": ["D12", "E1"],
+  "title": "数字页码分页器，末页下一页箭头不置灰、点了不动，共 3 页",
+  "source": "合成（pattern D12 的形状，参考 东京艺术节活动页 / seekho）",
+  "variant": { "lang": "zh", "arrowOnly": true, "pages": 3, "perPage": 10 },
+  "url": "/dev-fixtures/playground/numbered-pager/1?pages=3&perPage=10",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

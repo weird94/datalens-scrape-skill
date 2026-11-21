@@ -1,0 +1,12 @@
+{
+  "url": "http://localhost:3031/t/11a60f46",
+  "rows": "#feed > li.item",
+  "fields": {
+    "title": ".title",
+    "price": ".price"
+  },
+  "require": ["title"],
+  "next": { "type": "scroll", "scroller": "#scroller" },
+  "dedupe": ["title", "price"],
+  "maxPages": 50
+}

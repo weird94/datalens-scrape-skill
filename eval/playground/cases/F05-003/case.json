@@ -1,0 +1,15 @@
+{
+  "id": "F05-003",
+  "pattern": ["F5"],
+  "title": "续载挂起（日文文案，语义 class）：每批 5 行，累计 6 批（30 行）后「読み込み中…」，之后点击不再追加、按钮不消失",
+  "source": "合成（pattern F5 的形状的日文变体，用于 §3.4 要求的中 / 英 / 日文案随机化）",
+  "variant": { "lang": "ja", "classes": "semantic", "batchSize": 5, "hangAfter": 6 },
+  "url": "/dev-fixtures/playground/hang-after?batchSize=5&hangAfter=6&lang=ja&classes=semantic",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/hang-after/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/hang-after.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

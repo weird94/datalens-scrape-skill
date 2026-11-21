@@ -1,0 +1,66 @@
+{
+  "id": "A06-003",
+  "pattern": [
+    "A6",
+    "D8"
+  ],
+  "title": "大体量嵌套评论树：评论元素本身没有 shadow root，但每条挂着约 8 个带 open shadow root 的小组件（赞数只在投票条的 shadow 里），整页 1700+ 个 shadow root / 2 万元素；回复嵌在父评论里（最深 6 层），「N more replies」按钮是加载器（带 shadow root）的 light DOM 子元素、点了才插入，旁边还有同文字的 0×0 兜底跳转链接；主评论之间穿插空广告位，主列表末尾的加载器滚进视口才加载下一批（58 + 2×11 = 80 条主评论）",
+  "source": "合成（形状来自 2026-11-12 登录态社区帖子评论区：侧栏 AI 采集「采集评论」走旧采集器，识别到 58 条、采到 15 行后停滞 3 分钟，停机顾问判未完成；在同一页重新分析 5 分钟不返回，页面主线程间歇卡 5–6s。真站首屏 162 条评论 / 58 条主评论 / 1.67 万元素，展开后 2143 个 shadow root / 3.2 万元素）",
+  "variant": {
+    "lang": "en",
+    "top": 80,
+    "first": 58,
+    "perBatch": 11,
+    "clutter": 500
+  },
+  "url": "/dev-fixtures/playground/deep-thread",
+  "heldOut": false,
+  "status": "draft",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/deep-thread/route.ts",
+    "packages/copilot-services/src/execution/execution-controller.ts",
+    "packages/copilot-services/src/execution/execution-service.ts",
+    "packages/core/src/analyze-row.ts",
+    "packages/core/src/recursive-item-tree.ts",
+    "packages/core/src/utils/query-selector.ts",
+    "packages/scraper-copilot/background/services/table-analyze-service.ts"
+  ],
+  "relatedDocs": [
+    "docs/recursive-tree-ai-detection-plan-2026-11-12.md",
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ],
+  "product": {
+    "red": {
+      "commit": "7ba89810 (main) / c80ca57f (agent-driven-skill 1.20.8)",
+      "path": "AiToolService detect→analyze→startScrape（旧采集器 ExecutionController），harness verify-pagination-root-relocate.ts",
+      "result": "不预置递归规则：15/80，300s 仍 RUNNING，4s 后再无新行；预置递归规则：6/80，75s 仍 RUNNING；main 构建：7/80，120s 仍 RUNNING",
+      "evidence": "分析把 div.children（每条评论都有的回复容器）配成 expand_button；_drainPageInternalActions 逐个动作 clickExpandButton→clickUntilExpanded（逐个点子孙、每次 500ms）→waitForNextMutation（页面不变、等满超时）→fetchVisibleBandSnapshot（getElementSelector 每层祖先做一次整页组合查询，约 2000 个 shadow root）"
+    },
+    "green": {
+      "commit": "fix/expand-container-stall（未提交，基于 main 7ba89810）",
+      "path": "AiToolService detect→analyze→startScrape（旧采集器），预置递归规则，harness 视口 1280×720",
+      "result": "80/80 COMPLETED ×2（一次分析配了回复区当 expand_button、一次没配展开字段，两种都过）；采集约 90s。回归：B06-001 12/12、A02-001 200/200 通过；C08-001/002 16/15、D08-001/D09-001 240/240+possibly-incomplete 在 main 上同样如此（原有问题）",
+      "fix": [
+        "expand_button 命中装着记录的元素 → 落到记录之外的控件（button/[role=button]/summary/a/[onclick]/[tabindex]，再不行取第一个带文字的可见元素），没有就不生成动作",
+        "字段在某行装过记录时，空的那份不算按钮",
+        "行本身是记录时，嵌套记录（匹配条目选择器且带至少 2 个数据字段）里的控件不归这一行",
+        "快照里算行/触发器选择器套 withComposedQueryCache",
+        "列表最后一条比视口高时，顶到视口顶后再滚到它底边在视口中线，让后面的懒加载哨兵进视口",
+        "（另一会话）分析树丢掉排版了但画不出来（自身和后代都 ≤1px）的子元素，Reddit 0×0 兜底链接不再进分析"
+      ]
+    },
+    "green2": {
+      "commit": "feat/ai-recursive-tree（未提交，基于 fix/expand-container-stall eb4d7825）",
+      "path": "AiToolService detect→analyze→startScrape（旧采集器），不预置任何递归规则，harness 1280×720",
+      "result": "976/976 COMPLETED；分析认出递归树（条目选择器 details、isTree），展开按钮列选到「N more replies」按钮本身",
+      "red": "同分支修 analyze-row 前：280/976（没有展开按钮列，只采到首屏已展开 + 懒加载的）",
+      "fix": [
+        "结构预筛找自嵌套（同标签、像同类）→ AI 判是否递归树 → 拼同时选中各层的条目选择器，写进配置 isTree",
+        "递归树上分析前的自动展开不点「加载更多回复」类按钮",
+        "analyze-columns 提示告知递归树：只描述一条、加载更多嵌套条目的控件必须出 expand_button",
+        "分析树：rendersNothing 按组合树看后代（slot 投进来的按钮不再被丢）；对齐与子元素语义判断忽略裁掉的嵌套条目"
+      ]
+    }
+  },
+  "expectationChange": "2026-11-13：期望从 80（只算主评论）改成 976（各层评论各一行，含点「N more replies」才出来的）。旧期望是在递归规则没套上、回复被当成主评论附属的口径下写的。oracle 的 scroll-window 不会点展开，按新期望要补一个点击展开的 oracle 策略，补之前状态为 draft。"
+}

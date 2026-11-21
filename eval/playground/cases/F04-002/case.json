@@ -1,0 +1,15 @@
+{
+  "id": "F04-002",
+  "pattern": ["F4"],
+  "title": "翻到第 4 页后出现滑块验证码（英文文案，类名哈希式）；前 3 页每页 10 行，共 30 行；留出集",
+  "source": "合成（pattern F4 的形状的留出变体：英文文案 + 哈希式类名，用于防止对 F04-001 的文案与类名过拟合）",
+  "variant": { "lang": "en", "classes": "hash", "pages": 10, "perPage": 10, "wallAt": 4 },
+  "url": "/dev-fixtures/playground/captcha-after/1?pages=10&perPage=10&wallAt=4&lang=en&classes=hash",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/captcha-after/[page]/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/captcha-after.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

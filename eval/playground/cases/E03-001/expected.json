@@ -1,0 +1,26 @@
+{
+  "expectedRows": 123,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "li.comment",
+    "textPrefix": "评论 "
+  },
+  "oracle": {
+    "strategy": "scroll-window"
+  },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": {
+      "selector": "li.comment",
+      "textPrefix": "评论 "
+    },
+    "expectedRows": 20
+  },
+  "stopSignal": [
+    {
+      "selector": "body",
+      "textIncludes": "160"
+    }
+  ],
+  "trapVerifiedBy": "naive"
+}

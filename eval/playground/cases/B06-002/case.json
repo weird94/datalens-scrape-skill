@@ -1,0 +1,29 @@
+{
+  "id": "B06-002",
+  "pattern": [
+    "B6"
+  ],
+  "title": "网格按行分组（留出集）：10 张帖子卡、每行 4 张，最后一行不满（2 张），类名是无语义短哈希；卡片只有链接和封面图",
+  "source": "合成（同 B06-001 的形状，换行宽、不满的末行和哈希类名，防止修法对 3 列语义类名过拟合）",
+  "variant": {
+    "lang": "en",
+    "classStyle": "atomic-hash",
+    "posts": 10,
+    "cols": 4
+  },
+  "url": "/dev-fixtures/playground/grid-row-posts?posts=10&cols=4&classes=hash",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/copilot-services/src/execution/flatten-fieldless-parent.ts",
+    "packages/copilot-services/src/execution/execution-controller.ts",
+    "packages/copilot-services/src/content/table-service.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ],
+  "product": {
+    "status": "green",
+    "note": "copilot-services execution/__test__/playground-b06-grid-row-posts.test.ts（真 ExecutionServiceImpl 读 mock 的服务端 HTML，配置照真机分析的形状：主行 fields: []、唯一子列表 posts、容器就是行）：main 1d87110f 上 red（fetchData 0 行，主行全被当空行丢掉，子列表没机会抽）；fix/fieldless-parent-grid-rows 上 green（10/10 行，每行帖子链接 + 封面图，合并进会话不重复）。没跑扩展 harness（仓库规则不跑 build），真机待下一个商店版本复验"
+  }
+}

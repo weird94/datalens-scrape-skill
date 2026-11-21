@@ -1,0 +1,12 @@
+{
+  "id": "D13-001",
+  "pattern": ["D13"],
+  "title": "实时榜单：列表首项价格每秒跳动，其余行静态，共 20 行，无分页",
+  "source": "合成（pattern D13 的形状：带 ticker 的榜单，首项价格实时更新，文本指纹每次都变）",
+  "variant": { "rows": 20, "tickMs": 1000 },
+  "url": "/dev-fixtures/playground/ticker-list?rows=20",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

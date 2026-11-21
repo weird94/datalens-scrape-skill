@@ -1,0 +1,14 @@
+{
+  "url": "https://www.udemy.com/course/the-python-mega-course/?couponCode=LETSLEARNNOW#reviews",
+  "rows": "[class*='review--review-container']",
+  "fields": {
+    "reviewer": "[class*='user-name'], [data-purpose='review-user-name']",
+    "rating": { "css": "[data-purpose='star-rating-shell'], [class*='star-rating']", "attr": "aria-label" },
+    "date": "[class*='review--time-since']",
+    "review": "[data-purpose='review-comment-content']"
+  },
+  "require": ["review"],
+  "waitTimeoutMs": 20000,
+  "maxPages": 1,
+  "maxRows": 60
+}

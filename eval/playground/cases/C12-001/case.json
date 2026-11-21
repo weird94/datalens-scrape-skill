@@ -1,0 +1,23 @@
+{
+  "id": "C12-001",
+  "pattern": ["C12"],
+  "title": "卡片里一串同 class 的可选条目（房型 / 含早餐 / 免费取消 / 无需预付 / 仅剩 N 间），前面缺一条后面整体前移；按位置取列会把「无需预付」写进取消政策列、漏掉剩余房量。两种政策条目结构完全相同，只靠图标的 data-testid 区分",
+  "source": "合成（形状来自 2026-11-07 一位用户在某酒店搜索结果页的采集：取消政策列 46 格里 4 格错写成预付、剩余房量 39 条只采到 28 条；2026-11-09 取回的真实条目结构回放到 core 上数字原样复现；类名、文案、属性都不是那个站的）",
+  "variant": { "lang": "zh", "classes": "semantic", "marker": "testid", "rows": 12 },
+  "url": "/dev-fixtures/playground/optional-perk-slots?rows=12",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "product": {
+    "status": "green",
+    "note": "packages/backend/src/app/dev-fixtures/playground/__test__/playground-c12-optional-perk-slots.test.ts（core 源码 analyzeItems → 叶子 fullPath 逐行按字段提取读法读值，不走真 AI）：修复前（HEAD 63c517cf；这两个 core 文件与 origin/main c96b016f 相同）red——同一种条目被拆成多个位置列（免费取消 = li:nth-of-type(2) + (3)，仅剩 N 间 = (3)/(4)/(5)），读到相邻条目或漏值。修复：packages/core/src/analyze-row.ts 子元素对齐对「子树元素种类完全相同」加分（CHILD_MATCH_SAME_SUBTREE_SCORE），packages/core/src/utils/selector-utils.ts 新增 anchorNodeSelectorToDistinctDescendant：节点选择器在本节点自己的行里读错时，改用 `${base}:has(${后代标记})`。两半缺一不可（只开任一半都 red）。修复后 green：三列逐行读到自己的值。真实条目结构回放（47 张卡）：修复前取消错 4 / 预付漏 4 / 剩余房量漏 12，修复后 0 / 0 / 0。真实扩展 harness 没跑（需 build，仓库规定不在这里 build）。"
+  },
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/optional-perk-slots/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/optional-perk-slots.test.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/playground-c12-optional-perk-slots.test.ts",
+    "packages/core/src/analyze-row.ts",
+    "packages/core/src/utils/selector-utils.ts",
+    "packages/core/src/__test__/analyze-row-optional-same-kind-parts.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

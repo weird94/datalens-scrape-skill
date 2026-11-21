@@ -1,0 +1,23 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "comment-card",
+    "textPrefix": "评论 "
+  },
+  "oracle": {
+    "strategy": "click-more",
+    "clickSelector": "button.more",
+    "waitMs": 1000
+  },
+  "stopSignal": [
+    {
+      "selector": "load-more[state=\"done\"]"
+    },
+    {
+      "selector": "load-more button",
+      "exists": false
+    }
+  ],
+  "trapVerifiedBy": "vitest"
+}

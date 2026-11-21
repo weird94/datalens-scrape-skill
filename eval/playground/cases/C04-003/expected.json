@@ -1,0 +1,13 @@
+{
+  "expectedRows": 40,
+  "expectedStop": "end-of-list",
+  "expectedColumns": { "商品": ["アイテム 1", "アイテム 2", "アイテム 3"] },
+  "rowMatch": { "selector": "tbody tr", "textPrefix": "アイテム " },
+  "oracle": { "strategy": "static" },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "tbody tr.odd", "textPrefix": "アイテム " },
+    "expectedRows": 20
+  },
+  "trapVerifiedBy": "naive"
+}

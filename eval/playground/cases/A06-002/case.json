@@ -1,0 +1,27 @@
+{
+  "id": "A06-002",
+  "pattern": [
+    "A6",
+    "D15",
+    "D16"
+  ],
+  "title": "评论串是层层嵌套的 Web Component（最深 5 层 open shadow root），主评论和回复共用同一批 id，只有隔着 shadow root 的祖先分得开；回复默认内联 0–2 条，其余在「共N条回复，点击查看」后面，只有「点击查看」按钮本身有反应（外层容器和「共N条回复」文字没有）；超过 10 条的点开后自带分页器（上一页 / 页码 / 下一页是同一种按钮组件，只有文字不同，旁边有「收起」）、翻页整块替换；各评论串的回复请求快慢不同、回复最多的那几条翻页要 3 秒，请求在途时再点一次「下一页」会越过中间那一页；评论串滚动加载（旁边的推荐栏比评论区长得多，一下跳到页面最底不会触发加载），30 条主评论 + 147 条回复",
+  "source": "合成（形状来自 2026-11-11 视频站评论区：侧栏 AI 采集两次没跑完——跨 shadow 边界的选择器全部 0 命中，agent 分不开主评论和回复的同名字段；改成一条评论一行后，展开回复使「共N条回复」消失，回复数读不到）",
+  "variant": {
+    "lang": "zh",
+    "threads": 30,
+    "perBatch": 10
+  },
+  "url": "/dev-fixtures/playground/shadow-replies?threads=30",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/shadow-replies/route.ts",
+    "packages/scrape-skill/scripts/lib/in-page.mjs",
+    "packages/scrape-skill/scripts/lib/collector.mjs",
+    "packages/scrape-skill/eval/dev/A06-002.json"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

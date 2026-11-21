@@ -1,0 +1,21 @@
+{
+  "expectedRows": 120,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": ".item",
+    "textPrefix": "商品 "
+  },
+  "oracle": {
+    "strategy": "next-link",
+    "clickSelector": "a.arrow"
+  },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": {
+      "selector": ".item",
+      "textPrefix": "商品 "
+    },
+    "expectedRows": 10
+  },
+  "trapVerifiedBy": "naive"
+}

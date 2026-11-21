@@ -1,0 +1,12 @@
+{
+  "id": "A05-004",
+  "pattern": ["A5"],
+  "title": "拦截页：访问过于频繁，请稍后再试，页面只有标题和一句说明，没有列表项",
+  "source": "合成（pattern A5 的形状：访问频率限制的拦截文案页，只有标题与说明，没有列表；文案不含任何质询控件）",
+  "variant": { "lang": "zh", "kind": "challenge" },
+  "url": "/dev-fixtures/playground/thin-pages?kind=challenge",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "D11-001",
+  "pattern": ["D11"],
+  "title": "弹窗锁滚动：2 秒或加载到第 2 批（20 行）后先到者弹出遮罩弹窗并锁 body 滚动，关闭前滚动不续载，共 40 行",
+  "source": "合成（pattern D11 的形状：遮罩弹窗在墙钟到点或第 2 批之后弹出（先到者），弹窗期间 body overflow:hidden，滚动不追加行；不复刻任何站点）",
+  "variant": { "rows": 40, "popupAfterMs": 2000, "popupAfterBatch": 2 },
+  "url": "/dev-fixtures/playground/popup-lock?rows=40&popupAfterMs=2000&popupAfterBatch=2",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/popup-lock/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/popup-lock.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

@@ -1,0 +1,28 @@
+{
+  "id": "D17-002",
+  "pattern": [
+    "D17",
+    "D8"
+  ],
+  "title": "无限滚动里有一批比规则的耐心更慢（留出集）：英文文案，第 3 批 25 秒才到、期间显示「Loading…」，首屏就放得下前两批，4 批 × 15 行",
+  "source": "合成（D17-001 的留出变体：换语言、慢的是第 3 批、首屏不用滚动就加载出两批）",
+  "variant": {
+    "batches": 4,
+    "batchSize": 15,
+    "slowBatch": 3,
+    "slowMs": 25000,
+    "spinner": true,
+    "endText": true,
+    "lang": "en"
+  },
+  "url": "/dev-fixtures/playground/io-scroll?batches=4&batchSize=15&slowBatch=3&slowMs=25000&spinner=1&endText=1&lang=en",
+  "heldOut": true,
+  "status": "draft",
+  "relatedCode": [
+    "packages/scrape-skill/scripts/lib/collector.mjs"
+  ],
+  "relatedDocs": [
+    "docs/ai-stop-new-engine-plan-2026-11-20.md"
+  ],
+  "product": "engine harness（packages/e2e-harness/src/verify-ai-stop-engine.ts，新引擎 + 真判停接口，不经插件）：只靠规则 red（30/60，single-page——前两批首屏就加载完，滚动没带来新行）；single-page 也问 AI 后 green（60/60，still_loading ×2 → complete）"
+}

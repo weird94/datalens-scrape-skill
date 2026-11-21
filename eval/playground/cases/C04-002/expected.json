@@ -1,0 +1,13 @@
+{
+  "expectedRows": 40,
+  "expectedStop": "end-of-list",
+  "expectedColumns": { "Product": ["Item 1", "Item 2", "Item 3"] },
+  "rowMatch": { "selector": "tbody tr", "textPrefix": "Item " },
+  "oracle": { "strategy": "static" },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "tbody tr.r5f2c1a", "textPrefix": "Item " },
+    "expectedRows": 20
+  },
+  "trapVerifiedBy": "naive"
+}

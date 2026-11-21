@@ -1,0 +1,28 @@
+{
+  "id": "C10-002",
+  "pattern": [
+    "C10"
+  ],
+  "title": "价格拆成两个 inline-block div（留出集）：英文文案、哈希类名，同一行无间距的盒子应当直接接上",
+  "source": "合成（C10-001 的留出变体：换成 inline-block 横排、英文、哈希类名，防止修法只认 flex 或只认类名）",
+  "variant": {
+    "rows": 9,
+    "layout": "inline-block",
+    "lang": "en",
+    "classes": "hash"
+  },
+  "url": "/dev-fixtures/playground/split-value?rows=9&layout=inline-block&lang=en&classes=hash",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "product": {
+    "status": "green",
+    "note": "copilot-services/src/execution/__test__/playground-c10-split-value.test.ts：main 553ab658 上 red（价格 \"67\\n\\n.1\"、产地 \"浙江\\n\\n杭州\" / \"Oregon\\n\\nPortland\"）；修复后 green（67.1、产地空格隔开、描述两段仍分行）。走的是 extractDataFromElements 的 rich_text 分支（jsdom），未在扩展实跑"
+  },
+  "relatedCode": [
+    "packages/core/src/utils/query-selector.ts",
+    "packages/copilot-services/src/execution/helper/utils.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

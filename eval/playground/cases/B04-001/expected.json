@@ -1,0 +1,15 @@
+{
+  "expectedRows": 12,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "标题": ["卡片 1", "卡片 2", "卡片 3"]
+  },
+  "rowMatch": { "selector": "div.card", "textPrefix": "卡片 " },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "div.meta-row", "textPrefix": "" },
+    "expectedRows": 36
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "static" }
+}

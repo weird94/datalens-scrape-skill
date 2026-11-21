@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nature.com/articles/s41467-025-63209-4",
+  "rows": "ol.c-article-references > li.c-article-references__item",
+  "fields": {
+    "ref_no": { "css": ".", "attr": "data-counter" },
+    "citation": "p.c-article-references__text",
+    "journal": "p.c-article-references__text i",
+    "volume": "p.c-article-references__text b",
+    "doi": { "css": "a[data-doi]", "attr": "data-doi" },
+    "doi_url": { "css": "a[href*='doi.org']", "attr": "href" },
+    "google_scholar_url": { "css": "a[aria-label^='Google Scholar']", "attr": "href" }
+  },
+  "require": ["citation"],
+  "dismiss": ["dialog.cc-banner button[data-cc-action=reject]"],
+  "dedupe": ["ref_no"],
+  "maxPages": 1
+}

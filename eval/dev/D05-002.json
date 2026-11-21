@@ -1,0 +1,1 @@
+{"url":"http://localhost:3031/dev-fixtures/playground/wrapper-drop/1?pages=3&perPage=10&list=classed","rows":"div.video-list:not(aside > *) > div.item","fields":{"title":".title","author":".author","link":{"css":"a","attr":"href"}},"next":{"type":"click","selector":"a.next"}}

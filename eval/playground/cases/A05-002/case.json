@@ -1,0 +1,12 @@
+{
+  "id": "A05-002",
+  "pattern": ["A5"],
+  "title": "软 404：当前内容已被删除，HTTP 200 返回，页面只有标题和一句说明",
+  "source": "合成（pattern A5 的形状：内容已删除却仍返回 200 的软 404 页，只有标题与说明，没有列表；参考内容社区里已删除帖子的页面）",
+  "variant": { "lang": "zh", "kind": "deleted" },
+  "url": "/dev-fixtures/playground/thin-pages?kind=deleted",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

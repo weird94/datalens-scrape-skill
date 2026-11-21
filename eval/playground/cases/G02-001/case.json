@@ -1,0 +1,18 @@
+{
+  "id": "G02-001",
+  "pattern": ["G2"],
+  "title": "回复语言跟随用户：侧栏界面是中文、页面是英文，用户用越南语要「导出全部帖子，带播放和评论数」；创作者后台内容库表格 24 行",
+  "source": "合成（形状来自 2026-11-18 生产会话 1c0febb6：TikTok Studio、越南语用户「导出全部帖子」，agent 全程用英文回复，约 6 分钟后卸载）。复用 G01 的 creator-hub 夹具",
+  "variant": { "lang": "en", "view": "library", "posts": 24, "messageLang": "vi" },
+  "url": "/dev-fixtures/playground/creator-hub?view=library&lang=en",
+  "message": "Xuất tất cả bài đăng của tôi, kèm lượt xem và số bình luận của từng bài",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "agentExpectation": "每一条给用户的文字回复（开采前的一句话、确认卡前后、结束报告）都是越南语；侧栏界面语言（中文）和页面语言（英文）都不影响。行数不是这个 case 的判据。",
+  "relatedCode": [
+    "packages/backend/src/server/agents/ai-scrape-agent.ts",
+    "packages/backend/src/app/dev-fixtures/playground/creator-hub/route.ts",
+    "packages/e2e-harness/src/verify-ai-scrape-reply-habits.ts"
+  ],
+  "relatedDocs": ["docs/ai-scrape-skill-drill-down-design-2026-11-19.md"]
+}

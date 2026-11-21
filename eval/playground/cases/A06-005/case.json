@@ -1,0 +1,36 @@
+{
+  "id": "A06-005",
+  "pattern": [
+    "A6"
+  ],
+  "title": "评论套回复 + 回复分批加载：点一次「N more replies」只出 2 条，按钮留下并改成剩余条数，一条楼要点到 4 次；各层评论各成一行，12 条主评论 + 115 条回复 = 127 行",
+  "source": "合成（deep-thread mock，replyBatch=2。2026-11-13 真 Reddit：递归树认出后采到 649 行，但 3 个大楼的「more replies」没点完——递归树里点完长出来的是平铺的回复行，按「这一行的嵌套行」判有没有效果永远是 0，一行最多点两次就被拉黑）",
+  "variant": {
+    "lang": "en",
+    "top": 12,
+    "first": 12,
+    "perBatch": 4,
+    "clutter": 0,
+    "replyBatch": 2
+  },
+  "url": "/dev-fixtures/playground/deep-thread?top=12&first=12&perBatch=4&clutter=0&replyBatch=2",
+  "heldOut": false,
+  "status": "draft",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/deep-thread/route.ts",
+    "packages/copilot-services/src/execution/execution-controller.ts"
+  ],
+  "relatedDocs": [
+    "docs/recursive-tree-ai-detection-plan-2026-11-12.md"
+  ],
+  "product": {
+    "red": {
+      "commit": "feat/ai-recursive-tree 9ff73728",
+      "result": "110/127 COMPLETED：递归树、展开按钮都认对了，但大楼点两次后被拉黑，后几批回复没加载"
+    },
+    "green": {
+      "commit": "feat/ai-recursive-tree（本次修复）",
+      "result": "127/127 COMPLETED，用时从约 113s 降到约 69s"
+    }
+  }
+}

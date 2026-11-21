@@ -1,0 +1,41 @@
+{
+  "id": "G01-001",
+  "pattern": [
+    "G1"
+  ],
+  "title": "创作者后台：用户要「每条帖子的播放、点赞、评论」，三项分散在几个视图里——主页动态有点赞和评论没有播放（滚动加载，每批 6 条），视频网格只有播放，内容库表格有播放、评论、分享但「列」菜单里没有点赞列，数据分析页只有全账号汇总；没有一个视图三项全有，24 条帖子",
+  "source": "合成（形状来自 2026-11-17 生产会话 thread 55a68588：社交平台个人主页 + 专业后台，agent 在内容库 / 主页动态 / 数据分析之间来回 36 步、三次打开列菜单、一次预览都没跑，积分耗尽、0 行、用户没收到任何结论）",
+  "variant": {
+    "lang": "hu",
+    "posts": 24,
+    "batch": 6
+  },
+  "url": "/dev-fixtures/playground/creator-hub?view=profile&lang=hu",
+  "message": "látni akarom az összes videónak és posztnak a megtekintését like számait és komment számait. egybe az egész számot is mutasd",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "agentExpectation": "在有限步数内采到一个视图的全部 24 行（内容库：播放+评论；或主页动态：点赞+评论），并在回复里说明缺的那一项在哪个视图 / 拿不到；不在视图之间反复找同一列。",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/creator-hub/route.ts",
+    "packages/backend/src/server/agents/ai-scrape-agent.ts",
+    "packages/backend/src/server/agents/ai-scrape-skill-toolset.ts",
+    "packages/backend/src/server/agents/__test__/ai-scrape-trim-column-hunt.test.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ],
+  "product": {
+    "red": {
+      "commit": "967b1e57 (main，生产同款 agent 代码；扩展 1.21.0 商店 CI 构建)",
+      "path": "侧栏 AI 采集 skill 工具集真模型，harness verify-ai-scrape-column-hunt.ts（上限 30 次调用）",
+      "result": "1/1 red：30 次调用 0 次预览，列菜单开 3 次，profile→insights→library→profile→insights→library→insights→library→profile 来回跳，0 行；复跑 main 3/3 red（30 次调用封顶、0 次预览、列菜单开 3–4 次、0 行）",
+      "evidence": "第 15–16 步推理已确认「内容库有播放+评论、没有点赞列；动态有点赞+评论、没有播放」，第 21 步定下采内容库；第 22 步 input tokens 20655→17098（轮内 inspectPage 成批裁剪）后推理改口说内容库第 2 个数字是点赞，第 24 步又以为菜单里「可能有 Reakciók」重开菜单，第 30 步把同一结论重新推一遍，始终没调 previewScrape。裁剪层的确定性回放见 packages/backend/src/server/agents/__test__/ai-scrape-trim-column-hunt.test.ts（main 上 2/2 red）"
+    },
+    "green": {
+      "commit": "fix/ai-scrape-column-hunt 8d03bf12",
+      "path": "同上",
+      "result": "2/2 green：25–30 次调用出确认卡，采内容库 24 行（播放+评论+分享），回复说明没有点赞列、点赞只在主页动态",
+      "change": "summarizeInspectOutput 保留旧探查看到的文字（探查样本、展开树的文字、TEXT HEAD），尾注不再叫它重查；skill 提示词加「字段分散在几页时采字段最多的列表并说明缺什么」「看过的不重看（空/加载中/出错除外）」"
+    }
+  }
+}

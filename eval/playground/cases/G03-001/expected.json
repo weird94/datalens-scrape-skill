@@ -1,0 +1,9 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "end-of-list",
+  "expectedColumns": { "商品信息": ["夏季冰丝阔腿裤 女 高腰垂感", "便携式迷你风扇 USB 充电 静音"], "1688 商品信息": ["冰丝阔腿裤高腰垂感显瘦", "USB充电迷你手持风扇"] },
+  "rowMatch": { "selector": "tr.r5z", "textPrefix": "" },
+  "oracle": { "strategy": "static" },
+  "naive": { "strategy": "static", "rowMatch": { "selector": "tbody.o8j", "textPrefix": "" }, "expectedRows": 15 },
+  "trapVerifiedBy": "naive"
+}

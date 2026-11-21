@@ -1,0 +1,12 @@
+{
+  "expectedRows": 7,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": "div.content p", "textPrefix": "段落 " },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "div.content p span", "textPrefix": "段落 " },
+    "expectedRows": 1
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "static" }
+}

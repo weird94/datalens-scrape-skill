@@ -1,0 +1,12 @@
+{
+  "expectedRows": 12,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "价格": ["67.1", "74.2", "81"],
+    "产地": ["浙江 杭州", "浙江 杭州", "浙江 杭州"]
+  },
+  "rowMatch": { "selector": "ul.list > li", "textPrefix": "商品 " },
+  "oracle": { "strategy": "static" },
+  "trapVerifiedBy": "vitest",
+  "trapTest": "陷阱：价格块按标签名转 Markdown 得到「67\\n\\n.1」；按排版读得到 67.1，描述的两段仍分两行"
+}

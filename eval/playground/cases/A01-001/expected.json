@@ -1,0 +1,20 @@
+{
+  "expectedRows": 20,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "商品": ["商品 1", "商品 2", "商品 3"]
+  },
+  "rowMatch": {
+    "selector": "#list > li",
+    "textPrefix": "商品 "
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 0
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": {
+    "strategy": "static-wait",
+    "waitMs": 2000
+  }
+}

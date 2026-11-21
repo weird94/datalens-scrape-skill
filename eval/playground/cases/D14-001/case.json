@@ -1,0 +1,28 @@
+{
+  "id": "D14-001",
+  "pattern": [
+    "D14"
+  ],
+  "title": "同一个按钮各有一份：视频弹窗是竖向堆叠的 5 个 slide（当前第 3 个，前两个在视口上方），底下推荐流 12 张卡也有同 class 的评论按钮；只有点当前 slide 的按钮才打开评论面板（12 条），点别的都会切走视频",
+  "source": "合成（形状来自 2026-11-10 短视频站视频弹窗：侧栏 AI 采集评论时点到视口外另一个视频的评论按钮（1758 条那个），视频被切走、评论面板一直没开，十几轮「查看页面」原地打转）",
+  "variant": {
+    "lang": "zh",
+    "classes": "semantic",
+    "slides": 5,
+    "current": 3,
+    "comments": 12
+  },
+  "url": "/dev-fixtures/playground/stacked-slides?slides=5&current=3&comments=12",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/stacked-slides/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/stacked-slides.test.ts",
+    "packages/scrape-skill/scripts/lib/in-page.mjs",
+    "packages/scrape-skill/scripts/lib/page-helpers.mjs",
+    "packages/scrape-skill/eval/dev/D14-001.json"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

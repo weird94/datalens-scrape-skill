@@ -1,0 +1,24 @@
+{
+  "id": "D10-001",
+  "pattern": [
+    "D10"
+  ],
+  "title": "加载更多分两批到达：每次点击先到 4 行、2000 毫秒后再到 6 行，共 3 批 30 行，第二次点击后按钮即消失",
+  "source": "合成（pattern D10 的形状：翻页后行分两批插入，剩余行晚到；参考通用「加载更多」列表）",
+  "variant": {
+    "lang": "zh",
+    "pages": 3,
+    "perPage": 10,
+    "splitMs": 2000
+  },
+  "url": "/dev-fixtures/playground/split-batches?pages=3&perPage=10&splitMs=400",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/split-batches/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/split-batches.test.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

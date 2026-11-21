@@ -1,0 +1,24 @@
+{
+  "id": "B07-002",
+  "pattern": ["B7"],
+  "title": "B07-001 的 held-out 变体：英文、无语义的哈希类名、8 张卡，每张后面 8 个隐藏 input（其中 2 个没有 name，共 16 个，是卡片数的 2 倍）；真正的卡片列表同样进不了候选",
+  "source": "合成（同 B07-001：2026-10-30 一位用户在某医院医生目录页的采集；换了语言、类名、卡片数和隐藏字段个数，防止修复对 B07-001 过拟合）",
+  "variant": { "lang": "en", "classes": "hash", "cards": 8, "hiddenPerCard": 8, "barePerCard": 2 },
+  "url": "/dev-fixtures/playground/card-hidden-fields?cards=8&hidden=8&bare=2&lang=en&classes=hash",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "product": {
+    "status": "green",
+    "note": "同 B07-001（同一个单测文件）：修复前（origin/main c96b016f）red，候选里没有卡片列表（itemSelector div.k7q），只有 8 个半张卡节点（div.r9x ×2）；修复后 green：卡片列表是候选（根 #y6l、×8、无分组规则），选它读出 8 行。held-out：换了语言、哈希类名、卡片数和隐藏 input 个数，修复里没有任何类名或站点相关的判断。"
+  },
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/card-hidden-fields/route.ts",
+    "packages/backend/src/app/api/select-structural-lists/__test__/playground-b07-card-hidden-fields.test.ts",
+    "packages/core/src/utils/children.ts",
+    "packages/core/src/__test__/detect-hidden-form-fields-between-rows.test.ts",
+    "packages/core/src/detect-tables.ts"
+  ],
+  "relatedDocs": [
+    "docs/card-hidden-fields-root-cause-2026-11-06.md"
+  ]
+}

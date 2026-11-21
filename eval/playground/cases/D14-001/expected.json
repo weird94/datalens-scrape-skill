@@ -1,0 +1,25 @@
+{
+  "expectedRows": 12,
+  "expectedStop": "single-page",
+  "rowMatch": {
+    "selector": "aside.comments li.comment",
+    "textPrefix": "评论 "
+  },
+  "oracle": {
+    "strategy": "click-more",
+    "clickSelector": ".track > .slide:nth-child(3) button.comment-btn",
+    "waitMs": 1000
+  },
+  "naive": {
+    "strategy": "click-once-now",
+    "clickSelector": "button.comment-btn",
+    "expectedRows": 0
+  },
+  "stopSignal": [
+    {
+      "selector": "aside.comments h3",
+      "textIncludes": "共 12 条评论"
+    }
+  ],
+  "trapVerifiedBy": "naive"
+}

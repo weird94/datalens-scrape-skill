@@ -1,0 +1,20 @@
+{
+  "expectedRows": 12,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "Name": ["Item 1", "Item 2", "Item 3"]
+  },
+  "rowMatch": {
+    "selector": "#list > li",
+    "textPrefix": "Item "
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 0
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": {
+    "strategy": "static-wait",
+    "waitMs": 3000
+  }
+}

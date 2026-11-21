@@ -1,0 +1,19 @@
+{
+  "expectedRows": 200,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "li.row",
+    "textPrefix": "商品 "
+  },
+  "oracle": {
+    "strategy": "scroll-accumulate",
+    "scroller": "#viewport",
+    "stepPx": 200
+  },
+  "naive": {
+    "strategy": "scroll-inner",
+    "scroller": "#viewport",
+    "expectedRows": 10
+  },
+  "trapVerifiedBy": "naive"
+}

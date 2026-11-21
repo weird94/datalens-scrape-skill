@@ -1,0 +1,15 @@
+{
+  "url": "https://top.baidu.com/board?tab=realtime",
+  "rows": "main div.category-wrap_iQLoo",
+  "fields": {
+    "rank": ".index_1Ew5p",
+    "title": ".content_1YWBm .c-single-text-ellipsis",
+    "tag": ".hot-tag_1G080",
+    "hot_index": ".hot-index_1Bl1a",
+    "description": ".hot-desc_1m_jR.large_nSuFU",
+    "link": { "css": "a.title_dIF3B", "attr": "href" },
+    "image": { "css": "a.img-wrapper_29V76 > img", "attr": "src" }
+  },
+  "require": ["title"],
+  "dedupe": ["title"]
+}

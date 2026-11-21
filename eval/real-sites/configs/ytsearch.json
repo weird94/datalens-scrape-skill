@@ -1,0 +1,19 @@
+{
+  "url": "https://www.youtube.com/results?search_query=robot",
+  "rows": "ytd-item-section-renderer > #contents > ytd-video-renderer",
+  "fields": {
+    "title": { "css": "a#video-title", "attr": "title" },
+    "link": { "css": "a#video-title", "attr": "href" },
+    "channel": "#channel-info ytd-channel-name #text",
+    "channel_link": { "css": "#channel-info ytd-channel-name a", "attr": "href" },
+    "views": { "css": "#metadata-line span.inline-metadata-item", "index": 0 },
+    "published": { "css": "#metadata-line span.inline-metadata-item", "index": 1 },
+    "duration": "ytd-thumbnail-overlay-time-status-renderer .ytBadgeShapeText",
+    "description": ".metadata-snippet-text"
+  },
+  "require": ["title", "link"],
+  "next": { "type": "scroll" },
+  "dedupe": ["title", "channel"],
+  "maxRows": 100,
+  "maxPages": 15
+}

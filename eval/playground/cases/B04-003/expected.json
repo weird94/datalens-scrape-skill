@@ -1,0 +1,27 @@
+{
+  "expectedRows": 12,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "正文": [
+      "帖子 1：秋天的江边很安静。",
+      "帖子 2：秋天的江边很安静。",
+      "帖子 3：秋天的江边很安静。"
+    ]
+  },
+  "rowMatch": {
+    "selector": "div.f9",
+    "textPrefix": "河畔小城"
+  },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": {
+      "selector": "div.q2",
+      "textPrefix": ""
+    },
+    "expectedRows": 42
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": {
+    "strategy": "static"
+  }
+}

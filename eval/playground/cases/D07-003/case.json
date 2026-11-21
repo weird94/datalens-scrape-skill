@@ -1,0 +1,29 @@
+{
+  "id": "D07-003",
+  "pattern": [
+    "D7"
+  ],
+  "title": "分页器长在列表容器里、和行同层（中文文案，另一套哈希类名，留出集）：每页 8 行，共 4 页 32 行",
+  "source": "合成（同 D07-002 的形状，换语言、类名和页数，防止修复对 D07-002 过拟合）",
+  "variant": {
+    "lang": "zh",
+    "classStyle": "hash",
+    "pages": 4,
+    "perPage": 8
+  },
+  "url": "/dev-fixtures/playground/pager-in-list?pages=4&perPage=8&variant=b",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/core/src/aria/pagination-context.ts",
+    "packages/copilot-services/src/execution/execution-service.ts",
+    "packages/copilot-services/src/utils/pagination-control.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ],
+  "product": {
+    "status": "green",
+    "note": "copilot-services execution/__test__/playground-d07-pager-in-list.test.ts（真 buildPaginationContextSnapshot + ExecutionServiceImpl 读 mock 的服务端 HTML，配置照真机分析的形状：itemSelector 只剩容器子节点共用的原子类）：main 06eeb3ad 上 red（分析上下文里分页器被折进「rows collapsed」、模型看不到；执行层 hasNextPage=false，分页器被当成行内按钮拒掉）；fix/pager-inside-list-root 上 green（分页器原样出现在 target-table 里，hasNextPage=true 并点中分页器，抽取行数不变）。没跑扩展 harness（仓库规则不跑 build），模型在真上下文里会不会选中分页器、以及真站，待新扩展版本复验"
+  }
+}

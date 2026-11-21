@@ -1,0 +1,15 @@
+{
+  "id": "A01-003",
+  "pattern": ["A1"],
+  "title": "列表晚渲染（留出集）：英文文案、哈希 class，2.5 秒后插入 12 行数据",
+  "source": "合成（pattern A1 的留出变体：文案换成英文、class 换成哈希式、时序取两档之间；平时不看，验收时才跑）",
+  "variant": { "lang": "en", "classes": "hashed", "delayMs": 2500, "rows": 12 },
+  "url": "/dev-fixtures/playground/late-list?delayMs=2500&rows=12&lang=en&classes=hashed",
+  "heldOut": true,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/copilot-services/src/content/lazy-content-priming.ts",
+    "packages/copilot-services/src/content/table-service.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

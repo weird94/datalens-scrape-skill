@@ -1,0 +1,17 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": ".q7e2f0b", "textPrefix": "Video " },
+  "oracle": { "strategy": "next-link", "clickSelector": ".q4c7e3a a.q6d1b8f" },
+  "naive": {
+    "strategy": "next-link",
+    "clickSelector": ".q4c7e3a a.q6d1b8f",
+    "rowMatch": { "selector": ".q8b2c7f .q7e2f0b", "textPrefix": "Video " },
+    "expectedRows": 10
+  },
+  "stopSignal": [
+    { "selector": ".q4c7e3a a.q6d1b8f", "exists": false },
+    { "selector": ".q4c7e3a button.q6d1b8f[disabled]", "textIncludes": "Last page" }
+  ],
+  "trapVerifiedBy": "naive"
+}

@@ -1,0 +1,17 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "商品": ["商品 1", "商品 2", "商品 3"],
+    "城市": ["北京", "上海", "广州"],
+    "评分": ["4.1", "4.2", "4.3"]
+  },
+  "rowMatch": { "selector": "tbody tr", "textPrefix": "商品 " },
+  "oracle": { "strategy": "static" },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "tbody tr.hl", "textPrefix": "商品 " },
+    "expectedRows": 10
+  },
+  "trapVerifiedBy": "naive"
+}

@@ -1,0 +1,13 @@
+{
+  "url": "http://localhost:3031/t/eefd6f82",
+  "rows": "#list > tbody > tr",
+  "fields": {
+    "分组": "td[colspan]",
+    "商品": "td:nth-child(1)",
+    "城市": "td:nth-child(2)",
+    "评分": "td:nth-child(3)"
+  },
+  "fillDown": ["分组"],
+  "require": ["城市", "评分"],
+  "dedupe": ["商品", "城市", "评分"]
+}

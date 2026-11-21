@@ -1,0 +1,20 @@
+{
+  "url": "https://news.qq.com/rain/a/20251218A03IZT00?#to-comment",
+  "rows": "#qqcom-comment div.qqcom-comment-item",
+  "fields": {
+    "nickname": ":scope > .qnc-comment .qnc-comment__nickname",
+    "reply_to": ":scope > .qnc-comment .qnc-comment__replied-nick",
+    "is_reply": { "css": ".qqcom-sub-comment :scope > .qnc-comment", "attr": "class" },
+    "content": ":scope > .qnc-comment .qnc-comment__content-container",
+    "picture": { "css": ":scope > .qnc-comment .qnc-comment__pictures img", "attr": "src" },
+    "sticker": { "css": ":scope > .qnc-comment img.qnc-emoji-text-parser-gif", "attr": "src" },
+    "likes": ":scope > .qnc-comment .qnc-comment__like-count",
+    "location": ":scope > .qnc-comment .qnc-comment__time-location-text",
+    "location_date": ":scope > .qnc-comment .qnc-comment__time-location"
+  },
+  "require": ["nickname"],
+  "next": { "type": "load-more", "selector": "#qqcom-comment div.qqcom-comment-loadmore" },
+  "expand": ["#qqcom-comment .qqcom-comment-sub-loadmore"],
+  "dedupe": ["nickname", "reply_to", "is_reply", "content", "picture", "sticker", "location_date"],
+  "maxPages": 30
+}

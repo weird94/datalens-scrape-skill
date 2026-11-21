@@ -1,0 +1,31 @@
+{
+  "url": "https://www.youtube.com/watch?v=5MWT_doo68k",
+  "rows": "#comments ytd-comment-thread-renderer",
+  "fields": {
+    "author": "#comment #author-text",
+    "author_url": {
+      "css": "#comment #author-text",
+      "attr": "href"
+    },
+    "published": "#comment #published-time-text",
+    "comment": "#comment #content-text",
+    "likes": "#comment #vote-count-middle",
+    "reply_count": "#replies #more-replies",
+    "comment_link": {
+      "css": "#comment #published-time-text a",
+      "attr": "href"
+    }
+  },
+  "require": [
+    "author",
+    "comment_link"
+  ],
+  "next": {
+    "type": "scroll"
+  },
+  "dedupe": [
+    "comment_link"
+  ],
+  "maxRows": 50,
+  "maxPages": 10
+}

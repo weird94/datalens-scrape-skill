@@ -1,0 +1,20 @@
+{
+  "expectedRows": 32,
+  "expectedStop": "stuck",
+  "rowMatch": {
+    "selector": "#list li",
+    "textPrefix": "Item "
+  },
+  "oracle": {
+    "strategy": "click-more",
+    "clickSelector": "#load-more"
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 8
+  },
+  "stopSignal": [
+    { "selector": "#load-more", "exists": true, "textIncludes": "Loading" }
+  ],
+  "trapVerifiedBy": "stopSignal"
+}

@@ -1,0 +1,1 @@
+{"url":"http://localhost:3031/dev-fixtures/playground/io-scroll?batches=8&batchSize=30","rows":"#feed > li.item","fields":{"text":"."},"next":{"type":"scroll"}}

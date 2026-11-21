@@ -1,0 +1,1 @@
+{"url":"http://localhost:3031/dev-fixtures/playground/hang-after?batchSize=5&hangAfter=6&lang=ja&classes=semantic","rows":"#list > li.item","fields":{"text":"."},"next":{"type":"load-more","selector":"#load-more"}}

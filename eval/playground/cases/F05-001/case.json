@@ -1,0 +1,15 @@
+{
+  "id": "F05-001",
+  "pattern": ["F5"],
+  "title": "续载挂起：每批 10 行，累计 3 批（30 行）后「加载更多」变「加载中…」，之后点击不再追加、按钮不消失",
+  "source": "合成（pattern F5 的形状，参考 TapTap 评论连续跑同一游戏时续载被限流、转圈不停的表现；该站点形状未证实）",
+  "variant": { "lang": "zh", "classes": "semantic", "batchSize": 10, "hangAfter": 3 },
+  "url": "/dev-fixtures/playground/hang-after?batchSize=10&hangAfter=3",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/hang-after/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/hang-after.test.ts"
+  ],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

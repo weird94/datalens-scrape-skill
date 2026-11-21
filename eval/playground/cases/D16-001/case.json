@@ -1,0 +1,24 @@
+{
+  "id": "D16-001",
+  "pattern": [
+    "D16"
+  ],
+  "title": "每条评论的回复区各自翻页、翻页整块替换：8 条主评论，回复多于 3 条的先内联 3 条 +「共N条回复，点击查看」，点开后每页 5 条，回复区自带「上一页 1 2 … 下一页」分页器，点下一页把回复区整块换掉；回复与主评论不同 class、嵌在主评论里，共 55 条（含回复）",
+  "source": "合成（形状来自 2026-11-10 视频站评论区：侧栏 AI 采集点开了「点击查看」，但每条评论回复区的「下一页」没有被点，只采到每条评论回复的第 1 页）",
+  "variant": {
+    "lang": "zh",
+    "classes": "semantic",
+    "comments": 8
+  },
+  "url": "/dev-fixtures/playground/reply-pages?comments=8",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/reply-pages/route.ts",
+    "packages/copilot-services/src/execution/execution-service.ts",
+    "packages/scrape-skill/scripts/lib/in-page.mjs"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

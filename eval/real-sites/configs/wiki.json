@@ -1,0 +1,20 @@
+{
+  "url": "https://en.wikipedia.org/wiki/List_of_largest_companies_by_revenue",
+  "rows": "table.wikitable tbody > tr:has(> td:nth-of-type(5))",
+  "fields": {
+    "rank": "th",
+    "name": "td:first-of-type",
+    "name_link": { "css": "td:first-of-type a", "attr": "href" },
+    "industry": "td:first-of-type + td:not([style])",
+    "revenue_usd_bn": { "css": "td[style*=center]", "index": 0 },
+    "revenue_trend": { "css": "td[style*=center] span[title]", "attr": "title" },
+    "profit_usd_bn": { "css": "td[style*=center]", "index": 1 },
+    "employees": "td[style*=right]",
+    "headquarters": "td[style*=right] + td:nth-last-of-type(3)",
+    "state_owned": "td:nth-last-of-type(2)"
+  },
+  "require": ["name", "revenue_usd_bn"],
+  "fillDown": ["industry", "headquarters"],
+  "dedupe": ["rank", "name"],
+  "maxPages": 1
+}

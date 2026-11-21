@@ -1,0 +1,16 @@
+{
+  "expectedRows": 12,
+  "expectedStop": "end-of-list",
+  "expectedColumns": {
+    "商品": ["商品 1", "商品 2", "商品 3"],
+    "价格": ["¥101", "¥102", "¥103"]
+  },
+  "rowMatch": { "selector": "tbody tr", "textPrefix": "商品 " },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": "ol.notes li", "textPrefix": "注" },
+    "expectedRows": 12
+  },
+  "trapVerifiedBy": "naive",
+  "oracle": { "strategy": "static" }
+}

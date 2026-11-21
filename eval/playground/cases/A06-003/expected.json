@@ -1,0 +1,23 @@
+{
+  "expectedRows": 976,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "thread-reply",
+    "textPrefix": "member_"
+  },
+  "oracle": {
+    "strategy": "scroll-window",
+    "waitMs": 1200
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 58
+  },
+  "stopSignal": [
+    {
+      "selector": "ui-loader#top-more[state=\"done\"]"
+    }
+  ],
+  "trapVerifiedBy": "naive",
+  "filledTextPrefix": "member_"
+}

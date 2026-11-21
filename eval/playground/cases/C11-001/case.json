@@ -1,0 +1,30 @@
+{
+  "id": "C11-001",
+  "pattern": [
+    "C11"
+  ],
+  "title": "翻页后字段换了标签、class 不变：第 1 页姓名是 a.advisor-name（带链接），第 2 页起是 div.advisor-name（无链接），共 3 页",
+  "source": "合成（形状来自 2026-11-03 一个房产经纪人目录：第 1 页服务端渲染姓名是链接，点下一页后前端模板把姓名渲染成同 class 的 div，分析出的 a.<name> 第 2 页起整列为空）",
+  "variant": {
+    "lang": "zh",
+    "classes": "semantic",
+    "pages": 3,
+    "perPage": 10
+  },
+  "url": "/dev-fixtures/playground/retag-field/1?pages=3&perPage=10",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "product": {
+    "status": "green",
+    "note": "packages/e2e-harness/src/verify-pagination-root-relocate.ts（真插件，识别→分析→采集走 AiToolService，expected.filledTextPrefix 检查每行都有姓名）：分析出的姓名字段 a.advisor-name / div:nth-of-type(1)>a.advisor-name。HEAD 63c517cf 上 red（30/30 行，但第 11–30 行姓名为空）；加上 field-query.ts 去标签名兜底后 green（30/30，每行都有姓名，第 2 页起 href 为空，和真站一致）"
+  },
+  "relatedCode": [
+    "packages/backend/src/app/dev-fixtures/playground/retag-field/[page]/route.ts",
+    "packages/backend/src/app/dev-fixtures/playground/__test__/retag-field.test.ts",
+    "packages/copilot-services/src/utils/field-query.ts",
+    "packages/e2e-harness/src/verify-pagination-root-relocate.ts"
+  ],
+  "relatedDocs": [
+    "docs/scrape-site-patterns-and-local-playground-2026-10-19.md"
+  ]
+}

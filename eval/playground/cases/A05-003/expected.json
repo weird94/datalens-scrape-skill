@@ -1,0 +1,9 @@
+{
+  "expectedRows": 0,
+  "expectedStop": "gated",
+  "expectedColumns": {},
+  "rowMatch": { "selector": "li", "textPrefix": "" },
+  "stopSignal": [{ "selector": "body", "textIncludes": "请先登录后查看" }],
+  "trapVerifiedBy": "stopSignal",
+  "oracle": { "strategy": "static" }
+}

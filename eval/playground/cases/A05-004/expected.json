@@ -1,0 +1,9 @@
+{
+  "expectedRows": 0,
+  "expectedStop": "blocked",
+  "expectedColumns": {},
+  "rowMatch": { "selector": "li", "textPrefix": "" },
+  "stopSignal": [{ "selector": "body", "textIncludes": "访问过于频繁，请稍后再试" }],
+  "trapVerifiedBy": "stopSignal",
+  "oracle": { "strategy": "static" }
+}

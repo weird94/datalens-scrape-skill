@@ -1,0 +1,13 @@
+{
+  "url": "http://localhost:3031/t/df66aacf",
+  "rows": "#list > li.item",
+  "fields": {
+    "title": ".title",
+    "price": ".price"
+  },
+  "require": ["title"],
+  "next": { "type": "scroll" },
+  "dismiss": [".popup .popup-close"],
+  "dedupe": ["title"],
+  "maxPages": 50
+}

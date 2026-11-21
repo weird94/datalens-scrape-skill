@@ -1,0 +1,8 @@
+{
+  "expectedRows": 30,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": "ul.list > li.row", "textPrefix": "商品 " },
+  "oracle": { "strategy": "static" },
+  "trapVerifiedBy": "vitest",
+  "trapTest": "陷阱存在：按 li > a.title 的子选择器只能取到 27 行，漏掉的 3 行正是包装行"
+}

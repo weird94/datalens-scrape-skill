@@ -1,0 +1,29 @@
+{
+  "id": "D17-001",
+  "pattern": [
+    "D17",
+    "D8"
+  ],
+  "title": "无限滚动里有一批比规则的耐心更慢：第 4 批 20 秒才到，等待期间列表末尾显示「加载中…」，到底有「已经到底了」，5 批 × 20 行",
+  "source": "合成（pattern D17 的形状，参考 2026-11-20 视频评论区采集：在底部连续 3 轮没新行就判到底，停在 2496 行，事后页面还能继续加载）",
+  "variant": {
+    "batches": 5,
+    "batchSize": 20,
+    "slowBatch": 4,
+    "slowMs": 20000,
+    "spinner": true,
+    "endText": true,
+    "lang": "zh"
+  },
+  "url": "/dev-fixtures/playground/io-scroll?batches=5&batchSize=20&slowBatch=4&slowMs=20000&spinner=1&endText=1",
+  "heldOut": false,
+  "status": "draft",
+  "relatedCode": [
+    "packages/scrape-skill/scripts/lib/collector.mjs",
+    "packages/scraper-copilot/background/ai-scrape/skill/stop-judge.ts"
+  ],
+  "relatedDocs": [
+    "docs/ai-stop-new-engine-plan-2026-11-20.md"
+  ],
+  "product": "engine harness（packages/e2e-harness/src/verify-ai-stop-engine.ts，新引擎 + 真判停接口，不经插件）：只靠规则 red（60/100，scroll-end）；接 AI 判停 green（100/100，still_loading → complete）；插件真机 harness（verify-ai-skill-tools.ts 场景 D，同形状 4×20 行、末批 25 秒）green：80/80，问 AI 3 次 still_loading ×2 → complete"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "A03-001",
+  "pattern": ["A3"],
+  "title": "递归嵌套包装，每层一个 wrap 套着剩余专辑，共 12 张卡片、12 层（中文、语义类名）",
+  "source": "合成（pattern A3 的形状，参考 Spotify discography 的递归 wrapper 结构）",
+  "variant": { "lang": "zh", "albums": 12, "classes": "semantic" },
+  "url": "/dev-fixtures/playground/recursive-wrap?albums=12&lang=zh&classes=semantic",
+  "heldOut": false,
+  "status": "oracle-verified",
+  "notes": "rowMatch.textPrefix 判不出嵌套 wrap 行（兄弟组 23 个节点都以「专辑」开头）；拦截靠 expectedRows=12 与 rowMatch.selector 的卡片身份判据。扩展尚未对此 URL 实跑，red 未观测。",
+  "relatedCode": [],
+  "relatedDocs": ["docs/scrape-site-patterns-and-local-playground-2026-10-19.md"]
+}

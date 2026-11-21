@@ -1,0 +1,13 @@
+{
+  "url": "http://localhost:3031/t/af2f9f7a",
+  "rows": "div.item:not(aside *)",
+  "fields": {
+    "title": ".title",
+    "author": ".author",
+    "link": { "css": "a", "attr": "href" }
+  },
+  "require": ["title"],
+  "next": { "type": "click", "selector": "div.pager > a.next" },
+  "dedupe": ["link"],
+  "maxPages": 50
+}

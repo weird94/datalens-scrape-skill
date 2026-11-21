@@ -1,0 +1,12 @@
+{
+  "expectedRows": 20,
+  "expectedStop": "end-of-list",
+  "rowMatch": { "selector": ".k3p0cd", "textPrefix": "アルバム " },
+  "oracle": { "strategy": "static" },
+  "naive": {
+    "strategy": "static",
+    "rowMatch": { "selector": ".k3m9ab > *", "textPrefix": "アルバム " },
+    "expectedRows": 39
+  },
+  "trapVerifiedBy": "naive"
+}
