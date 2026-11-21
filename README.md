@@ -91,35 +91,6 @@ Opus 和 Sonnet 测下来效果最好。Haiku 也能用，在上面 10 个站上
 
 脚本只在你的电脑上跑，只依赖 Playwright，不调用任何模型或外部服务。页面内容只交给你正在用的 agent，CSV 存在你指定的位置。
 
-## 手动使用
-
-不经过 agent 也能直接跑脚本：
-
-```bash
-cd skill
-node scripts/inspect.mjs "https://news.ycombinator.com/news"          # 看页面：有哪些列表、翻页控件、弹窗
-node scripts/collect.mjs cfg.json --out /tmp/p.csv --max-pages 2      # 按配置试采两页
-node scripts/verify.mjs /tmp/p.csv                                    # 检查结果
-node scripts/collect.mjs cfg.json --out hn.csv                        # 采全部
-```
-
-配置是一份很小的 JSON：
-
-```json
-{
-  "url": "https://example.com/search?q=lamp",
-  "rows": "main ul.results > li.result",
-  "fields": {
-    "title": { "css": "h3" },
-    "link": { "css": "a", "attr": "href" },
-    "price": { "css": ".price-now", "number": true }
-  },
-  "next": { "type": "click", "selector": ".pager a[rel=next]" }
-}
-```
-
-没写 `next` 的话会自动滚动。完整语法见 [`skill/SKILL.md`](skill/SKILL.md) 的 `## Config` 一节，各种疑难页面的处理在 [`skill/references/`](skill/references/)。
-
 ## 仓库里还有什么
 
 `skill/` 是装给 agent 用的，只需要它。`eval/` 和 `docs/` 是开发和评测这个 skill 用的，包括 80 个本地模拟页面、回归测试和盲测方法，见 [`eval/README.md`](eval/README.md)。
