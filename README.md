@@ -16,14 +16,8 @@ agent：已保存 comments.csv，共 213 行（主评论 160 + 回复 53），
 把下面这段话发给你的 agent，让它替你装：
 
 ```text
-帮我安装 datalens-scrape 这个网页采集 skill：
-1. 把 https://github.com/weird94/scrape-skill 克隆到 ~/projects/scrape-skill（已经有了就 git pull）。
-2. 在它的 skill/ 目录里运行 npm install，再运行 npx playwright install chromium。需要 Node.js 18 以上，版本不够先告诉我。
-3. 把 skill/ 目录装成你能加载的 skill，名字叫 datalens-scrape。用链接而不是复制，这样以后 git pull 就能更新。如果你是 Claude Code，就链接到 ~/.claude/skills/datalens-scrape。
-4. 装完用 node scripts/inspect.mjs "https://news.ycombinator.com/news" 试一下，告诉我结果。
+帮我把 https://github.com/weird94/scrape-skill 里的 skill（在 skill/ 目录）装上，装完试一下能不能用。
 ```
-
-想只给某个项目用，把第 3 步改成「链接到当前项目的 .claude/skills/datalens-scrape」。
 
 ## 怎么用
 
