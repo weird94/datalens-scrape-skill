@@ -1,0 +1,18 @@
+{
+  "name": "scrape-skill",
+  "owner": { "name": "weird94" },
+  "metadata": {
+    "description": "Agent skill that collects whole lists and tables from web pages into CSV, locally, with no API key"
+  },
+  "plugins": [
+    {
+      "name": "datalens-scrape",
+      "source": "./skill",
+      "skills": "./",
+      "description": "Collect lists and tables from web pages into CSV across pagination, infinite scroll, load-more and expand buttons. Runs locally on Playwright; no API key.",
+      "keywords": ["scraping", "web-scraper", "data-extraction", "csv", "playwright"],
+      "category": "data-extraction",
+      "version": "0.1.0"
+    }
+  ]
+}
