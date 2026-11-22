@@ -12,10 +12,11 @@ import { after, before, describe, test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { parseCsv } from './lib/csv.mjs'
 import { configKey, priorRounds, resumePlan } from './lib/resume.mjs'
-import { REPO, haveFixtures, standInCli, startFixtureServer } from './test-support/fixture-server.mjs'
+import { fixtureSkip, haveFixtures, REPO, requireFixturesTest, standInCli, startFixtureServer } from './test-support/fixture-server.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const skip = !haveFixtures && 'eval/ fixtures not found'
+const skip = fixtureSkip
+requireFixturesTest(test)
 
 let fixtures
 let base

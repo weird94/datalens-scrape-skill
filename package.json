@@ -5,7 +5,7 @@
   "description": "The datalens-scrape skill (skill/) and the playground, regression and blind-test setup used to evaluate it (eval/).",
   "scripts": {
     "test": "npm run test:skill && npm run test:fixtures",
-    "test:skill": "cd skill && npm test",
+    "test:skill": "cd skill && REQUIRE_FIXTURES=1 npm test",
     "test:fixtures": "vitest run",
     "serve": "PORT=${PORT:-3031} tsx eval/serve.mts",
     "regress": "zsh eval/regress.sh",

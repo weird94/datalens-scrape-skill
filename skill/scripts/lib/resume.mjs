@@ -11,26 +11,14 @@
 //     rows seeded, so nothing saved is lost and nothing is doubled.
 import { createHash } from 'node:crypto'
 import { parseCsv } from './csv.mjs'
+import { END_OF_LIST, fromStartNote, planResumeAt, urlPage } from './resume-at.mjs'
+
+export { END_OF_LIST, fromStartNote, urlPage }
 
 /** Config keys that change which rows a run reads. Limits (maxPages, maxRows) and pacing are left out. */
 export const RESUME_KEYS = ['url', 'rows', 'fields', 'next', 'require', 'dedupe', 'setup', 'expand', 'fillDown']
 /** Parts of `next` that only pace the run (how long to wait after a click): they may change between the parts. */
 const NEXT_PACING = ['waitMs', 'quietMs']
-
-/** Stop reasons that mean the list ended: nothing to resume (unless the page looked like a wall). */
-export const END_OF_LIST = new Set([
-  'single-page',
-  'next-control-gone',
-  'next-click-no-effect',
-  'no-rows-after-page-turn',
-  'no-new-rows',
-  'load-more-gone',
-  'load-more-no-new-rows',
-  'scroll-end',
-  'scroll-blocked',
-  'url-page-empty',
-  'url-page-no-new-rows',
-])
 
 /** JSON with object keys sorted, so the same config written in another key order gives the same text. */
 function stableJson(value) {
@@ -54,9 +42,6 @@ export function configKey(config) {
 
 /** How a list of this config gets more rows, as the resume block names it. */
 export const pagingOf = config => config.next?.type ?? 'scroll'
-
-/** The page a URL template run loads after `pages` pages (the collector's own formula). */
-export const urlPage = (config, pages) => config.next.url.replace('{page}', String((config.next.start ?? 2) + pages - 1))
 
 /**
  * The `resume` block of a summary: the config key and the collector's position (after the last page it
@@ -108,21 +93,8 @@ export function resumePlan({ config, summary, csvText }) {
   if (csv.columns.join('\u0000') !== columns.join('\u0000')) {
     return { refuse: `--resume: the saved CSV has other columns (${csv.columns.join(', ')}) than the config's fields (${columns.join(', ')}). ${startOver}` }
   }
-  if ((END_OF_LIST.has(summary.stopReason) && !summary.wall) || pastLastPage(summary)) {
-    return { done: true, message: `--resume: the saved run already reached the end of the list (stopReason ${summary.stopReason}); nothing to resume, the files are left as they are. To collect the list again, run without --resume.` }
-  }
-  // Stopped at a limit this run has too: going on would stop at once, with nothing new.
-  const maxPages = Number(config.maxPages ?? 50)
-  const maxRows = Number(config.maxRows ?? 0)
-  if (summary.stopReason === 'max-pages' && Number(saved.pages ?? 0) >= maxPages) {
-    return { done: true, message: `--resume: the saved run already read ${saved.pages} pages, and maxPages is ${maxPages}: nothing more to read, the files are left as they are. Raise --max-pages to go on.` }
-  }
-  if (summary.stopReason === 'max-rows' && maxRows > 0 && csv.rows.length >= maxRows) {
-    return { done: true, message: `--resume: the saved run already has ${csv.rows.length} rows, and maxRows is ${maxRows}: nothing more to read, the files are left as they are. Raise --max-rows to go on.` }
-  }
-
   const pages = Number(saved.pages ?? 0)
-  const position = { pages, turn: Number(saved.turn ?? 0), url: saved.url ?? null, rows: Number(saved.rows ?? csv.rows.length), keys: saved.keys ?? [] }
+  const position = { pages, turn: Number(saved.turn ?? 0), url: saved.url ?? null, rows: Number(saved.rows ?? csv.rows.length), keys: saved.keys ?? [], urlPerPage: saved.urlPerPage ?? null }
   // What the summary of the whole run adds up.
   const carry = {
     rounds: priorRounds(summary),
@@ -130,37 +102,14 @@ export function resumePlan({ config, summary, csvText }) {
     mergedByLink: summary.duplicatesMergedByLink ?? 0,
     mergedSameRecord: summary.sameRecordMerged ?? 0,
   }
-  let at = null
-  if (config.next?.type === 'url' && pages >= 1) at = urlPage(config, pages)
-  else if (config.next?.type === 'click' && pages >= 2 && saved.urlPerPage && position.url) at = position.url
-  const how = at ? 'continued' : 'from-start'
-  const resumedFrom = { rows: csv.rows.length, stopReason: summary.stopReason, pages, how, ...(at ? { at } : { note: fromStartNote(config, pages) }) }
-  const resumeAt = at ? { how, ...position, ...carry } : { how, ...carry }
+  const plan = planResumeAt({ config, position, stopReason: summary.stopReason, wall: summary.wall, note: summary.note, rowCount: csv.rows.length, carry })
+  if (plan.done) {
+    const tail = plan.reason === 'end-of-list'
+      ? '; nothing to resume, the files are left as they are. To collect the list again, run without --resume.'
+      : `: nothing more to read, the files are left as they are. Raise --${plan.reason} to go on.`
+    return { done: true, message: `--resume: ${plan.done}${tail}` }
+  }
+  const { how, at, note, resumeAt } = plan
+  const resumedFrom = { rows: csv.rows.length, stopReason: summary.stopReason, pages, how, ...(at ? { at } : { note }) }
   return { how, seedRows: csv.rows, resumeAt, resumedFrom }
-}
-
-/**
- * Pages by URL that ended on a page that is not there (HTTP 404 / 410, next to no text, nothing that looks like a
- * bot check or a login): the page after the last one. The collector calls that a wall (a site may answer a bot
- * with an error page), but going on would only ask for the same missing page again.
- */
-function pastLastPage(summary) {
-  const wall = summary.wall
-  if (!wall || !/^url-page-empty\b/.test(String(summary.note ?? ''))) return false
-  return /\bHTTP 4(04|10)\b/.test(String(wall.evidence ?? '')) && !wall.signals?.challenge && !wall.signals?.text && !wall.signals?.login
-}
-
-/** Why a resumed run reads the list again from the top. */
-export function fromStartNote(config, pages) {
-  const type = config.next?.type ?? 'scroll'
-  const why = type === 'scroll'
-    ? 'a scrolling list cannot be entered half-way'
-    : type === 'load-more'
-      ? 'a load-more list cannot be entered half-way'
-      : type === 'click' && pages < 2
-        ? 'the saved run had not turned a page yet'
-        : type === 'click'
-          ? "the list's pages have no URL of their own"
-          : 'this list has no pages to go back to'
-  return `read the list again from the top (${why}); the saved rows were kept, and rows read again were not added twice`
 }

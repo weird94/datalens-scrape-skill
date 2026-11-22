@@ -2,7 +2,8 @@
 // late-rendered detail pages in two layouts, dead links, a "Read more" to click, related items before the
 // record that reuse its classes, an optional field, a list of reviews inside each record (children), a site that starts
 // blocking (a captcha, or empty pages) after N requests, and pages that fail once. The fixture server
-// (eval/serve.mts) is started on a free port. Run with `node --test scripts/detail-pages.test.mjs`.
+// (eval/serve.mts; SCRAPE_SKILL_REPO / SCRAPE_SKILL_SERVE say where) is started on a free port; the tests are skipped
+// where it is not around, failed instead with REQUIRE_FIXTURES=1. Run with `node --test scripts/detail-pages.test.mjs`.
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
@@ -17,12 +18,11 @@ import { parseCsv, toCsv } from './lib/csv.mjs'
 import { detailBatchProgram, readDetailPage } from './lib/detail.mjs'
 import { installDlk } from './lib/in-page.mjs'
 import { gotoAndSettle, runSetup, settle } from './lib/page-helpers.mjs'
+import { fixtureSkip, haveFixtures, REPO, requireFixturesTest, SERVE, TSX } from './test-support/fixture-server.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const SKILL = path.join(HERE, '..')
-const REPO = path.join(SKILL, '..')
-const SERVE = path.join(REPO, 'eval', 'serve.mts')
-const TSX = path.join(REPO, 'node_modules', '.bin', 'tsx')
+requireFixturesTest(test)
 const BRANDS = ['Northwind', 'Acme', 'Globex', 'Initech', 'Umbrella', 'Stark']
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'detail-test-'))
@@ -143,6 +143,7 @@ let listCsv
 let specFile
 let clean
 before(async () => {
+  if (!haveFixtures) return
   await startServer()
   const listConfig = write('list.json', {
     url: `${origin}/dev-fixtures/playground/detail-links?items=12&perPage=6&lateMs=300&run=list-${run}`,
@@ -162,7 +163,7 @@ after(() => {
   fs.rmSync(tmp, { recursive: true, force: true })
 })
 
-describe('detail.mjs', { concurrency: 4 }, () => {
+describe('detail.mjs', { skip: fixtureSkip, concurrency: 4 }, () => {
   test('list → detail: every list row kept in order, both layouts read, the field behind "Read more" read, dead link and missing link marked', () => {
     const { summary, code, stderr } = clean
     assert.equal(code, 0, stderr)

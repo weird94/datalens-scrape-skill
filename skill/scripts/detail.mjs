@@ -27,20 +27,16 @@ import {
   CHILD_KEY_COLUMNS,
   childCsvDue,
   childrenCountColumn,
-  childTextKeeper,
   DETAIL_STREAK_LIMIT,
   detailBatchProgram,
-  detailLink,
   detailSpecKey,
   detailStatusColumn,
   mergeChildRows,
   mergeDetailRows,
-  needsDetailFetch,
-  nextStreaks,
   readDetailCheckpoint,
   readDetailPage,
-  recordTextKeeper,
 } from './lib/detail.mjs'
+import { createDetailRun } from './lib/detail-run.mjs'
 import { installDlk } from './lib/in-page.mjs'
 import { summarizeDetail } from './lib/report-format.mjs'
 
@@ -90,7 +86,6 @@ const browserMode = flags.browser ?? process.env.SCRAPE_BROWSER ?? 'bundled'
 if (!['bundled', 'chrome'].includes(browserMode)) fail(`--browser must be bundled or chrome, not "${browserMode}"`)
 const maxRows = flags['max-rows'] !== undefined ? Number(flags['max-rows']) : 0
 if (flags['max-rows'] !== undefined && !(Number.isInteger(maxRows) && maxRows > 0)) fail('--max-rows needs a whole number > 0')
-const maxAttempts = Number(spec.maxAttempts ?? 3)
 const delayMs = Number(spec.delayMs ?? 1500)
 const concurrency = browserMode === 'chrome' ? 1 : Number(spec.concurrency ?? 1)
 const detailNames = Object.keys(spec.fields)
@@ -122,44 +117,28 @@ const checkpointText = fs.existsSync(checkpointPath) ? fs.readFileSync(checkpoin
 // A run killed while writing a line left it unfinished: end it, so the next line is not glued to it.
 if (checkpointText && !checkpointText.endsWith('\n')) fs.appendFileSync(checkpointPath, '\n')
 const { entries, stale } = readDetailCheckpoint(checkpointText, specKey)
-/** Record excerpts go into the checkpoint for the first few pages per blank column only (the summary quotes one). */
-const keepRecordText = recordTextKeeper(entries, detailNames)
-const keepChildText = childTextKeeper(entries, childNames)
 
 // ---------- plan ----------
-const rowUrls = list.rows.map(row => detailLink(row[spec.link]))
-const links = [...new Set(rowUrls.filter(Boolean))]
-const considered = maxRows ? links.slice(0, maxRows) : links
-const fetchOptions = { browser: browserMode, retryEmpty: Boolean(flags['retry-empty']) }
-const needsFetch = url => needsDetailFetch(entries.get(url), maxAttempts, fetchOptions)
-const todo = considered.filter(needsFetch)
-// Empty pages read again go last: a run that stopped on a run of empty pages does not stop on the same ones again.
-const wasEmpty = url => entries.get(url)?.status === 'empty'
-const queue = [...todo.filter(url => !wasEmpty(url)), ...todo.filter(wasEmpty)]
+/** CSV rewrites while the run goes on (the checkpoint is written after every page). */
+let lastCsv = 0
+/** Child rows the child table had when it was last written, and when. */
+let childCsv = { rows: 0, at: 0 }
+const run = createDetailRun({
+  spec,
+  listRows: list.rows,
+  entries,
+  maxLinks: maxRows,
+  retryEmpty: Boolean(flags['retry-empty']),
+  browser: browserMode,
+  persist: keep,
+})
+const { queue, rowUrls, take, checkCanary, stop } = run
 
 const started = Date.now()
-let stopReason = null
-let note = ''
-let fetched = 0
-let streaks = { blocked: 0, empty: 0 }
-/** URLs of the empty pages since the last ok one: unconfirmed until an ok page (or the canary) vouches for the site. */
-let emptyStreak = []
-const canary = []
-let lastCsv = 0
 /** The signal that stopped the run, if one did. */
 let interrupted = null
 /** Ends the work in flight (closes the bundled browser, kills the run-code call). */
 let abortRun = null
-
-/** Stop the run (the first reason given wins). */
-function stop(reason, text = '') {
-  if (stopReason) return
-  stopReason = reason
-  note = text
-}
-
-/** Child rows the child table had when it was last written, and when. */
-let childCsv = { rows: 0, at: 0 }
 
 /** Rewrite the CSV, and the child table too (`children`: always at the end; while running, see childCsvDue). */
 function writeCsv({ children = true } = {}) {
@@ -173,15 +152,13 @@ function writeCsv({ children = true } = {}) {
   }
 }
 
-/** Keep an entry: checkpoint line now, CSV every few seconds (the child table less often once it is big). → the entry. */
-function append(entry) {
-  entries.set(entry.url, entry)
+/** Keep an entry the run recorded: checkpoint line now, CSV every few seconds (the child table less often once it is big). */
+function keep(entry) {
   fs.appendFileSync(checkpointPath, JSON.stringify(entry) + '\n')
   if (Date.now() - lastCsv >= CSV_EVERY_MS) {
     const rows = childrenPath ? childRowCount() : 0
     writeCsv({ children: Boolean(childrenPath) && childCsvDue({ rows, writtenRows: childCsv.rows, sinceMs: Date.now() - childCsv.at, everyMs: CSV_EVERY_MS }) })
   }
-  return entry
 }
 
 /** The child table's row count now (rows per list row, like mergeChildRows), without building it. */
@@ -192,101 +169,6 @@ function childRowCount() {
     if (entry?.status === 'ok') n += entry.children?.length ?? 0
   }
   return n
-}
-
-/** Record one finished page. An empty one (not a dead link) is `unconfirmed` until the site is vouched for. */
-function record(url, result, attemptsDelta = 1) {
-  const prev = entries.get(url)
-  const { status, fields = {}, error, httpStatus, notFound, recordText, recordScope, children, childrenMatched, childText, childPager, childMore, childPlaces, childDupes, childrenHidden, childError, expandCapped } = result
-  return append({
-    url,
-    status,
-    fields,
-    attempts: Number(prev?.attempts ?? 0) + attemptsDelta,
-    spec: specKey,
-    browser: browserMode,
-    ...(status === 'empty' && !notFound ? { unconfirmed: true } : {}),
-    ...(error ? { error } : {}),
-    ...(httpStatus ? { httpStatus } : {}),
-    ...(notFound ? { notFound } : {}),
-    ...(status === 'ok' && children ? { children } : {}),
-    ...(status === 'ok' && childrenMatched ? { childrenMatched } : {}),
-    ...(status === 'ok' && childPager ? { childPager } : {}),
-    ...(status === 'ok' && childMore ? { childMore } : {}),
-    ...(status === 'ok' && childPlaces ? { childPlaces } : {}),
-    ...(status === 'ok' && childDupes ? { childDupes } : {}),
-    ...(status === 'ok' && childrenHidden ? { childrenHidden } : {}),
-    ...(status === 'ok' && childError ? { childError } : {}),
-    ...(status === 'ok' && expandCapped ? { expandCapped } : {}),
-    ...(keepChildText(result) ? { childText } : {}),
-    ...(keepRecordText(result) ? { recordText, ...(recordScope ? { recordScope } : {}) } : {}),
-  })
-}
-
-/** The empty pages since the last ok one really are empty: the site served an ok page after (or around) them. */
-function confirmEmpty() {
-  for (const url of emptyStreak) {
-    const entry = entries.get(url)
-    if (!entry?.unconfirmed) continue
-    const { unconfirmed, ...rest } = entry
-    append(rest)
-  }
-  emptyStreak = []
-}
-
-/**
- * Take one result in: record it, requeue a failure with tries left, update the streaks.
- * → 'stop' (too many blocked pages), 'canary' (too many empty ones: check an ok page again) or null.
- */
-function take(url, result) {
-  fetched += 1
-  const entry = record(url, result)
-  if (entry.status === 'failed' && entry.attempts < maxAttempts) queue.push(url)
-  streaks = nextStreaks(streaks, result)
-  if (result.status === 'ok') confirmEmpty()
-  else if (result.status === 'empty' && !result.notFound) emptyStreak.push(url)
-  if (streaks.blocked >= DETAIL_STREAK_LIMIT) {
-    stop('blocked', `${streaks.blocked} pages in a row looked blocked (last: ${url} — ${result.error ?? ''})`)
-    return 'stop'
-  }
-  if (streaks.empty >= DETAIL_STREAK_LIMIT) return 'canary'
-  return null
-}
-
-/**
- * Too many empty pages in a row: read again a page that read ok before, to tell "these pages are empty"
- * from "the site stopped serving us". `read(url)` → the result, or null when the run is stopping.
- * A server error on the check proves nothing: once more (on another ok page when there is one), and
- * after two errors the run goes on and checks again after the next empty pages. → 'stop' or null.
- */
-async function checkCanary(read) {
-  const ok = [...entries.values()].filter(e => e.status === 'ok' && !emptyStreak.includes(e.url)).map(e => e.url)
-  if (!ok.length) {
-    const first = entries.get(emptyStreak[0])
-    stop('no-data', `${emptyStreak.length} pages read empty and none has read ok yet (e.g. ${emptyStreak[0]}: ${first?.error ?? 'empty'})`)
-    return 'stop'
-  }
-  for (const target of [ok[0], ok[1] ?? ok[0]]) {
-    const result = await read(target)
-    if (!result) return 'stop'
-    canary.push({ url: target, status: result.status, ...(result.error ? { error: result.error } : {}), afterEmpty: emptyStreak.length })
-    if (result.status === 'ok') {
-      streaks = { ...streaks, empty: 0 }
-      confirmEmpty()
-      return null
-    }
-    if (result.status === 'failed') continue
-    // Every empty page the run cannot vouch for (from this run or one before) becomes blocked: a rerun reads them again.
-    const suspects = [...entries.values()].filter(e => e.status === 'empty' && e.unconfirmed)
-    for (const e of suspects) record(e.url, { status: 'blocked', fields: {}, error: `re-marked: a page that read fine before (${target}) now reads ${result.status}` }, 0)
-    stop(
-      'blocked',
-      `${emptyStreak.length} pages read empty with no ok page between them, and ${target}, which read fine before, now reads ${result.status}${result.error ? ` (${result.error})` : ''}: the site is probably blocking, or its pages changed`
-    )
-    return 'stop'
-  }
-  streaks = { ...streaks, empty: 0 }
-  return null
 }
 
 const jitter = () => Math.round(delayMs + Math.random() * delayMs)
@@ -326,7 +208,7 @@ async function runBundled() {
     const page = await context.newPage()
     let first = true
     if (index > 0) await sleep(jitter() * index)
-    while (!stopReason) {
+    while (!run.stopReason) {
       const url = queue.shift()
       if (!url) {
         // Another worker may still requeue a failed page.
@@ -346,7 +228,7 @@ async function runBundled() {
   /** One page (and the canary check it may call for). → false when this worker should stop. */
   async function visit(page, url, first) {
     if (!first) await sleep(jitter())
-    if (stopReason) {
+    if (run.stopReason) {
       queue.unshift(url)
       return false
     }
@@ -364,7 +246,7 @@ async function runBundled() {
       })
       checking = false
     }
-    return !stopReason
+    return !run.stopReason
   }
   try {
     await Promise.all(Array.from({ length: Math.min(concurrency, Math.max(1, queue.length)) }, (_, i) => worker(i)))
@@ -379,35 +261,35 @@ async function runInUserChrome(session) {
   /** Read `urls` in the user's tab (one run-code call). → the results, or null when the run stops. */
   async function batchIn(urls, state) {
     const { sources, call } = detailBatchProgram(urls, spec, state)
-    const run = await runInChromeAsync(session, sources, call, { signal: controller.signal })
-    if (!run.ok) {
+    const ran = await runInChromeAsync(session, sources, call, { signal: controller.signal })
+    if (!ran.ok) {
       // Ctrl-C in a terminal reaches the CLI too, and its exit may be seen before our own handler runs.
       if (!interrupted) await sleep(200)
-      if (!interrupted && SIGNAL_EXIT[run.signal]) {
-        interrupted = run.signal
+      if (!interrupted && SIGNAL_EXIT[ran.signal]) {
+        interrupted = ran.signal
         stop('interrupted')
       }
-      stop('error', run.error ?? 'no results from run-code')
+      stop('error', ran.error ?? 'no results from run-code')
       return null
     }
     if (interrupted) return null
-    if (run.value?.notRendering) {
+    if (ran.value?.notRendering) {
       stop(
         'tab-not-rendering',
         'the browser is not drawing this tab (window minimized or covered, or tab in the background), so late content never comes. Ask the user to bring that Chrome window to the front and keep it visible during the run.'
       )
       return null
     }
-    if (!Array.isArray(run.value?.results)) {
+    if (!Array.isArray(ran.value?.results)) {
       stop('error', 'run-code returned no results')
       return null
     }
-    return run.value.results
+    return ran.value.results
   }
   let delayFirst = false
-  while (!stopReason && queue.length) {
+  while (!run.stopReason && queue.length) {
     const batch = queue.splice(0, CHROME_BATCH)
-    const results = await batchIn(batch, { ...streaks, limit: DETAIL_STREAK_LIMIT, delayFirst })
+    const results = await batchIn(batch, { ...run.streaks, limit: DETAIL_STREAK_LIMIT, delayFirst })
     if (!results) {
       queue.unshift(...batch)
       break
@@ -438,12 +320,9 @@ try {
 } catch (error) {
   stop('error', String(error.message || error).split('\n')[0])
 }
-if (!stopReason) {
-  // A preview stops at max-rows only while some link past it is still to be read.
-  stopReason = considered.length < links.length && links.slice(considered.length).some(needsFetch) ? 'max-rows' : 'done'
-}
-// The run went through without a stop: the empty pages since the last ok one are what they read.
-if (stopReason === 'done' || stopReason === 'max-rows') confirmEmpty()
+// Without a stop the run is 'done' (or 'max-rows' while some link past it is still to be read), and the empty pages
+// since the last ok one are what they read.
+const { stopReason, note, canary, fetched } = run.finish()
 
 writeCsv()
 const summary = summarizeDetail({

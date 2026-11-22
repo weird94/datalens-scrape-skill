@@ -576,6 +576,83 @@ export function summarizeDetail(input: {
   children?: { selector: string; names: string[]; out: string; countColumn: string; rooted?: boolean } | null
 }): Record<string, unknown>
 
+/** One canary read: a page that read ok before, read again after a run of empty pages. */
+export interface DetailCanaryRead {
+  url: string
+  status: DetailStatus
+  error?: string
+  afterEmpty: number
+}
+
+/** The detail-page scheduler (lib/detail-run.mjs): no I/O; the host reads each queued URL and hands the result to `take`. */
+export interface DetailRun {
+  /** URLs to read, in order; the host takes from the front (and puts a URL back at the front when its read was aborted). */
+  queue: string[]
+  /** Record one result. → 'stop' (too many blocked pages), 'canary' (too many empty ones: call checkCanary) or null. */
+  take(url: string, result: DetailRead): 'stop' | 'canary' | null
+  /** Read an ok page again after a run of empty ones; `read` → its result, or null when the run is stopping. */
+  checkCanary(read: (url: string) => Promise<DetailRead | null>): Promise<'stop' | null>
+  /** Stop the run (the first reason given wins). */
+  stop(reason: DetailStopReason, note?: string): void
+  /** End the run: 'done' or 'max-rows' without a stop, and the empty pages confirmed then. */
+  finish(): { stopReason: DetailStopReason; note: string; canary: DetailCanaryRead[]; fetched: number }
+  /** Wait for persist() promises; rejects with the first one that failed. */
+  flush(): Promise<void>
+  needsFetch(url: string): boolean
+  /** url → latest entry (the Map passed in, added to as pages finish). */
+  entries: Map<string, DetailEntry>
+  /** Each list row's detail URL (null: no usable link). */
+  rowUrls: Array<string | null>
+  /** The distinct links, in list order. */
+  links: string[]
+  /** The links this run reads (the first maxLinks of them with a limit). */
+  considered: string[]
+  specKey: string
+  maxAttempts: number
+  canary: DetailCanaryRead[]
+  readonly stopReason: DetailStopReason | null
+  readonly note: string
+  readonly fetched: number
+  /** Blocked pages in a row, empty pages since the last ok one (a batch reader stops early on them). */
+  readonly streaks: DetailStreaks
+}
+
+export function createDetailRun(input: {
+  spec: DetailSpec
+  listRows: Record<string, string>[]
+  /** url → the latest entry read with this spec (the run adds to it). */
+  entries?: Map<string, DetailEntry>
+  /** Only the first N distinct links (0: all). */
+  maxLinks?: number
+  retryEmpty?: boolean
+  /** What reads the pages; written into each entry (an empty page recorded by another one is read again). */
+  browser?: string | null
+  /** Called with every entry as it is kept; a returned promise is waited for by flush(). */
+  persist?: (entry: DetailEntry) => void | Promise<void>
+}): DetailRun
+
+// ---------- resuming a list run (lib/resume-at.mjs) ----------
+
+/** Stop reasons that mean the list ended. */
+export const END_OF_LIST: Set<string>
+/** The page a URL template run loads after `pages` pages. */
+export function urlPage(config: ScrapeConfig, pages: number): string
+/** Why a resumed run reads the list again from the top. */
+export function fromStartNote(config: ScrapeConfig, pages: number): string
+/** How the next run goes on from one that stopped (its rows go in as seedRows, `resumeAt` as lib.resumeAt). */
+export function planResumeAt(input: {
+  config: ScrapeConfig
+  position?: CollectPosition | null
+  stopReason: string
+  wall?: WallInfo | null
+  note?: string
+  rowCount?: number
+  carry?: Pick<ResumeAt, 'rounds' | 'claimed' | 'mergedByLink' | 'mergedSameRecord'>
+}):
+  | { done: string; reason: 'end-of-list' | 'max-pages' | 'max-rows' }
+  | { how: 'continued'; at: string; resumeAt: ResumeAt }
+  | { how: 'from-start'; note: string; resumeAt: ResumeAt }
+
 // ---------- CSV ----------
 export function csvCell(value: unknown): string
 /** Header + rows, UTF-8 BOM in front, "\n" line ends; a one-column row with an empty cell is written as "". */

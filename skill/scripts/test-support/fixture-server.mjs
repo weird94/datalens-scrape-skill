@@ -9,10 +9,27 @@ import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-export const REPO = path.resolve(HERE, '../../..')
-const SERVE = path.join(REPO, 'eval/serve.mts')
-const TSX = path.join(REPO, 'node_modules/.bin/tsx')
+/** The repo the fixture server lives in: SCRAPE_SKILL_REPO (relative to the working directory), else the one around skill/. */
+export const REPO = path.resolve(process.env.SCRAPE_SKILL_REPO || path.resolve(HERE, '../../..'))
+/** The fixture server script: SCRAPE_SKILL_SERVE (relative to REPO), else eval/serve.mts. */
+export const SERVE = path.resolve(REPO, process.env.SCRAPE_SKILL_SERVE || 'eval/serve.mts')
+export const TSX = path.join(REPO, 'node_modules/.bin/tsx')
 export const haveFixtures = fs.existsSync(SERVE) && fs.existsSync(TSX)
+/** REQUIRE_FIXTURES=1: a missing fixture server fails the end-to-end tests instead of skipping them. */
+export const requireFixtures = process.env.REQUIRE_FIXTURES === '1'
+const missing = `fixture server not found (${SERVE} with ${TSX}; set SCRAPE_SKILL_REPO / SCRAPE_SKILL_SERVE)`
+/** The `skip` option of a test that needs the fixture server: why, when it is missing. */
+export const fixtureSkip = !haveFixtures && missing
+/**
+ * With REQUIRE_FIXTURES=1, one test that fails when the fixture server is missing (the tests that need it are
+ * skipped then, and would otherwise let the run pass). `test` is node:test's.
+ */
+export function requireFixturesTest(test) {
+  if (!requireFixtures) return
+  test('the fixture server is there (REQUIRE_FIXTURES=1)', () => {
+    if (!haveFixtures) throw new Error(`REQUIRE_FIXTURES=1: ${missing}`)
+  })
+}
 
 /** → { base (…/dev-fixtures/playground), requests, stop() } */
 export async function startFixtureServer() {

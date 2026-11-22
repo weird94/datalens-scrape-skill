@@ -1,6 +1,7 @@
 // Never losing rows: a run split into calls ends as one uninterrupted run would, and collect.mjs keeps the
 // rows of the rounds it finished when it is killed.
-// Uses the playground's mock pages (eval/, started here on a free port); skipped where eval/ is not around.
+// Uses the playground's mock pages (eval/, started here on a free port; SCRAPE_SKILL_REPO / SCRAPE_SKILL_SERVE say
+// where); skipped where they are not around, failed instead with REQUIRE_FIXTURES=1.
 // Run with `node --test scripts/collect-chunks.test.mjs`.
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
@@ -14,12 +15,11 @@ import { chromium } from 'playwright'
 import { runCodeSource } from './lib/chrome.mjs'
 import { CHUNK_SOURCES, chunkCall, collectInChunks } from './lib/chunks.mjs'
 import { collectOnPage, gotoAndSettle, installDlk, runSetup, settle } from './lib/index.mjs'
+import { fixtureSkip, haveFixtures, REPO, requireFixturesTest, SERVE, TSX } from './test-support/fixture-server.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const REPO = path.resolve(HERE, '../..')
-const SERVE = path.join(REPO, 'eval/serve.mts')
-const TSX = path.join(REPO, 'node_modules/.bin/tsx')
-const haveFixtures = fs.existsSync(SERVE) && fs.existsSync(TSX)
+const skip = fixtureSkip
+requireFixturesTest(test)
 const lib = { settle, gotoAndSettle, runSetup, installDlk }
 
 let server
@@ -141,7 +141,7 @@ const CASES = [
   },
 ]
 
-describe('a run split into calls ends as one run does', { skip: !haveFixtures && 'eval/ fixtures not found', concurrency: true }, () => {
+describe('a run split into calls ends as one run does', { skip, concurrency: true }, () => {
   for (const { name, config } of CASES) {
     test(name, async () => {
       const cfg = { delayMs: 150, ...config() }
@@ -171,7 +171,7 @@ describe('a run split into calls ends as one run does', { skip: !haveFixtures &&
   }
 })
 
-test('a call that finds the tab navigated since the last one stops with the rows so far', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('a call that finds the tab navigated since the last one stops with the rows so far', { skip }, async () => {
   const page = await newPage()
   const cfg = { url: `${base}/io-scroll?batches=4&batchSize=10`, rows: '#feed > li.item', fields: { text: '.' }, next: { type: 'scroll' }, delayMs: 150 }
   const first = await runCodeChunk(page, cfg, null, { steps: 2 })
@@ -187,7 +187,7 @@ test('a call that finds the tab navigated since the last one stops with the rows
   assert.equal(result.rows.length, kept)
 })
 
-test('a state from another version is refused, not half-used', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('a state from another version is refused, not half-used', { skip }, async () => {
   const page = await newPage()
   const result = await collectOnPage(page, { url: `${base}/io-scroll?batches=2&batchSize=5`, rows: '#feed > li.item', fields: { text: '.' } }, { ...lib, resume: { version: 0 } })
   assert.equal(result.stopReason, 'error')
@@ -233,7 +233,7 @@ async function startRun(config, { ready = () => true, args = [], env = {}, detac
   return { child, exited, out, summaryFile, dir, stderr: () => stderr, done: () => done }
 }
 
-test('collect.mjs killed half-way leaves the rows of the rounds it finished', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('collect.mjs killed half-way leaves the rows of the rounds it finished', { skip }, async () => {
   const run = await startRun(SLOW_SCROLL(), { ready: summary => summary?.rows >= 60 })
   run.child.kill('SIGKILL')
   await run.exited
@@ -247,7 +247,7 @@ test('collect.mjs killed half-way leaves the rows of the rounds it finished', { 
   assert.ok(inCsv >= summary.rows && inCsv < 600, `csv rows ${inCsv}, summary rows ${summary.rows}`)
 })
 
-test('collect.mjs stopped by Ctrl-C writes what it has and says so', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('collect.mjs stopped by Ctrl-C writes what it has and says so', { skip }, async () => {
   const run = await startRun(SLOW_SCROLL(), { ready: summary => summary?.rows >= 60 })
   run.child.kill('SIGINT')
   const { code } = await run.exited
@@ -258,7 +258,7 @@ test('collect.mjs stopped by Ctrl-C writes what it has and says so', { skip: !ha
   assert.equal(csvRows(run.out), summary.rows)
 })
 
-test('collect.mjs stopped by SIGHUP (the terminal closed) writes what it has like Ctrl-C', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('collect.mjs stopped by SIGHUP (the terminal closed) writes what it has like Ctrl-C', { skip }, async () => {
   const run = await startRun(SLOW_SCROLL(), { ready: summary => summary?.rows >= 60 })
   run.child.kill('SIGHUP')
   const { code } = await run.exited
@@ -269,7 +269,7 @@ test('collect.mjs stopped by SIGHUP (the terminal closed) writes what it has lik
   assert.equal(csvRows(run.out), summary.rows)
 })
 
-test('rows read while the first page is still being expanded are written before its round ends', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('rows read while the first page is still being expanded are written before its round ends', { skip }, async () => {
   // Opening every record's replies on page 1 takes several seconds; the rows read meanwhile must not wait for it.
   const config = { url: `${base}/reply-threads?comments=20`, rows: '.comment-item', fields: { author: '.author', text: '.text' }, expand: ['button.reply-expand', 'button.reply-more:not(.collapse)'] }
   const run = await startRun(config, { ready: summary => summary?.rows > 0 && summary.roundLog.length === 0 })
@@ -285,7 +285,7 @@ test('rows read while the first page is still being expanded are written before 
   assert.equal(csvRows(run.out), summary.rows)
 })
 
-test('a run that cannot save its rows for a while goes on and writes them all at the end', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('a run that cannot save its rows for a while goes on and writes them all at the end', { skip }, async () => {
   // Saving fails while a folder sits where the CSV goes (a locked file does the same).
   const config = { url: `${base}/io-scroll?batches=4&batchSize=30&delayMs=300`, rows: '#feed > li.item', fields: { text: '.' }, next: { type: 'scroll' } }
   const run = await startRun(config, {
@@ -301,7 +301,7 @@ test('a run that cannot save its rows for a while goes on and writes them all at
   assert.equal(csvRows(run.out), 120)
 })
 
-test('a run stopped before its first row leaves an earlier result at --out alone', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('a run stopped before its first row leaves an earlier result at --out alone', { skip }, async () => {
   // The rows only come after a long first wait: the run is stopped before it has any.
   const config = { ...SLOW_SCROLL(), initialWaitMs: 8000 }
   const earlier = '\uFEFFtext\nfrom the run before\n'
@@ -320,7 +320,7 @@ test('a run stopped before its first row leaves an earlier result at --out alone
   }
 })
 
-test('rows saved less often on a long list still reach the file within a few seconds', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('rows saved less often on a long list still reach the file within a few seconds', { skip }, async () => {
   // 100 rows a round, quickly, then a batch that takes long: past 500 rows saves are spaced out, and the round
   // before the slow one must not wait for the next round to be written.
   const config = { url: `${base}/io-scroll?batches=9&batchSize=100&delayMs=0&slowBatch=7&slowMs=20000`, rows: '#feed > li.item', fields: { text: '.' }, next: { type: 'scroll' } }
@@ -375,7 +375,7 @@ process.exit(0)
   return { command: `${process.execPath} ${file}`, close: () => chrome.close() }
 }
 
-test('Ctrl-C in the terminal during a Chrome run writes what it has and says so', { skip: !haveFixtures && 'eval/ fixtures not found' }, async () => {
+test('Ctrl-C in the terminal during a Chrome run writes what it has and says so', { skip }, async () => {
   const cli = await standInCli()
   try {
     const run = await startRun(SLOW_SCROLL(), {
