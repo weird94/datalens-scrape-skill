@@ -5,10 +5,14 @@ import { test } from 'node:test'
 import { parseCsv, toCsv } from './lib/csv.mjs'
 import {
   checkDetailSpec,
+  childCsvDue,
+  childrenCountColumn,
+  childTextKeeper,
   detailStatusColumn,
   classifyDetail,
   detailLink,
   detailSpecKey,
+  mergeChildRows,
   mergeDetailRows,
   needsDetailFetch,
   nextStreaks,
@@ -353,4 +357,197 @@ test('recordTextKeeper: excerpts are kept for the first few pages per blank colu
   assert.equal(keep({ status: 'ok', fields: { name: '', brand: 'B', sku: 'S' } }), false, 'no excerpt read')
   assert.equal(keep({ ...page(['name']), status: 'empty' }), false, 'only ok pages')
   assert.equal(keep(page(['name'])), true)
+})
+
+test('detailSpecKey: a spec without children keeps the key it had before child lists; children (and their max) change it', () => {
+  // Keys written by checkpoints before "children" existed.
+  assert.equal(detailSpecKey({ fields: { a: '.a' } }), '1ajo36p')
+  assert.equal(detailSpecKey({ fields: { name: 'h1' }, root: 'main', expand: ['.more'] }), '1whwxq6')
+  const kids = { rows: '.review', fields: { author: '.author' } }
+  const key = detailSpecKey({ fields: { a: '.a' }, children: kids })
+  assert.notEqual(key, '1ajo36p')
+  assert.notEqual(detailSpecKey({ fields: { a: '.a' }, children: { ...kids, fields: { author: '.by' } } }), key)
+  assert.notEqual(detailSpecKey({ fields: { a: '.a' }, children: { ...kids, max: 5 } }), key)
+  assert.equal(detailSpecKey({ fields: { a: '.a' }, children: kids, delayMs: 9 }), key)
+})
+
+test('checkDetailSpec: children needs rows and fields; its columns may not be the child table key columns; the count column may not be a detail field', () => {
+  const cols = ['title', 'link']
+  const base = { link: 'link', fields: { name: 'h1' } }
+  assert.deepEqual(checkDetailSpec({ ...base, children: { rows: '.review', fields: { author: '.a', stars: { css: '.s', attr: 'title' } }, require: ['author'], max: 50 } }, cols), [])
+  assert.match(checkDetailSpec({ ...base, children: '.review' }, cols).join('\n'), /"children" must be an object/)
+  const text = checkDetailSpec({ ...base, children: { fields: { parent_row: '.x', author: 3 }, require: ['nope'], max: 0 } }, cols).join('\n')
+  assert.match(text, /"children.rows" is required/)
+  assert.match(text, /child field "author" must be a CSS string/)
+  assert.match(text, /"parent_row": parent_link, parent_row, child_index are the child table's own columns/)
+  assert.match(text, /"children.require": "nope" is not one of the child fields/)
+  assert.match(text, /"children.max" must be a whole number/)
+  assert.match(checkDetailSpec({ ...base, children: { rows: '.r' } }, cols).join('\n'), /"children.fields" needs at least one field/)
+  assert.match(checkDetailSpec({ link: 'link', fields: { children_count: 'h1' }, children: { rows: '.r', fields: { a: '.a' } } }, cols).join('\n'), /"children_count" already is a column/)
+  // Without children, a field may be called children_count.
+  assert.deepEqual(checkDetailSpec({ link: 'link', fields: { children_count: 'h1' } }, cols), [])
+  // A second pass over an output with a child count gets the next count column.
+  assert.equal(childrenCountColumn(['title', 'children_count']), 'children_count_2')
+})
+
+test('mergeDetailRows / mergeChildRows: the count is 0 on an ok page without children and blank elsewhere; child rows are keyed by link cell and main-CSV row number, under every row of a link read once', () => {
+  const entries = new Map([
+    ['https://e.com/1', { status: 'ok', fields: { name: 'A' }, children: [{ author: 'x', stars: '5' }, { author: 'y', stars: '' }] }],
+    ['https://e.com/2', { status: 'ok', fields: { name: 'B' }, children: [] }],
+    ['https://e.com/3', { status: 'failed', fields: {} }],
+  ])
+  const list = [
+    { title: 'one', link: 'https://e.com/1' },
+    { title: 'two', link: 'https://e.com/2' },
+    { title: 'three', link: 'https://e.com/3' },
+    { title: 'none', link: '' },
+    { title: 'four', link: 'https://e.com/4' },
+    { title: 'one again', link: 'https://e.com/1' },
+  ]
+  const rows = mergeDetailRows(list, 'link', ['name'], entries, 'detail_status', 'children_count')
+  assert.deepEqual(rows.map(r => [r.title, r.children_count, r.detail_status]), [
+    ['one', '2', 'ok'],
+    ['two', '0', 'ok'],
+    ['three', '', 'failed'],
+    ['none', '', 'no-link'],
+    ['four', '', 'pending'],
+    ['one again', '2', 'ok'],
+  ])
+  // Without a count column nothing changes.
+  assert.deepEqual(Object.keys(mergeDetailRows(list, 'link', ['name'], entries)[0]), ['title', 'link', 'name', 'detail_status'])
+  assert.deepEqual(mergeChildRows(list, 'link', ['author', 'stars'], entries), [
+    { parent_link: 'https://e.com/1', parent_row: '1', child_index: '1', author: 'x', stars: '5' },
+    { parent_link: 'https://e.com/1', parent_row: '1', child_index: '2', author: 'y', stars: '' },
+    { parent_link: 'https://e.com/1', parent_row: '6', child_index: '1', author: 'x', stars: '5' },
+    { parent_link: 'https://e.com/1', parent_row: '6', child_index: '2', author: 'y', stars: '' },
+  ])
+})
+
+test('summarizeDetail with children: child rows per main row, pages without any, child fill rates, capped pages; warnings for a child selector that matches nothing, a thin child column and a link to more children elsewhere', () => {
+  const page = (n, children, extra = {}) => [`https://e.com/${n}`, { status: 'ok', fields: { name: `P${n}` }, children, ...extra }]
+  const kid = (author, stars, date = '2026-01-01') => ({ author, stars, date })
+  const entries = new Map([
+    page(1, [kid('a', '5'), kid('b', ''), kid('c', '')], { childText: { index: 2, text: 'b ★★★★☆ 1 Jan 2026 Great' }, childrenMatched: 7 }),
+    page(2, [], { recordText: 'P2 No reviews yet.', recordScope: 'root' }),
+    page(3, [kid('d', '4'), kid('e', '3')], { childPager: { text: 'Next ›', href: 'https://e.com/3?page=2' } }),
+    ['https://e.com/4', { status: 'blocked', error: 'captcha' }],
+  ])
+  const rowUrls = ['https://e.com/1', 'https://e.com/2', 'https://e.com/3', 'https://e.com/4', 'https://e.com/1']
+  const children = { selector: '.review', names: ['author', 'stars', 'date'], out: '/tmp/x.children.csv', countColumn: 'children_count' }
+  const summary = summarizeDetail({ rowUrls, entries, detailNames: ['name'], stopReason: 'done', children })
+  assert.deepEqual(summary.children, {
+    out: '/tmp/x.children.csv',
+    countColumn: 'children_count',
+    // Rows of the child CSV: #1 is in two rows, so its 3 children are listed twice.
+    rows: 8,
+    okPages: 3,
+    pagesWithNone: { count: 1, sample: ['https://e.com/2'], check: 'open one: if it shows child rows, they rendered late; rerun with --retry-empty to read these pages again' },
+    fillRate: { author: '5/5 (100%)', stars: '3/5 (60%)', date: '5/5 (100%)' },
+    capped: { count: 1, sample: ['https://e.com/1'] },
+  })
+  const text = summary.warnings.join('\n')
+  assert.match(text, /child column "stars" is filled in 3\/5 child rows while "author" is in 5: either those rows lack it, or show it in another place\. On https:\/\/e\.com\/1 child row 2 reads: "b ★★★★☆ 1 Jan 2026 Great"\./)
+  assert.match(text, /on 1 of 3 ok pages the child list has a link to more of it on another URL \(e\.g\. "Next ›" → https:\/\/e\.com\/3\?page=2 on https:\/\/e\.com\/3\)/)
+  assert.doesNotMatch(text, /matched no child row/)
+
+  // No child row on any ok page: one warning, quoting the record of a page without children.
+  const empty = new Map([page(1, []), page(2, [], { recordText: 'P2 Reviews (3) Mia ★★★★★', recordScope: 'root' })])
+  const none = summarizeDetail({ rowUrls: [...empty.keys()], entries: empty, detailNames: ['name'], stopReason: 'done', children })
+  assert.equal(none.children.rows, 0)
+  assert.deepEqual(none.children.fillRate, { author: '0/0 (0%)', stars: '0/0 (0%)', date: '0/0 (0%)' })
+  assert.equal(none.warnings.length, 1)
+  assert.match(none.warnings[0], /^"children.rows" \("\.review"\) matched no child row on any of the 2 ok pages: .* On https:\/\/e\.com\/2 the record reads: "P2 Reviews \(3\) Mia ★★★★★"\. Check with inspect --probe/)
+  // Without children the summary has no children part.
+  assert.equal(summarizeDetail({ rowUrls: [...empty.keys()], entries: empty, detailNames: ['name'], stopReason: 'done' }).children, undefined)
+})
+
+test('recordTextKeeper counts a page without child rows as a blank column; childTextKeeper keeps child excerpts per blank child column', () => {
+  const keep = recordTextKeeper(new Map(), ['name'], 1)
+  assert.equal(keep({ status: 'ok', fields: { name: 'A' }, children: [], recordText: 'r' }), true, 'no child row')
+  assert.equal(keep({ status: 'ok', fields: { name: 'A' }, children: [], recordText: 'r' }), false, 'one is enough')
+  assert.equal(keep({ status: 'ok', fields: { name: 'A' }, children: [{ a: '1' }], recordText: 'r' }), false, 'has children, no blank field')
+  assert.equal(keep({ status: 'ok', fields: { name: 'A' }, recordText: 'r' }), false, 'no child list at all')
+
+  const page = (row, childText = { index: 1, text: 't' }) => ({ status: 'ok', fields: {}, children: [row], childText })
+  const kept = new Map([['u0', page({ a: '', b: '1' })]])
+  const keepChild = childTextKeeper(kept, ['a', 'b'], 2)
+  assert.equal(keepChild(page({ a: '', b: '1' })), true, 'second excerpt for a')
+  assert.equal(keepChild(page({ a: '', b: '1' })), false, 'a has two')
+  assert.equal(keepChild(page({ a: '', b: '' })), true, 'b has none yet')
+  assert.equal(keepChild({ status: 'ok', fields: {}, children: [{ a: '' }] }), false, 'no excerpt read')
+})
+
+test('checkDetailSpec: selectors that cannot be CSS (blank, an unclosed bracket or quote, a trailing combinator) are refused before any page loads, in fields, root, waitFor and children', () => {
+  const cols = ['title', 'link']
+  const base = { link: 'link', fields: { name: 'h1' } }
+  const kids = (rows, fields = { a: '.a' }) => ({ ...base, children: { rows, fields } })
+  assert.match(checkDetailSpec(kids('li['), cols).join('\n'), /"children.rows" \("li\["\) is not valid CSS: it has an unclosed "\["/)
+  assert.match(checkDetailSpec(kids(' '), cols).join('\n'), /"children.rows" is required/)
+  assert.match(checkDetailSpec(kids('li', { a: '.a', text: 'p[' }), cols).join('\n'), /child field "text" \("p\["\) is not valid CSS/)
+  assert.match(checkDetailSpec(kids('li', { a: { css: 'span >', attr: 'title' } }), cols).join('\n'), /child field "a" \("span >"\) is not valid CSS: it ends in a combinator/)
+  assert.match(checkDetailSpec({ ...base, fields: { name: 'h1, ' } }, cols).join('\n'), /field "name" \("h1, "\) is not valid CSS: it has an empty part/)
+  assert.match(checkDetailSpec({ ...base, root: 'a[href="x]' }, cols).join('\n'), /"root" \("a\[href=\\"x\]"\) is not valid CSS: it has an unclosed quote/)
+  assert.match(checkDetailSpec({ ...base, waitFor: 'div:not(.x' }, cols).join('\n'), /"waitFor" \("div:not\(\.x"\) is not valid CSS: it has an unclosed "\("/)
+  // Fine: the row itself ("" / "." / ":scope" in a field), attribute values with brackets in quotes, escapes.
+  assert.deepEqual(checkDetailSpec(kids('li.c', { self: { css: '.', attr: 'id' }, all: '', q: 'a[title="x[1]"]', esc: '.w-1\\/2' }), cols), [])
+})
+
+test('checkDetailSpec: keys inside children that belong at the top level are named; expandPasses is a whole number', () => {
+  const cols = ['title', 'link']
+  const text = checkDetailSpec({ link: 'link', fields: { name: 'h1' }, children: { rows: 'li', fields: { a: '.a' }, expand: ['.more'], root: '.x' } }, cols).join('\n')
+  assert.match(text, /"children" has unknown keys "expand", "root": expand \/ setup \/ waitFor \/ root go at the top level of the detail config/)
+  assert.match(checkDetailSpec({ link: 'link', fields: { name: 'h1' }, expandPasses: 0 }, cols).join('\n'), /"expandPasses" must be a whole number from 1 to 200/)
+  assert.deepEqual(checkDetailSpec({ link: 'link', fields: { name: 'h1' }, expandPasses: 40 }, cols), [])
+})
+
+test('detailSpecKey: expandPasses reads pages again when given, and leaves older keys alone when not', () => {
+  assert.equal(detailSpecKey({ fields: { a: '.a' } }), '1ajo36p')
+  assert.notEqual(detailSpecKey({ fields: { a: '.a' }, expandPasses: 40 }), '1ajo36p')
+})
+
+test('needsDetailFetch: with retryEmpty, an ok page that read no child row is read again too', () => {
+  const opts = { retryEmpty: true }
+  assert.equal(needsDetailFetch({ status: 'ok', children: [] }, 3, opts), true)
+  assert.equal(needsDetailFetch({ status: 'ok', children: [] }, 3, {}), false)
+  assert.equal(needsDetailFetch({ status: 'ok', children: [{ a: 'x' }] }, 3, opts), false)
+  assert.equal(needsDetailFetch({ status: 'ok' }, 3, opts), false)
+})
+
+test('childCsvDue: the child table is rewritten every few seconds while small, and once it is big only after it grew by a tenth', () => {
+  assert.equal(childCsvDue({ rows: 10, writtenRows: 5, sinceMs: 2500 }), true)
+  assert.equal(childCsvDue({ rows: 10, writtenRows: 5, sinceMs: 500 }), false)
+  assert.equal(childCsvDue({ rows: 4999, writtenRows: 4900, sinceMs: 2500 }), true)
+  assert.equal(childCsvDue({ rows: 105_000, writtenRows: 100_000, sinceMs: 60_000 }), false)
+  assert.equal(childCsvDue({ rows: 110_000, writtenRows: 100_000, sinceMs: 2500 }), true)
+  assert.equal(childCsvDue({ rows: 110_000, writtenRows: 100_000, sinceMs: 500 }), false)
+})
+
+test('mergeDetailRows: the child count is blank on an ok page whose children could not be read', () => {
+  const entries = new Map([['https://e.com/1', { status: 'ok', fields: { name: 'A' }, childError: "'li:bogus' is not a valid selector." }]])
+  const rows = mergeDetailRows([{ link: 'https://e.com/1' }], 'link', ['name'], entries, 'detail_status', 'children_count')
+  assert.deepEqual(rows, [{ link: 'https://e.com/1', name: 'A', children_count: '', detail_status: 'ok' }])
+})
+
+test('summarizeDetail with children: blank child rows, separate places, container matches, unclicked controls, counts beside the list, hidden rows and child errors each get a warning', () => {
+  const ok = (url, extra) => [url, { url, status: 'ok', fields: { name: 'x' }, ...extra }]
+  const kid = a => ({ author: a, text: a ? `${a} says` : '' })
+  const entries = new Map([
+    ok('https://e.com/1', { children: [kid('a'), kid(''), kid(''), kid('')] }),
+    ok('https://e.com/2', { children: [kid('b'), kid('c')], childPlaces: { places: 2, firsts: ['Top review: x', 'b says'] }, childDupes: 1 }),
+    ok('https://e.com/3', { children: [kid('d')], childMore: { control: 'Show all 9 comments', claim: { text: 'Comments (9)', n: 9 } } }),
+    ok('https://e.com/4', { children: [kid('e')], childMore: { claim: { text: 'Comments (4)', n: 4 } } }),
+    ok('https://e.com/5', { children: [], childrenHidden: 3 }),
+    ok('https://e.com/6', { childError: "'li:bogus' is not a valid selector." }),
+  ])
+  const rowUrls = [...entries.keys()]
+  const summary = summarizeDetail({ rowUrls, entries, detailNames: ['name'], stopReason: 'done', children: { selector: 'li', names: ['author', 'text'], out: '/x.children.csv', countColumn: 'children_count' } })
+  const w = summary.warnings.join('\n')
+  assert.match(w, /3 of 8 child rows read nothing in any child column/)
+  assert.match(w, /on 1 of 6 ok pages the child rows come from 2 separate places on the page \(e\.g\. on https:\/\/e\.com\/2: "Top review: x", "b says"\)/)
+  assert.match(w, /on 1 of 6 ok pages "children\.rows" matches a container together with the child rows in it/)
+  assert.match(w, /on 1 of 6 ok pages a control beside the child rows was not clicked \(e\.g\. "Show all 9 comments" on https:\/\/e\.com\/3, 1 child row read\): it is not in "expand"/)
+  assert.match(w, /on 1 of 6 ok pages a heading beside the child rows counts more than were read \(e\.g\. "Comments \(4\)" on https:\/\/e\.com\/4, 1 read\)/)
+  assert.match(w, /on 1 of 6 ok pages no child row was read, but "children\.rows" matches 3 elements the page does not show/)
+  assert.match(w, /children could not be read on 1 of 6 ok pages: 'li:bogus' is not a valid selector\./)
+  assert.deepEqual(summary.children.childErrors, { count: 1, sample: ['https://e.com/6'] })
 })

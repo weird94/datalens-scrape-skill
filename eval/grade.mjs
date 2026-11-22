@@ -18,9 +18,12 @@ const parse = text => {
   return out.filter(r => r.some(Boolean))
 }
 const results = []
+const skipped = []
 for (const [token, { id }] of Object.entries(aliases)) {
   const exp = JSON.parse(fs.readFileSync(path.join(C, id, 'expected.json'), 'utf8'))
   const file = [path.join(outDir, `${token}.csv`), path.join(outDir, `${id}.csv`)].find(f => fs.existsSync(f)) ?? path.join(outDir, `${token}.csv`)
+  // An alias whose blind run has not been saved as a config yet (blind/<token>.json) has nothing to rerun.
+  if (!fs.existsSync(file) && !fs.existsSync(new URL(`./blind/${token}.json`, import.meta.url))) { skipped.push(id); continue }
   if (!fs.existsSync(file)) { results.push({ id, expected: exp.expectedRows, rows: null, ok: false, note: 'no csv' }); continue }
   const [header, ...rows] = parse(fs.readFileSync(file, 'utf8').replace(/^﻿/, ''))
   const prefix = (exp.rowMatch?.textPrefix ?? '').trim()
@@ -30,4 +33,5 @@ for (const [token, { id }] of Object.entries(aliases)) {
 }
 for (const r of results) console.log(`${r.ok ? 'OK ' : '-- '}${r.id.padEnd(16)} ${String(r.rows ?? '-').padStart(4)}/${String(r.expected).padEnd(4)} match=${r.matching ?? '-'} distinct=${r.distinct ?? '-'} cols=${r.columns ?? '-'} ${r.note ?? ''}`)
 console.log(`\n${results.filter(r => r.ok).length}/${results.length} ok`)
+if (skipped.length) console.log(`no saved blind config yet (not graded): ${skipped.join(', ')}`)
 fs.writeFileSync(path.join(outDir, 'grade.json'), JSON.stringify(results, null, 2))

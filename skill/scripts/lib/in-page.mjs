@@ -2034,6 +2034,215 @@ export function installDlk() {
     return text ? { text, scope } : null
   }
 
+  // ---------- a list inside one record (detail pages' child rows) ----------
+  /** Drawn by the page: a hidden template row, or the rows of a closed tab, have no boxes. */
+  const drawn = el => el.getClientRects().length > 0 || getComputedStyle(el).display === 'contents'
+  /** The rows `rowsSel` matches inside `scope` that the page draws, and how many matches it does not draw. */
+  function childRows(scope, rowsSel) {
+    const all = qsa(rowsSel, scope)
+    const rows = all.filter(drawn)
+    return { rows, hidden: all.length - rows.length }
+  }
+  /** The tags between `el` and its ancestor `top` (both left out), upwards: the shape of the path. */
+  const pathUp = (el, top) => {
+    const tags = []
+    for (let n = composedParent(el); n && n !== top; n = composedParent(n)) tags.push(n.tagName)
+    return tags
+  }
+  const commonAncestor = (a, b) => {
+    for (let n = a; n; n = composedParent(n)) if (containsDeep(n, b)) return n
+    return null
+  }
+  /**
+   * The separate places on the page the rows come from. A row inside another row (a reply) belongs to that row; the
+   * others, in page order, belong with the row before them unless the paths from both up to their common ancestor
+   * differ in shape and are longer than the tightest pair's (a related item's featured comment vs the record's own
+   * list; not one list split into groups, whose paths have the same shape). → the first row of each place.
+   */
+  function rowPlaces(rows) {
+    const matched = new Set(rows)
+    const top = rows.filter(row => {
+      for (let n = composedParent(row); n; n = composedParent(n)) if (matched.has(n)) return false
+      return true
+    })
+    if (top.length < 2) return top.slice(0, 1)
+    const pairs = top.slice(1).map((row, i) => {
+      const above = commonAncestor(top[i], row)
+      const a = pathUp(top[i], above)
+      const b = pathUp(row, above)
+      return { gap: Math.max(a.length, b.length), same: a.join('>') === b.join('>') }
+    })
+    const tightest = Math.min(...pairs.map(p => p.gap))
+    return [top[0], ...top.slice(1).filter((_, i) => !pairs[i].same && pairs[i].gap > tightest + 1)]
+  }
+
+  /**
+   * The rows `rowsSel` matches inside the first match of `scopeSel` (drawn ones only), each read with `fields`.
+   * → { recs, hidden (matches not drawn), places (separate places they come from), firsts (with several places: the
+   * text of each one's first row), dupes (rows that hold the next matched row and read the same: a container matched
+   * with its rows) }, or null when `scopeSel` matches nothing.
+   */
+  function extractIn(scopeSel, rowsSel, fields) {
+    const scope = qs(scopeSel)
+    if (!scope) return null
+    const { rows, hidden } = childRows(scope, rowsSel)
+    const recs = rows.map(row => {
+      const rec = {}
+      for (const [key, spec] of Object.entries(fields)) rec[key] = readField(row, spec)
+      return rec
+    })
+    const starts = rowPlaces(rows)
+    let dupes = 0
+    for (let i = 0; i + 1 < rows.length; i += 1) {
+      if (containsDeep(rows[i], rows[i + 1]) && JSON.stringify(recs[i]) === JSON.stringify(recs[i + 1])) dupes += 1
+    }
+    return {
+      recs,
+      hidden,
+      places: starts.length,
+      ...(starts.length > 1 ? { firsts: starts.slice(0, 3).map(row => clip(clean(renderedText(row)), 60)) } : {}),
+      dupes,
+    }
+  }
+
+  /** The text of the `index`-th drawn row `rowsSel` matches inside the first match of `scopeSel`, on one line, cut to `max`. */
+  function rowTextIn(scopeSel, rowsSel, index, max = 300) {
+    const scope = qs(scopeSel)
+    const row = scope ? childRows(scope, rowsSel).rows[index] : null
+    return row ? clip(clean(renderedText(row)), max) : ''
+  }
+
+  /** Around the rows: their nearest common ancestor inside `scope`, and one level up (a pager or a heading sits beside the list, not in it). */
+  function childBox(scope, rows) {
+    let box = composedParent(rows[0])
+    while (box && box !== scope && !rows.every(row => containsDeep(box, row))) box = composedParent(box)
+    if (!box || !containsDeep(scope, box)) return scope
+    const up = box === scope ? null : composedParent(box)
+    return up && containsDeep(scope, up) ? up : box
+  }
+
+  /** A pager's own word ("next", "›", "下一页"). */
+  const PAGER_WORD = /^(next|next page|older|more|›|»|→|>|>>|下一页|下页|下一頁|更多|次へ|次のページ)$/i
+  /** "Next 10 reviews ›", "Older comments", "next ›": next / older of the list itself, not "Next article: …" or "Next product". */
+  const NEXT_OF_LIST = /^(next|older|more)( \d+)? (reviews?|comments?|answers?|replies|posts?|results?|items?|questions?|ratings?|entries|page)\s*[›»→>]*$|^(next|older)\s*[›»→>]+$/i
+  /** "See all reviews", "View all 120 comments", "All 120 reviews", "查看全部". */
+  const SEE_ALL = /\b(see|view|show|read|browse) all\b|\ball \d[\d,]* [a-z]+|查看全部|全部\s*\d+\s*条/i
+  /** The same with a count ("See all 120 reviews"): on a page that shows none of the rows, only such a link says it is their list. */
+  const SEE_ALL_COUNTED = /\b(see|view|show|read|browse) all \d[\d,]*\b|\ball \d[\d,]* [a-z]+|查看全部\s*\d+|全部\s*\d+\s*条/i
+  const PAGE_NUMBER = /^\d{1,4}$/
+  /**
+   * A page-number link is a pager when it sits with the current page's number (not a link, or aria-current) and the
+   * numbers rise in page order. Rating filters ("5", "4", …, all links) are not.
+   */
+  function inPageNumbers(a) {
+    let box = a.parentElement
+    for (let up = 0; box && up < 3; up += 1, box = box.parentElement) {
+      const nums = [...box.querySelectorAll('*')].filter(el => !el.children.length && PAGE_NUMBER.test(clean(el.textContent)) && isVisible(el))
+      if (nums.length < 2) continue
+      const values = nums.map(el => Number(clean(el.textContent)))
+      return values.every((v, i) => !i || v > values[i - 1]) && nums.some(el => !el.closest('a[href]') || el.closest('[aria-current]'))
+    }
+    return false
+  }
+  /**
+   * A link beside the rows (inside `scopeSel`, not inside a row) that leads to more of them on another URL: a next
+   * link, a page number, "see all …". With no row on the page and `rooted` (scopeSel is the record), a "see all N …"
+   * link inside the record. → { text, href }, or null.
+   */
+  function pagerNear(scopeSel, rowsSel, rooted = true) {
+    const scope = qs(scopeSel)
+    if (!scope) return null
+    const { rows } = childRows(scope, rowsSel)
+    if (!rows.length && !rooted) return null
+    const box = rows.length ? childBox(scope, rows) : scope
+    const here = `${location.origin}${location.pathname}${location.search}`
+    for (const a of qsa('a[href]', box)) {
+      if (rows.some(row => containsDeep(row, a)) || !isVisible(a)) continue
+      const label = clean(renderedText(a)) || clean(a.getAttribute('aria-label') || a.getAttribute('title') || '')
+      if (label.length > 40) continue
+      const short = !label || (label.split(' ').length <= 4 && !/[:：]/.test(label))
+      const rel = /\bnext\b/i.test(a.getAttribute('rel') || '') && short
+      const said = rows.length
+        ? PAGER_WORD.test(label) || NEXT_OF_LIST.test(label) || SEE_ALL.test(label) || (PAGE_NUMBER.test(label) && inPageNumbers(a))
+        : SEE_ALL_COUNTED.test(label)
+      if (!rel && !said) continue
+      let url
+      try {
+        url = new URL(a.href)
+      } catch {
+        continue
+      }
+      if (!/^https?:$/.test(url.protocol) || `${url.origin}${url.pathname}${url.search}` === here) continue
+      return { text: clip(label, 40), href: url.href }
+    }
+    return null
+  }
+
+  /** A control that shows more of a list in place ("Show all 14 reviews", "Load more", "View 3 more"). */
+  const SHOW_MORE = /\b(show|see|view|load|display) (all|more)\b|\bread all\b|\ball \d[\d,]*\b|\b\d[\d,]* more\b|^more\b|查看全部|查看更多|加载更多|显示全部|展开全部|更多(评论|评价|回复|回答)|もっと見る|すべて表示/i
+  /** A count of the list beside it: "Reviews (14)", "14 reviews", "all 14", "共 14 条". */
+  const LIST_COUNT = [/[(（]\s*(\d[\d,]*)\s*[)）]/, /\b(\d[\d,]*)\s+(reviews|comments|answers|replies|questions|posts|results|items|entries)\b/i, /\ball (\d[\d,]*)\b/i, /(\d[\d,]*)\s*条/]
+  /**
+   * Beside the rows (inside `scopeSel`, not in a row), what says the list has more than the page shows: a control
+   * that shows more in place and that `expand` did not click (`control`: its label), and a count in a heading or in
+   * that control larger than the rows drawn (`claim`: { text, n }). → { control?, claim? }, or null.
+   */
+  function moreNear(scopeSel, rowsSel, expandSels) {
+    const scope = qs(scopeSel)
+    if (!scope) return null
+    const { rows } = childRows(scope, rowsSel)
+    if (!rows.length) return null
+    const box = childBox(scope, rows)
+    const inRow = el => rows.some(row => containsDeep(row, el))
+    const covered = new Set()
+    for (const sel of expandSels || []) {
+      try {
+        for (const el of matchAll(sel)) covered.add(el)
+      } catch {
+        // a selector the page cannot match: nothing it covers
+      }
+    }
+    let control = null
+    for (const el of qsa('button, [role=button], summary, a', box)) {
+      if (inRow(el) || covered.has(el) || el.dataset.dlkExpanded || !isVisible(el) || isDisabled(el)) continue
+      const link = el.closest('a[href]')
+      if (link && !/^(#|javascript:|$)/i.test(link.getAttribute('href') || '')) continue
+      const label = clean(renderedText(el) || el.getAttribute('aria-label') || '')
+      if (!label || label.length > 40 || !SHOW_MORE.test(label) || HIDE_TEXT.test(label)) continue
+      control = el
+      break
+    }
+    const said = [...qsa('h1, h2, h3, h4, h5, h6, [role=heading], caption, legend, summary', box).filter(el => !inRow(el) && isVisible(el)), ...(control ? [control] : [])]
+    let claim = null
+    for (const el of said) {
+      const text = clean(renderedText(el) || el.textContent || '')
+      if (!text || text.length > 80) continue
+      for (const re of LIST_COUNT) {
+        const m = text.match(re)
+        const n = m ? Number(m[1].replace(/[,，]/g, '')) : 0
+        if (n > rows.length && (!claim || n > claim.n)) claim = { text: clip(text, 40), n }
+        if (m) break
+      }
+    }
+    if (!control && !claim) return null
+    return { ...(control ? { control: clip(clean(renderedText(control) || control.getAttribute('aria-label') || ''), 40) } : {}), ...(claim ? { claim } : {}) }
+  }
+
+  /** The first control `selectors` match (inside `within`) that a next expand pass would click: there was more to open. → its label, or null. */
+  function expandPending(selectors, rowsSel, within = null) {
+    const box = within ? qs(within) : null
+    if (within && !box) return null
+    const holders = rowHolders(rowsSel)
+    for (const sel of selectors || []) {
+      for (const el of matchAll(sel)) {
+        if (!isVisible(el) || isDisabled(el) || (box && !containsDeep(box, el))) continue
+        if (el.dataset.dlkExpanded && !clickLanded(el, holders)) continue
+        return expandLabel(el)
+      }
+    }
+    return null
+  }
+
   // ---------- evidence for a stop decision ----------
   // When the rules want to end a run, a host may ask an AI whether the list really ended. What it reads is the end
   // of the list and the controls that could bring more, written as an accessibility tree
@@ -2227,5 +2436,5 @@ export function installDlk() {
     lastRemedied = null
   }
 
-  window.__dlk = { DOC_ID, stopEvidence, stopRemedy, stopRemedyBrought, count: countAll, find, tree, shadowRootCount, pageState, stateChange, changeMark, markOnScreen, lists, controls, scrollers, overlays, probe, extract, extractTagged, contentMark, recordText, signature, markFirstClickable, scrollStep, dismiss, clickAll, takeExpandClicks, expandBusy, expandLeft, unclickedAmongRows, bodyText, cssPath, postProcess, toNumber, wall, claims, scrollCandidates, locate, act, press, unreadLinks, unreadParts, outline, outlineControls, clearOutline, pick, cancelPick }
+  window.__dlk = { DOC_ID, stopEvidence, stopRemedy, stopRemedyBrought, count: countAll, find, tree, shadowRootCount, pageState, stateChange, changeMark, markOnScreen, lists, controls, scrollers, overlays, probe, extract, extractTagged, contentMark, recordText, extractIn, rowTextIn, pagerNear, moreNear, expandPending, signature, markFirstClickable, scrollStep, dismiss, clickAll, takeExpandClicks, expandBusy, expandLeft, unclickedAmongRows, bodyText, cssPath, postProcess, toNumber, wall, claims, scrollCandidates, locate, act, press, unreadLinks, unreadParts, outline, outlineControls, clearOutline, pick, cancelPick }
 }

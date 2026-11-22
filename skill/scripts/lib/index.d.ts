@@ -420,6 +420,21 @@ export interface DetailSpec {
   delayMs?: number
   concurrency?: number
   maxAttempts?: number
+  /** Rounds of expand clicks per page (default 10; 30 with children; 1–200). */
+  expandPasses?: number
+  /** A list inside each detail page (reviews, comments, variants), read after setup / expand, inside root. */
+  children?: DetailChildrenSpec
+}
+
+export interface DetailChildrenSpec {
+  /** CSS of one child row, matched inside the first match of root. */
+  rows: string
+  /** Read relative to each child row (the list config's field grammar). */
+  fields: Record<string, FieldSpec>
+  /** Child rows with any of these empty are left out. */
+  require?: string[]
+  /** Keep the first N child rows per page. */
+  max?: number
 }
 
 export type DetailStatus = 'ok' | 'empty' | 'failed' | 'blocked'
@@ -436,6 +451,26 @@ export interface DetailRead {
   recordText?: string
   /** Where recordText comes from: the record (`root`) or the page's main content. */
   recordScope?: 'root' | 'main'
+  /** With `children`, on an ok page: the child rows read there. */
+  children?: Record<string, string>[]
+  /** How many child rows there were when `max` cut the list. */
+  childrenMatched?: number
+  /** The first child row with a blank field: its 1-based place and its text (cut to 300 chars). */
+  childText?: { index: number; text: string }
+  /** A link beside the child rows to more of them on another URL. */
+  childPager?: { text: string; href: string }
+  /** Beside the child rows: a control expand did not click, and a count larger than the rows read. */
+  childMore?: { control?: string; claim?: { text: string; n: number } }
+  /** The child rows came from several separate places on the page: how many, and the text of each one's first row. */
+  childPlaces?: { places: number; firsts: string[] }
+  /** Child rows that hold the next one and read the same (a container matched with its rows). */
+  childDupes?: number
+  /** Matches of children.rows the page does not draw (left out). */
+  childrenHidden?: number
+  /** The child read threw (CSS the page rejects): the page stays ok with its fields, without children. */
+  childError?: string
+  /** An expand control still there after the last pass: its label and the passes run. */
+  expandCapped?: { text: string; passes: number }
 }
 
 /** One checkpoint line (`<out>.detail.jsonl`). */
@@ -458,6 +493,9 @@ export interface DetailStreaks {
 }
 
 export const DETAIL_STATUS_COLUMN: 'detail_status'
+export const CHILDREN_COUNT_COLUMN: 'children_count'
+/** The child table's key columns, before the child fields. */
+export const CHILD_KEY_COLUMNS: ['parent_link', 'parent_row', 'child_index']
 export const DETAIL_STREAK_LIMIT: number
 /** Open one detail page and read the spec's fields there. Never throws: failures come back as 'failed'. */
 export function readDetailPage(page: SkillPage, url: string, spec: DetailSpec, lib: PageHelpers): Promise<DetailRead>
@@ -491,8 +529,14 @@ export function nextStreaks(streaks: DetailStreaks, result: Pick<DetailRead, 'st
 export function detailLink(value: unknown): string | null
 /** The output's status column: `detail_status`, or `detail_status_2`… when the list already has one. */
 export function detailStatusColumn(listColumns: string[]): string
-/** Problems with a detail spec against the list's columns; empty when it is fine. */
+/** The child count column: `children_count`, or `children_count_2`… when the list already has one. */
+export function childrenCountColumn(listColumns: string[]): string
+/** Problems with a detail spec against the list's columns (CSS syntax mistakes included); empty when it is fine. */
 export function checkDetailSpec(spec: unknown, listColumns: string[]): string[]
+/** Why `css` cannot be a selector (blank, unclosed bracket / parenthesis / quote, empty comma part, trailing combinator), or null. */
+export function cssSyntaxProblem(css: string): string | null
+/** Is the child table due for a rewrite during a run (every few seconds while small; past 5000 rows, after it grew by a tenth)? */
+export function childCsvDue(input: { rows: number; writtenRows: number; sinceMs: number; everyMs?: number }): boolean
 export function detailSpecKey(spec: DetailSpec): string
 export function needsDetailFetch(
   entry: DetailEntry | undefined,
@@ -505,7 +549,16 @@ export function mergeDetailRows(
   linkColumn: string,
   detailNames: string[],
   entries: Map<string, DetailEntry>,
-  statusColumn?: string
+  statusColumn?: string,
+  /** With children: the count column ("0" on an ok page without children, blank on a page not read ok). */
+  countColumn?: string | null
+): Record<string, string>[]
+/** The child table: per list row whose page read ok, one row per child (parent_link, parent_row, child_index + child fields). */
+export function mergeChildRows(
+  listRows: Record<string, string>[],
+  linkColumn: string,
+  childNames: string[],
+  entries: Map<string, DetailEntry>
 ): Record<string, string>[]
 /** Counts by status per row (as the output's status column), fill rates on ok pages, warnings. */
 export function summarizeDetail(input: {
@@ -519,6 +572,8 @@ export function summarizeDetail(input: {
   canary?: Array<{ url: string; status: DetailStatus; error?: string; afterEmpty: number }>
   extraWarnings?: string[]
   extra?: Record<string, unknown>
+  /** With a child list: its selector, child columns, child CSV path, count column and whether the spec has root. */
+  children?: { selector: string; names: string[]; out: string; countColumn: string; rooted?: boolean } | null
 }): Record<string, unknown>
 
 // ---------- CSV ----------

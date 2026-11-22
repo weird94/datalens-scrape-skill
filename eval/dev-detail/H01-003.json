@@ -1,0 +1,18 @@
+{
+  "link": "link",
+  "root": "article.product-detail",
+  "fields": { "name": "h1.name", "brand": ".specs .brand, .maker a", "sku": ".sku" },
+  "require": ["name"],
+  "expand": [".show-reviews"],
+  "children": {
+    "rows": ".reviews li.review",
+    "fields": {
+      "reviewer": ".author",
+      "rating": { "css": ".rating", "attr": "aria-label", "regex": "Rated (\\d) out of 5" },
+      "date": { "css": "time.date", "attr": "datetime" },
+      "review": ".text"
+    }
+  },
+  "delayMs": 0,
+  "concurrency": 3
+}

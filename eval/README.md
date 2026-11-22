@@ -10,11 +10,13 @@ npm run regress        # 另开终端：重跑存下来的配置并打分（盲�
 ```
 
 - **演练场**（`playground/`）：80 个 case，每个是一个本地 mock 页面（`fixtures/<name>/route.ts`）加场景说明（`case.json`）和标准答案（`expected.json`），覆盖晚渲染、虚拟列表、死分页控件、嵌套回复、shadow DOM、加密字体、拦截页等。分类见 `playground/INDEX.md` 和 `playground/PATTERNS.md`。`next/server` 用 `playground/fixtures/_lib/next-shim.ts` 顶替。
-- **回归**（`regress.sh` + `grade.mjs`）：只测引擎。重跑盲测 agent 当初写的配置（`blind/`，按标准答案打分）和开发用配置（`dev/`，对行数）。
+- **回归**（`regress.sh` + `grade.mjs`）：只测引擎。重跑盲测 agent 当初写的配置（`blind/`，按标准答案打分）和开发用配置（`dev/`，对行数），再把 `dev-detail/` 的详情配置跑在对应的开发列表上（`grade-detail.mjs`，对状态和子列表条数）。
 - **盲测**（`BLIND.md`）：测 SKILL.md 本身。每次派一个独立 agent，只给短链 `/t/<token>`（`aliases.json`），看不到 case 名；改文档要跑改前 / 改后对比，至少 Sonnet 和 Haiku 各 2 次。
 - **真站**（`real-sites/`）：11-09 那轮的配置、核查脚本和 227 站注册表。
 
 2026-11-21 基线（边采边写、详情页 detail.mjs 上线后）：skill 单测 113/113；fixture 单测 39 个文件 / 505 条；回归盲测 16/16、开发 18/18（`SCRAPE_CHUNK_STEPS=1` 分段跑结果相同）。详情页盲测：H01-001、H01-002 上 Sonnet、Haiku 各 2 次，8/8 全对。
+
+2026-11-22 基线（列表续采 `--resume` + 详情页子列表 `children` 合并后）：skill 单测 161/161；fixture 单测 39 个文件 / 512 条；回归盲测 17/17、开发 19/19、开发详情 1/1（`eval/dev-detail/` 的 detail 配置跑在同 case 的开发列表 CSV 上，`grade-detail.mjs` 按 expected.json 核对状态、每件商品的子行数、子表总行数、无警告），`SCRAPE_CHUNK_STEPS=1` 分段跑结果相同。子列表盲测：H01-003 上 Sonnet、Haiku 各 2 次 4/4 全对（56/56，条数逐件对、零混入），H01-002 回归 Sonnet、Haiku 各 1 次 2/2 全对。续采只靠 `collect-resume.test.mjs`（npm test 里），回归里没有断点续采这一步。
 
 ## 真站测试记录
 
@@ -62,6 +64,24 @@ H3 前加的兜底：去重剥跟踪参数、撞上限时报 `NOT THE END`、对
 | Udemy、同花顺、雪球（无头时被拦） | 都能正常打开（只验证了能打开，没有采） |
 
 拦截页识别：5 个会被拦的站用无头浏览器打开，5/5 判为 `blocked`；7 个正常站（HN、豆瓣、百度、Nature、维基、YouTube、Google Play）0 误报。
+
+### 详情页、续采、子列表（2026-11-21 / 11-22）
+
+无头浏览器（11-21，每站一个 Opus 采集 agent + 一个独立核查 agent）：
+
+| 站点 | 请求 | 结果 |
+|---|---|---|
+| 豆瓣 Top250 第 1 页 | 每部片的导演、编剧、主演、类型、国家、片长、上映日期、IMDb | PASS，抽查 14 行全对（同一部片有多个片长时只取了第一个，报告没提） |
+| 维基百科最大公司 | 前 20 家的成立年份、总部、关键人物、CEO、网站 | PASS，抽查 12 行全对；CEO 15/20，其余 5 家信息框里本来没有 |
+| We Work Remotely | 最近 20 个职位的完整描述 | 详情页全部 Cloudflare 403，连续 3 页后按设计停在 `blocked`，报告如实 |
+
+用户自己的 Chrome（11-22，自己写配置）：
+
+| 验证 | 结果 |
+|---|---|
+| WWR 详情页 `detail.mjs --browser chrome` | 20/20 读到；40 秒时 Ctrl-C 停在 `interrupted`，同一命令续跑补齐（被打断那页记一次 failed，续跑重试成功） |
+| HN 最新帖 `collect.mjs --browser chrome`（点下一页、分段 6 秒一段） | 撞 6 页上限 → `--resume --max-pages 14`，中途 SIGKILL → 再 `--resume`；420 行，排名 1–420 连续、零重复，三段都是 `continued` |
+| HN 4 个帖子的评论 `children` | 每帖条数等于页面显示的评论数（7/10/9/24）；Chrome 与无头浏览器的子表逐字节一致；评论区在 `.fatitem` 之外，`root` 取能同时包住两者的 `#bigbox` |
 
 ### 功能验证（自己写配置，不是盲测）
 

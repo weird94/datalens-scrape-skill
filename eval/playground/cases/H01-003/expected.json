@@ -1,0 +1,47 @@
+{
+  "expectedRows": 24,
+  "expectedStop": "end-of-list",
+  "rowMatch": {
+    "selector": "ul.products > li.item",
+    "textPrefix": "Product "
+  },
+  "oracle": {
+    "strategy": "next-link",
+    "clickSelector": "a.next"
+  },
+  "naive": {
+    "strategy": "static",
+    "expectedRows": 8
+  },
+  "trapVerifiedBy": "naive",
+  "detail": {
+    "linkSelector": "a.title",
+    "expectedStatus": { "ok": 20, "empty": 2, "failed": 0, "blocked": 0, "pending": 0, "no-link": 2 },
+    "noLink": [7, 17],
+    "deadLinks": [9, 18],
+    "secondLayout": [4, 8, 12, 16, 20, 24],
+    "root": "article.product-detail",
+    "fields": {
+      "name": "h1.name",
+      "brand": ".specs .brand, .maker a",
+      "sku": ".sku"
+    },
+    "expand": [".show-reviews"],
+    "children": {
+      "rows": ".reviews li.review",
+      "fields": {
+        "reviewer": ".author",
+        "rating": { "css": ".rating", "attr": "aria-label", "regex": "Rated (\\d) out of 5" },
+        "date": { "css": "time.date", "attr": "datetime" },
+        "review": ".text"
+      },
+      "countsById": { "1": 0, "2": 5, "3": 1, "4": 4, "5": 0, "6": 6, "8": 3, "10": 5, "11": 1, "12": 4, "13": 0, "14": 6, "15": 2, "16": 3, "19": 1, "20": 4, "21": 0, "22": 6, "23": 2, "24": 3 },
+      "totalRows": 56,
+      "pagesWithNone": [1, 5, 13, 21],
+      "inlinePerPage": 2,
+      "behindShowAll": [2, 4, 6, 8, 10, 12, 14, 16, 20, 22, 24],
+      "naiveNoExpandTotal": 29,
+      "relatedTopReviewsBeforeRecord": "the related cards (products id+1, id+2) before the record carry one section.reviews li.review each when that product has reviews"
+    }
+  }
+}

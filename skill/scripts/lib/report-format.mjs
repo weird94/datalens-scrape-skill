@@ -199,8 +199,10 @@ const pct = (n, of) => (of ? Math.round((100 * n) / of) : 0)
  * ok, and warnings the agent should act on or report.
  *   rowUrls — each list row's detail URL (null: no usable link); entries: url → latest checkpoint entry
  *   maxRows — the --max-rows limit when one was given; extraWarnings — warnings the run itself raised
+ *   children — with a child list: { selector (children.rows), names (child columns), out (child CSV), countColumn,
+ *              rooted (the spec has "root") }
  */
-export function summarizeDetail({ rowUrls, entries, detailNames, stopReason, note = '', maxRows = 0, canary = [], extraWarnings = [], extra = {} }) {
+export function summarizeDetail({ rowUrls, entries, detailNames, stopReason, note = '', maxRows = 0, canary = [], extraWarnings = [], extra = {}, children = null }) {
   const links = [...new Set(rowUrls.filter(Boolean))]
   const statusOf = url => (url ? entries.get(url)?.status ?? 'pending' : 'no-link')
   const status = { ok: 0, empty: 0, failed: 0, blocked: 0, pending: 0, 'no-link': 0 }
@@ -220,10 +222,7 @@ export function summarizeDetail({ rowUrls, entries, detailNames, stopReason, not
       // The record's text on a page where the column is empty (kept in the checkpoint): the value may be in it, in another place.
       // A cut-off excerpt (ends in "…") shows only the start of the record: not finding the value there proves nothing.
       const quoted = emptyOn.find(url => entries.get(url).recordText)
-      const excerpt = quoted ? entries.get(quoted) : null
-      const cut = Boolean(excerpt?.recordText.endsWith('…'))
-      const where = excerpt?.recordScope === 'root' ? 'the record' : excerpt?.recordScope === 'main' ? 'the page\'s main content (no "root" set)' : 'the page'
-      const reads = excerpt ? `On ${quoted} ${where} ${cut ? 'starts' : 'reads'}: ${JSON.stringify(excerpt.recordText)}${cut ? ' (cut off)' : ''}.` : ''
+      const { reads, cut } = quoteRecord(quoted, entries.get(quoted))
       if (fill[name] === 0) {
         warnings.push(
           `column "${name}" is empty on every ok page: wrong selector, or it only shows after a click (expand / setup).${reads ? ` ${reads}` : ''} Check with inspect --probe on ${sample(okUrls, 2).join(' , ')}.`
@@ -240,6 +239,15 @@ export function summarizeDetail({ rowUrls, entries, detailNames, stopReason, not
       }
     }
   }
+  // An expand control still there after the last pass: what it would open (often more of a list) was not read.
+  const cappedExpand = okUrls.filter(url => entries.get(url).expandCapped)
+  if (cappedExpand.length) {
+    const { text, passes } = entries.get(cappedExpand[0]).expandCapped
+    warnings.push(
+      `on ${cappedExpand.length} of ${okUrls.length} ok pages a control in "expand" was still there after ${passes} rounds of clicks (e.g. ${JSON.stringify(text)} on ${cappedExpand[0]}): what it would still open was not read. If those pages need it, raise "expandPasses" (now ${passes}, up to 200) and rerun (every page is read again); otherwise report that these items have more than was read.`
+    )
+  }
+  const childSummary = children ? summarizeChildren({ children, rowUrls, okUrls, entries, warnings, statusOf }) : null
   const softEmpty = of('empty').filter(url => !entries.get(url).notFound)
   const deadLinks = of('empty').filter(url => entries.get(url).notFound)
   const visited = okUrls.length + softEmpty.length
@@ -269,6 +277,142 @@ export function summarizeDetail({ rowUrls, entries, detailNames, stopReason, not
     warnings: warnings.length ? warnings : undefined,
     deadLinks: deadLinks.length ? { count: deadLinks.length, sample: sample(deadLinks) } : undefined,
     canary: canary.length ? canary : undefined,
+    ...(cappedExpand.length ? { expandCapped: { count: cappedExpand.length, sample: sample(cappedExpand) } } : {}),
+    ...(childSummary ? { children: childSummary } : {}),
     ...extra,
+  }
+}
+
+/** How a warning quotes the record text kept for `url` (its checkpoint `entry`). → { reads: 'On … reads: "…".' or '', cut } */
+function quoteRecord(url, entry) {
+  if (!entry?.recordText) return { reads: '', cut: false }
+  const cut = entry.recordText.endsWith('…')
+  const where = entry.recordScope === 'root' ? 'the record' : entry.recordScope === 'main' ? 'the page\'s main content (no "root" set)' : 'the page'
+  return { reads: `On ${url} ${where} ${cut ? 'starts' : 'reads'}: ${JSON.stringify(entry.recordText)}${cut ? ' (cut off)' : ''}.`, cut }
+}
+
+/**
+ * The child list's part of the summary: child rows in the child CSV (per main row, like the count column), ok
+ * pages without any, the fill rate of each child column (each page's children once), pages where `max` cut the
+ * list, pages whose children could not be read; warnings (pushed to `warnings`) for what a page showed about the
+ * child list that the config missed: a child read that threw, a selector that matched nothing, a child column filled
+ * far less than the others, child rows that read nothing, rows from several places on the page, a container matched
+ * with its rows, a control beside the rows expand did not click, a count beside them larger than the rows read,
+ * matches the page does not show, and a link to more of them on another URL.
+ */
+function summarizeChildren({ children, rowUrls, okUrls, entries, warnings, statusOf }) {
+  const { selector, names, out, countColumn, rooted = false } = children
+  const sample = (urls, n = 3) => urls.slice(0, n)
+  const entryOf = url => entries.get(url)
+  const countOf = url => entryOf(url).children?.length ?? 0
+  const rowsWord = n => `${n} child row${n === 1 ? '' : 's'}`
+  const rows = rowUrls.filter(url => statusOf(url) === 'ok').reduce((sum, url) => sum + countOf(url), 0)
+  const errored = okUrls.filter(url => entryOf(url).childError)
+  // Pages whose children were read (a child read that threw says nothing about the list).
+  const read = okUrls.filter(url => !entryOf(url).childError)
+  const none = read.filter(url => countOf(url) === 0)
+  const kids = read.flatMap(url => (entryOf(url).children ?? []).map((child, i) => ({ url, i, child })))
+  const filled = name => kids.filter(k => String(k.child[name] ?? '') !== '')
+  const fill = Object.fromEntries(names.map(name => [name, filled(name).length]))
+  const capped = read.filter(url => entryOf(url).childrenMatched)
+  const on = (pages, what) => `on ${pages.length} of ${okUrls.length} ok pages ${what}`
+
+  if (errored.length) {
+    warnings.push(
+      `children could not be read on ${errored.length} of ${okUrls.length} ok pages: ${entryOf(errored[0]).childError} (e.g. ${errored[0]}). That is the "children" config, not the site: fix "children.rows" (${JSON.stringify(selector)}) or a child field's CSS and rerun (the pages are read again after a config change). Their own fields read fine.`
+    )
+  }
+  if (read.length && !kids.length) {
+    const quoted = none.find(url => entryOf(url).recordText)
+    const { reads } = quoteRecord(quoted, entryOf(quoted))
+    warnings.push(
+      `"children.rows" (${JSON.stringify(selector)}) matched no child row on any of the ${read.length} ok pages: wrong selector, the list is outside "root", or it only shows after a click (expand / setup) or renders later than the record (waitFor).${reads ? ` ${reads}` : ''} Check with inspect --probe on ${sample(read, 2).join(' , ')}.`
+    )
+  } else if (kids.length) {
+    const best = Math.max(...names.map(name => fill[name]))
+    const bestName = names.find(name => fill[name] === best)
+    for (const name of names) {
+      const empty = kids.filter(k => String(k.child[name] ?? '') === '')
+      // A child row's text kept in the checkpoint (the first child row with a blank field on a page).
+      const quoted = empty.find(k => Number(entryOf(k.url).childText?.index) === k.i + 1)
+      const text = quoted ? entryOf(quoted.url).childText.text : ''
+      const reads = quoted ? `On ${quoted.url} child row ${quoted.i + 1} ${text.endsWith('…') ? 'starts' : 'reads'}: ${JSON.stringify(text)}.` : ''
+      if (fill[name] === 0) {
+        warnings.push(`child column "${name}" is empty in every child row: wrong selector (it is read inside each child row), or it only shows after a click.${reads ? ` ${reads}` : ''}`)
+      } else if (kids.length >= 3 && best - fill[name] >= Math.max(1, kids.length * 0.15)) {
+        warnings.push(
+          `child column "${name}" is filled in ${fill[name]}/${kids.length} child rows while "${bestName}" is in ${best}: either those rows lack it, or show it in another place.${reads ? ` ${reads}` : ''} Look for the value in such a row (--html "<children.rows>"): if it is there, widen the selector (a comma list); if not, keep it and report the fill rate.`
+        )
+      }
+    }
+    // Rows that read nothing at all: the selector matches more than the rows (headings, wrappers, every element).
+    const blank = kids.filter(k => names.every(name => String(k.child[name] ?? '') === ''))
+    if (blank.length >= 2 && blank.length >= kids.length * 0.2) {
+      warnings.push(
+        `${blank.length} of ${kids.length} child rows read nothing in any child column (e.g. child row ${blank[0].i + 1} on ${blank[0].url}): "children.rows" (${JSON.stringify(selector)}) matches more than the rows. Narrow it to one whole child row (check with --html "<children.rows>" on a page).`
+      )
+    }
+  }
+  const spread = read.filter(url => entryOf(url).childPlaces)
+  if (spread.length) {
+    const { places, firsts } = entryOf(spread[0]).childPlaces
+    warnings.push(
+      `${on(spread, `the child rows come from ${places} separate places on the page`)} (e.g. on ${spread[0]}: ${firsts.map(t => JSON.stringify(t)).join(', ')}): ${
+        rooted
+          ? 'narrow "children.rows" (or "root") to the one list the user wants.'
+          : 'with no "root", related items around the record bring their own rows in; set "root" to the record\'s container (the child rows are matched inside it).'
+      }`
+    )
+  }
+  const doubled = read.filter(url => entryOf(url).childDupes)
+  if (doubled.length) {
+    warnings.push(
+      `${on(doubled, `"children.rows" matches a container together with the child rows in it`)}: the container reads the same as its first row, so that row is there twice (e.g. ${doubled[0]}). Narrow "children.rows" (${JSON.stringify(selector)}) to the row itself.`
+    )
+  }
+  const unclicked = read.filter(url => entryOf(url).childMore?.control)
+  if (unclicked.length) {
+    const url = unclicked[0]
+    warnings.push(
+      `${on(unclicked, 'a control beside the child rows was not clicked')} (e.g. ${JSON.stringify(entryOf(url).childMore.control)} on ${url}, ${rowsWord(countOf(url))} read): it is not in "expand". If it shows more of the list, add its selector to "expand" and rerun (the pages are read again).`
+    )
+  }
+  const counted = read.filter(url => {
+    const e = entryOf(url)
+    return e.childMore?.claim && !e.childMore.control && !e.childPager && !e.expandCapped && !e.childrenMatched
+  })
+  if (counted.length) {
+    const url = counted[0]
+    warnings.push(
+      `${on(counted, 'a heading beside the child rows counts more than were read')} (e.g. ${JSON.stringify(entryOf(url).childMore.claim.text)} on ${url}, ${countOf(url)} read): the rest may be behind a click (expand), on another URL, or load on scroll. Look at one of them before reporting the list as complete.`
+    )
+  }
+  const hidden = none.filter(url => entryOf(url).childrenHidden)
+  if (hidden.length) {
+    warnings.push(
+      `${on(hidden, `no child row was read, but "children.rows" matches ${entryOf(hidden[0]).childrenHidden} elements the page does not show`)} (e.g. ${hidden[0]}): a template, or rows in a closed tab or section. If they are real rows, open them first ("setup" for a tab, "expand" for a section).`
+    )
+  }
+  const paged = read.filter(url => entryOf(url).childPager)
+  if (paged.length) {
+    const { text, href } = entryOf(paged[0]).childPager
+    warnings.push(
+      `${on(paged, 'the child list has a link to more of it on another URL')} (e.g. ${JSON.stringify(text)} → ${href} on ${paged[0]}): only the child rows each detail page itself shows were read. If the user wants all of them, collect the rest separately (references/detail-pages.md, "Child lists").`
+    )
+  }
+  return {
+    out,
+    countColumn,
+    rows,
+    okPages: okUrls.length,
+    pagesWithNone: {
+      count: none.length,
+      sample: sample(none),
+      // Some pages have children and these have none: check one; a list that rendered late can be read again.
+      ...(none.length && kids.length ? { check: 'open one: if it shows child rows, they rendered late; rerun with --retry-empty to read these pages again' } : {}),
+    },
+    fillRate: Object.fromEntries(names.map(name => [name, `${fill[name]}/${kids.length} (${pct(fill[name], kids.length)}%)`])),
+    ...(capped.length ? { capped: { count: capped.length, sample: sample(capped) } } : {}),
+    ...(errored.length ? { childErrors: { count: errored.length, sample: sample(errored) } } : {}),
   }
 }

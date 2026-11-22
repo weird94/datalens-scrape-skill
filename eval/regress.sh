@@ -2,6 +2,7 @@
 # Regression: rerun every saved playground config against the current scripts and grade them.
 #   blind/  configs written by blind-test agents (graded against the playground answer keys)
 #   dev/    configs used while developing the scripts (row count vs expected.json)
+#   dev-detail/  detail.mjs configs, run over the dev list CSV of the same case (status, child counts vs expected.json)
 # Needs the fixture server: npm run serve (PORT=3031 tsx eval/serve.mts).
 # PLAYWRIGHT_FROM: a folder whose node_modules has playwright (default: this repo's root).
 # PORT: where the fixture server listens (default 3031); the saved configs are rewritten to it.
@@ -11,7 +12,7 @@ REPO=${HERE:h}
 SKILL=$REPO/skill
 OUT=${1:-$(mktemp -d)}
 OUT=${OUT:A}
-mkdir -p $OUT/blind $OUT/dev
+mkdir -p $OUT/blind $OUT/dev $OUT/dev-detail
 export PLAYWRIGHT_FROM=${PLAYWRIGHT_FROM:-$REPO}
 PORT=${PORT:-3031}
 CFG=$(mktemp -d)
@@ -33,4 +34,11 @@ for f in $CFG/dev/*.json; do
   flags=$(node -e "const s=require('$OUT/dev/$id.json');const on=['expand','expandNoEffect','expandMissed','expandPastStart','expandReplaced'].filter(k=>s[k]);console.log(on.length?' WARNED: '+on.join(','):'')")
   echo "$id $got/$exp $(node -e "console.log(require('$OUT/dev/$id.json').stopReason)")$flags"
 done
+echo "--- dev detail"
+for f in $HERE/dev-detail/*.json; do
+  id=$(basename $f .json)
+  node scripts/detail.mjs $OUT/dev/$id.csv $f --out $OUT/dev-detail/$id.csv > /dev/null 2>&1 &
+done
+wait
+node $HERE/grade-detail.mjs $OUT/dev-detail
 echo "outputs: $OUT"

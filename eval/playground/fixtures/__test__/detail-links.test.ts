@@ -68,6 +68,8 @@ describe('playground · detail-links（H1）· 列表页', () => {
     expect(linkOf(rowsOf(plain.html)[0])).toBe(`${PATH}/1`)
     const extended = await fetchList('?related=1&warranty=1')
     expect(linkOf(rowsOf(extended.html)[0])).toBe(`${PATH}/1?related=1&warranty=1`)
+    const withReviews = await fetchList('?related=1&reviews=1&reviewPager=1')
+    expect(linkOf(rowsOf(withReviews.html)[0])).toBe(`${PATH}/1?related=1&reviews=1&reviewPager=1`)
   })
 
   it('越界或非数字的页码 404；生产环境 404', async () => {
@@ -186,13 +188,101 @@ describe('playground · detail-links（H1）· 详情页', () => {
     }
   })
 
-  it('不带 related / warranty 时详情页与原来一样（H01-001 不受影响）', async () => {
+  it('不带 related / warranty / reviews 时详情页与原来一样（H01-001 不受影响）', async () => {
     for (const id of ['3', '4']) {
       const { html } = await fetchDetail(id)
-      expect(html).not.toMatch(/related|warranty|product-card/)
+      expect(html).not.toMatch(/related|warranty|product-card|review/)
       expect(html).toContain("document.querySelector('.read-more')")
       expect(html).toContain("document.querySelector('.summary').replaceWith(full)")
     }
+  })
+
+  it('reviews=1：主记录里有评价区，条数因商品而异（含 0 条）；前 2 条直接显示，其余在「Show all N reviews」后面', async () => {
+    const reviewsOf = (html: string): string[] => html.match(/<li class="review">[\s\S]*?<\/li>/g) ?? []
+    // 6 条：2 条在页面上，4 条在按钮后面（脚本里的 MORE_REVIEWS）。
+    const six = await fetchDetail('6', '?reviews=1')
+    const record = renderedLater(six.html)
+    expect(record).toContain('<section class="reviews"><h2>Reviews (6)</h2><ul class="review-list">')
+    expect(reviewsOf(record)).toHaveLength(2)
+    expect(record).toContain('<button class="show-reviews" type="button">Show all 6 reviews</button>')
+    const hidden = JSON.parse(six.html.match(/const MORE_REVIEWS = ("(?:[^"\\]|\\.)*");/)?.[1] ?? '""') as string
+    expect(reviewsOf(hidden)).toHaveLength(4)
+    expect(six.html).toContain("document.querySelector('.review-list').insertAdjacentHTML('beforeend', MORE_REVIEWS)")
+    expect(six.html).toContain('showReviews.remove()')
+    // 每条：作者、星级（分数只在 aria-label）、日期（datetime）、正文。
+    expect(reviewsOf(record)[0]).toMatch(/^<li class="review"><span class="author">[^<]+<\/span> <span class="rating" aria-label="Rated [1-5] out of 5">[★☆]{5}<\/span> <time class="date" datetime="2026-\d\d-\d\d">[^<]+<\/time><p class="text">Review 1 of product 6: [^<]+<\/p><\/li>$/)
+    // 1 条：没有按钮；0 条：只有一句说明。
+    const one = renderedLater((await fetchDetail('3', '?reviews=1')).html)
+    expect(reviewsOf(one)).toHaveLength(1)
+    expect(one).not.toContain('show-reviews')
+    const none = renderedLater((await fetchDetail('5', '?reviews=1')).html)
+    expect(none).toContain('<section class="reviews"><h2>Reviews (0)</h2><p class="no-reviews">No reviews yet.</p></section>')
+    expect(reviewsOf(none)).toHaveLength(0)
+    // 评价区在主记录 article 里，两套模板都是。
+    for (const id of ['6', '8']) {
+      const later = renderedLater((await fetchDetail(id, '?reviews=1')).html)
+      expect(later.indexOf('<section class="reviews">')).toBeGreaterThan(later.indexOf('<article'))
+      expect(later.indexOf('<section class="reviews">')).toBeLessThan(later.indexOf('</article>'))
+    }
+  })
+
+  it('reviews=1 + related=1：相关卡片里也有同 class 的 li.review（Top review），主记录的按钮和列表限定在 article 里', async () => {
+    const { html } = await fetchDetail('2', '?reviews=1&related=1')
+    const later = renderedLater(html)
+    const aside = later.slice(0, later.indexOf('<article'))
+    // 相关商品 3（1 条）和 4（4 条）各带一条 Top review。
+    expect(aside.match(/<li class="review">/g)).toHaveLength(2)
+    expect(aside).toContain('Top review: Review 1 of product 3:')
+    // 卡片里的也在 section.reviews 里：只靠 ".reviews li.review" 分不开，要靠主记录（root）。
+    expect(aside).toContain('<section class="reviews"><ul class="review-list"><li class="review">')
+    expect(later.slice(later.indexOf('<article')).match(/<li class="review">/g)).toHaveLength(2)
+    expect(html).toContain("document.querySelector('article.product-detail .show-reviews')")
+    expect(html).toContain("document.querySelector('article.product-detail .review-list')")
+  })
+
+  it('reviewPager=1：多出来的评价在另一个 URL（a.reviews-next → reviewPage=2），第 2 页只列其余的', async () => {
+    const first = renderedLater((await fetchDetail('6', '?reviews=1&reviewPager=1')).html)
+    expect(first.match(/<li class="review">/g)).toHaveLength(2)
+    expect(first).not.toContain('show-reviews')
+    expect(first).toContain(`<a class="reviews-next" href="${PATH}/6?reviews=1&amp;reviewPager=1&amp;reviewPage=2">Next reviews ›</a>`)
+    const second = await fetchDetail('6', '?reviews=1&reviewPager=1&reviewPage=2')
+    const later = renderedLater(second.html)
+    expect(later.match(/<li class="review">/g)).toHaveLength(4)
+    expect(later).toContain('Review 3 of product 6:')
+    expect(later).not.toContain('reviews-next')
+    expect(second.html).not.toContain('MORE_REVIEWS')
+  })
+
+  it('reviewStep=N：其余评价在「Load more reviews」后面，每点一次插 N 条，插完按钮才消失', async () => {
+    const { html } = await fetchDetail('6', '?reviews=1&reviewStep=1')
+    const record = renderedLater(html)
+    expect(record.match(/<li class="review">/g)).toHaveLength(2)
+    expect(record).toContain('<button class="load-more-reviews" type="button">Load more reviews</button>')
+    expect(record).not.toContain('show-reviews')
+    const items = JSON.parse(html.match(/const MORE_REVIEW_ITEMS = (\[[\s\S]*?\]);\n/)?.[1] ?? '[]') as string[]
+    expect(items).toHaveLength(4)
+    expect(items[0]).toContain('Review 3 of product 6:')
+    expect(html).toContain('MORE_REVIEW_ITEMS.splice(0, 1)')
+    expect(html).toContain('if (!MORE_REVIEW_ITEMS.length) loadMore.remove();')
+    // 不带 reviewStep 时还是一次全出来的「Show all N reviews」。
+    expect(renderedLater((await fetchDetail('6', '?reviews=1')).html)).toContain('Show all 6 reviews')
+  })
+
+  it('reviewsLateMs=N：主记录先出来，评价区只有标题和「Loading reviews…」，N 毫秒后列表和按钮才插进去', async () => {
+    const { html } = await fetchDetail('6', '?reviews=1&reviewsLateMs=2500')
+    const record = renderedLater(html)
+    expect(record).toContain('<section class="reviews"><h2>Reviews (6)</h2><div class="reviews-body"><p class="loading-reviews">Loading reviews…</p></div></section>')
+    expect(record).not.toContain('<li class="review">')
+    expect(html).toContain("document.querySelector('.reviews-body').innerHTML = ")
+    expect(html).toContain('}, 2500);')
+    const late = JSON.parse(html.match(/\.reviews-body'\)\.innerHTML = ("(?:[^"\\]|\\.)*");/)?.[1] ?? '""') as string
+    expect(late.match(/<li class="review">/g)).toHaveLength(2)
+    expect(late).toContain('Show all 6 reviews')
+    // 按钮的脚本在列表插进去之后才挂上。
+    expect(html.indexOf("querySelector('.show-reviews')")).toBeGreaterThan(html.indexOf('.reviews-body'))
+    // 没有评价的商品：一直是 0 条的说明，没有晚到的列表。
+    const none = await fetchDetail('5', '?reviews=1&reviewsLateMs=2500')
+    expect(none.html).not.toContain('reviews-body')
   })
 
   it('badge=1：每个详情页都挂一个 fixed 的 reCAPTCHA 徽标，内容照常晚渲染', async () => {
@@ -277,5 +367,60 @@ describe('H01-002 case 目录与路由输出同步', () => {
     const ok = linked.length - dead.length
     expect(expected.detail.expectedStatus).toMatchObject({ ok, empty: dead.length, 'no-link': expected.detail.noLink.length })
     expect(expected.detail.warrantyFill).toBe(`${ok - noWarranty.length}/${ok}`)
+  })
+})
+
+describe('H01-003 case 目录与路由输出同步', () => {
+  const caseDir = new URL('../../cases/H01-003/', import.meta.url)
+  const caseFile = JSON.parse(readFileSync(fileURLToPath(new URL('case.json', caseDir)), 'utf8')) as { url: string; message: string }
+  const expected = JSON.parse(readFileSync(fileURLToPath(new URL('expected.json', caseDir)), 'utf8')) as {
+    expectedRows: number
+    detail: {
+      noLink: number[]
+      deadLinks: number[]
+      expectedStatus: Record<string, number>
+      children: { countsById: Record<string, number>; totalRows: number; pagesWithNone: number[]; inlinePerPage: number; behindShowAll: number[]; naiveNoExpandTotal: number }
+    }
+  }
+
+  it('行数与路由一致，详情链接带上 related / reviews；用户要的是每件商品的评价', async () => {
+    const rows = await crawl(caseFile.url.slice(PATH.length))
+    expect(rows).toHaveLength(expected.expectedRows)
+    expect(linkOf(rows[0])).toBe(`${PATH}/1?related=1&reviews=1`)
+    expect(caseFile.message).toMatch(/reviews/i)
+  })
+
+  it('子列表的答案：每件商品主记录里的评价条数（页面上的 + 按钮后面的）、合计、0 条的商品、不展开时的合计', async () => {
+    const rows = await crawl(caseFile.url.slice(PATH.length))
+    const linked = rows.filter((row) => linkOf(row) !== null)
+    const counts: Record<string, number> = {}
+    const dead: number[] = []
+    const behind: number[] = []
+    let inline = 0
+    for (const row of linked) {
+      const href = linkOf(row) as string
+      const id = href.slice(PATH.length + 1).split('?')[0]
+      const { status, html } = await fetchDetail(id, `${href.slice(href.indexOf('?'))}&lateMs=0`)
+      if (status === 404) {
+        dead.push(Number(id))
+        continue
+      }
+      const later = renderedLater(html)
+      const record = later.slice(later.indexOf('<article'))
+      const shown = (record.match(/<li class="review">/g) ?? []).length
+      const hidden = JSON.parse(html.match(/const MORE_REVIEWS = ("(?:[^"\\]|\\.)*");/)?.[1] ?? '""') as string
+      const more = (hidden.match(/<li class="review">/g) ?? []).length
+      if (more) behind.push(Number(id))
+      expect(shown).toBe(Math.min(shown + more, expected.detail.children.inlinePerPage))
+      inline += shown
+      counts[id] = shown + more
+    }
+    expect(dead).toEqual(expected.detail.deadLinks)
+    expect(counts).toEqual(expected.detail.children.countsById)
+    expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(expected.detail.children.totalRows)
+    expect(Object.entries(counts).filter(([, n]) => n === 0).map(([id]) => Number(id))).toEqual(expected.detail.children.pagesWithNone)
+    expect(behind).toEqual(expected.detail.children.behindShowAll)
+    expect(inline).toBe(expected.detail.children.naiveNoExpandTotal)
+    expect(expected.detail.expectedStatus).toMatchObject({ ok: linked.length - dead.length, empty: dead.length, 'no-link': expected.detail.noLink.length })
   })
 })

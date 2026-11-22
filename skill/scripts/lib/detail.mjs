@@ -12,12 +12,28 @@ import { gotoAndSettle, runSetup, settle } from './page-helpers.mjs'
 export const DETAIL_STREAK_LIMIT = 3
 /** The column that says what happened to each row's detail page. */
 export const DETAIL_STATUS_COLUMN = 'detail_status'
+/** The column that counts each row's child rows (with `children`). */
+export const CHILDREN_COUNT_COLUMN = 'children_count'
+/** The child table's first columns: the parent row's link and its row number in the main CSV, the child's place on its page. */
+export const CHILD_KEY_COLUMNS = ['parent_link', 'parent_row', 'child_index']
 
 /**
  * Open one detail page and read `spec.fields` on it (relative to `spec.root`, or to the whole page).
  * → { status: 'ok' | 'empty' | 'failed' | 'blocked', fields, error?, httpStatus?, notFound?, expandClicks?, recordText? }
- * recordText / recordScope: on an ok page where a field read blank, the text of `root` ('root'), else of the page's
- * main ('main'), on one line, cut to 400 chars (then it ends with "…"); none on a page with neither.
+ * recordText / recordScope: on an ok page where a field read blank (or, with `children`, no child row was found), the
+ * text of `root` ('root'), else of the page's main ('main'), on one line, cut to 400 chars (then it ends with "…");
+ * none on a page with neither.
+ * With `spec.children` ({ rows, fields, require?, max? }), an ok page also gets `children`: the rows `children.rows`
+ * matches inside `root` that the page draws, read after setup and expand (and waited for a little when none is there
+ * yet), each with `children.fields` (rows with a `require` field blank left out, the first `max` kept);
+ * `childrenMatched` (how many there were, when `max` cut them), `childText` ({ index, text }: the first kept child
+ * row with a blank field, 1-based, its text cut to 300 chars), `childPager` ({ text, href }: a link beside the child
+ * rows that leads to more of them on another URL), `childMore` ({ control?, claim? }: a control beside them that
+ * expand did not click, a count beside them larger than the rows), `childPlaces` ({ places, firsts }: the rows come
+ * from several separate places on the page), `childDupes` (rows that hold the next row and read the same),
+ * `childrenHidden` (matches the page does not draw). A child read that throws (CSS the page rejects) leaves the
+ * page ok with its fields and `childError` instead of `children`.
+ * `expandCapped`: the label of an `expand` control still there after the last pass (`expandPasses`).
  * Never throws: a page that could not be loaded or read comes back as 'failed'.
  */
 export async function readDetailPage(page, url, spec, lib) {
@@ -31,10 +47,15 @@ export async function readDetailPage(page, url, spec, lib) {
   const STABLE_MS = 3000
   /** With `expand`: fields can be behind the clicks, so a read that shows something and stays the same this long will do. */
   const BEFORE_EXPAND_STABLE_MS = 1000
-  const EXPAND_PASSES = 10
+  /** Rounds of expand clicks; a load-more under a child list may need many. */
+  const EXPAND_PASSES = Number(spec.expandPasses ?? (spec.children ? 30 : 10))
   const EXPAND_WAIT_MS = 8000
+  /** With `children` and no child row on the page yet: how long to wait for rows that render after the record. */
+  const CHILD_WAIT_MS = 3000
   /** Characters of the record's text kept for a page where a field read blank. */
   const RECORD_TEXT_MAX = 400
+  /** Characters of a child row's text kept when one of its fields read blank. */
+  const CHILD_TEXT_MAX = 300
   const firstLine = error => String(error?.message ?? error).split('\n')[0]
 
   /** Retry page.evaluate across navigations; inject the page helpers if this document lacks them. */
@@ -62,6 +83,76 @@ export async function readDetailPage(page, url, spec, lib) {
       return recs.length ? recs[0] : null
     }, [rootSel, fields])
   const wallCheck = status => inPage(s => window.__dlk.wall(s), status).catch(() => null)
+  /**
+   * Parts that open on a click ("read more", a collapsed section, a load-more under a list): click every match
+   * (inside `root` when given: related items around the record have the same buttons), pass after pass.
+   * → { clicks, capped: the label of a control a next pass would still click, or null }
+   */
+  async function expandAll() {
+    let clicks = 0
+    for (let pass = 0; pass < EXPAND_PASSES; pass += 1) {
+      const before = await inPage(sel => window.__dlk.contentMark(sel), rootSel).catch(() => '')
+      const clicked = await inPage(([expand, sel, within]) => window.__dlk.clickAll(expand, sel, 60, false, within), [spec.expand, rootSel, spec.root || null]).catch(() => 0)
+      if (!clicked) return { clicks, capped: null }
+      clicks += clicked
+      const deadline = Date.now() + EXPAND_WAIT_MS
+      while (Date.now() < deadline && (await inPage(sel => window.__dlk.contentMark(sel), rootSel).catch(() => '')) === before) await page.waitForTimeout(250)
+      await settle(page, { quietMs: 800, maxMs: 5000 })
+    }
+    const capped = await inPage(([expand, sel, within]) => window.__dlk.expandPending(expand, sel, within), [spec.expand, rootSel, spec.root || null]).catch(() => null)
+    return { clicks, capped }
+  }
+  /**
+   * The item's own list (its reviews, comments, variants): every drawn match of `children.rows` inside root. None
+   * yet: wait a little (rows that come with their own request), then expand again for the controls that came with them.
+   * → { out (the result's child keys), expanded (that second expand, or null) }. Throws on CSS the page rejects.
+   */
+  async function readChildren() {
+    const kids = spec.children
+    const childFields = kids.fields ?? {}
+    const childNames = Object.keys(childFields)
+    const childBlank = (name, rec) => {
+      const value = String(rec?.[name] ?? '')
+      const field = childFields[name]
+      return value === '' || (typeof field === 'object' && field?.default !== undefined && value === String(field.default))
+    }
+    const readRows = async () => (await inPage(([root, rows, f]) => window.__dlk.extractIn(root, rows, f), [rootSel, kids.rows, childFields])) ?? { recs: [], hidden: 0, places: 0, dupes: 0 }
+    let got = await readRows()
+    let expanded = null
+    if (!got.recs.length) {
+      const until = Date.now() + CHILD_WAIT_MS
+      while (!got.recs.length && Date.now() < until) {
+        await page.waitForTimeout(400)
+        got = await readRows()
+      }
+      if (got.recs.length) {
+        await settle(page, { quietMs: 800, maxMs: 5000 })
+        if (spec.expand?.length) expanded = await expandAll()
+        got = await readRows()
+      }
+    }
+    const recs = got.recs
+    const kept = recs.map((rec, index) => ({ rec, index })).filter(({ rec }) => !(kids.require ?? []).some(name => childBlank(name, rec)))
+    const max = Number(kids.max ?? 0)
+    const list = max > 0 ? kept.slice(0, max) : kept
+    const out = { children: list.map(({ rec }) => Object.fromEntries(childNames.map(name => [name, String(rec[name] ?? '')]))) }
+    if (list.length < kept.length) out.childrenMatched = kept.length
+    const gap = list.findIndex(({ rec }) => childNames.some(name => childBlank(name, rec)))
+    if (gap >= 0) {
+      const text = await inPage(([root, rows, i, n]) => window.__dlk.rowTextIn(root, rows, i, n), [rootSel, kids.rows, list[gap].index, CHILD_TEXT_MAX]).catch(() => '')
+      if (text) out.childText = { index: gap + 1, text }
+    }
+    const pager = await inPage(([root, rows, rooted]) => window.__dlk.pagerNear(root, rows, rooted), [rootSel, kids.rows, Boolean(spec.root)]).catch(() => null)
+    if (pager) out.childPager = pager
+    if (recs.length) {
+      const more = await inPage(([root, rows, expand]) => window.__dlk.moreNear(root, rows, expand), [rootSel, kids.rows, spec.expand ?? []]).catch(() => null)
+      if (more) out.childMore = more
+    }
+    if (got.places > 1) out.childPlaces = { places: got.places, firsts: got.firsts ?? [] }
+    if (got.dupes) out.childDupes = got.dupes
+    if (got.hidden) out.childrenHidden = got.hidden
+    return { out, expanded }
+  }
   /** A wall worth giving up the wait for: it says so in words (block / login text). A challenge widget alone may be a corner badge. */
   const wallSays = w => Boolean(w?.kind) && Boolean(w.signals?.login || (w.signals?.text && !/^((re|h)?captcha|turnstile|geetest|arkose|funcaptcha)$/i.test(w.signals.text)))
 
@@ -124,32 +215,33 @@ export async function readDetailPage(page, url, spec, lib) {
       await page.waitForTimeout(400)
     }
     await settle(page, { quietMs: Number(spec.quietMs ?? 800), maxMs: 5000 })
-    // Parts that open on a click ("read more", a collapsed section): click every match (inside `root` when
-    // given: related items around the record have the same buttons), pass after pass.
-    let expandClicks = 0
-    if (spec.expand?.length) {
-      for (let pass = 0; pass < EXPAND_PASSES; pass += 1) {
-        const before = await inPage(sel => window.__dlk.contentMark(sel), rootSel).catch(() => '')
-        const clicked = await inPage(([expand, sel, within]) => window.__dlk.clickAll(expand, sel, 60, false, within), [spec.expand, rootSel, spec.root || null]).catch(() => 0)
-        if (!clicked) break
-        expandClicks += clicked
-        const deadline = Date.now() + EXPAND_WAIT_MS
-        while (Date.now() < deadline && (await inPage(sel => window.__dlk.contentMark(sel), rootSel).catch(() => '')) === before) await page.waitForTimeout(250)
-        await settle(page, { quietMs: 800, maxMs: 5000 })
-      }
-    }
+    let expand = spec.expand?.length ? await expandAll() : { clicks: 0, capped: null }
     rec = await read()
     const wall = await wallCheck(httpStatus)
     const verdict = classifyDetail({ httpStatus, rec, fields, required, root: spec.root ?? null, wall })
-    // A field blank on a page that read: keep the record's text, so the summary can show where the value may be instead.
+    let kids = null
+    if (verdict.status === 'ok' && spec.children) {
+      // A child spec the page rejects is the spec's fault, not the page's: keep the fields that read.
+      try {
+        const childRead = await readChildren()
+        kids = childRead.out
+        if (childRead.expanded) expand = { clicks: expand.clicks + childRead.expanded.clicks, capped: childRead.expanded.capped }
+      } catch (error) {
+        kids = { childError: firstLine(error) }
+      }
+    }
+    const expandClicks = expand.clicks
+    // A field blank (or no child row) on a page that read: keep the record's text, so the summary can show where the value may be instead.
     const excerpt =
-      verdict.status === 'ok' && names.some(name => blank(name, verdict.fields))
+      verdict.status === 'ok' && (names.some(name => blank(name, verdict.fields)) || kids?.children?.length === 0)
         ? await inPage(([sel, max]) => window.__dlk.recordText(sel, max), [spec.root || null, RECORD_TEXT_MAX]).catch(() => null)
         : null
     return {
       ...verdict,
+      ...(kids ?? {}),
       ...(httpStatus !== null && httpStatus !== 200 ? { httpStatus } : {}),
       ...(expandClicks ? { expandClicks } : {}),
+      ...(expand.capped ? { expandCapped: { text: expand.capped, passes: EXPAND_PASSES } } : {}),
       ...(excerpt?.text ? { recordText: excerpt.text, recordScope: excerpt.scope } : {}),
     }
   } catch (error) {
@@ -278,10 +370,20 @@ export function detailLink(value) {
  * second detail pass over a detail output, e.g. for pages its rows link to).
  */
 export function detailStatusColumn(listColumns) {
-  if (!listColumns.includes(DETAIL_STATUS_COLUMN)) return DETAIL_STATUS_COLUMN
+  return freeColumn(DETAIL_STATUS_COLUMN, listColumns)
+}
+
+/** The count column with `children`: `children_count`, or `children_count_2`… when the list already has it. */
+export function childrenCountColumn(listColumns) {
+  return freeColumn(CHILDREN_COUNT_COLUMN, listColumns)
+}
+
+/** `name`, or `name_2`, `name_3`… : the first one not among `columns`. */
+function freeColumn(name, columns) {
+  if (!columns.includes(name)) return name
   let n = 2
-  while (listColumns.includes(`${DETAIL_STATUS_COLUMN}_${n}`)) n += 1
-  return `${DETAIL_STATUS_COLUMN}_${n}`
+  while (columns.includes(`${name}_${n}`)) n += 1
+  return `${name}_${n}`
 }
 
 /**
@@ -300,21 +402,26 @@ export function checkDetailSpec(spec, listColumns) {
   for (const name of names) {
     const field = spec.fields[name]
     if (typeof field !== 'string' && !isObject(field)) problems.push(`field "${name}" must be a CSS string or a field object`)
+    else problems.push(...fieldCssProblems(`field "${name}"`, field))
   }
   for (const key of ['require', 'setup', 'expand', 'dismiss']) {
     if (spec[key] !== undefined && !Array.isArray(spec[key])) problems.push(`"${key}" must be an array`)
   }
   for (const key of ['root', 'waitFor']) {
     if (spec[key] !== undefined && spec[key] !== null && typeof spec[key] !== 'string') problems.push(`"${key}" must be a CSS string`)
+    else if (spec[key]) problems.push(...cssProblems(`"${key}"`, spec[key]))
   }
+  if (spec.expandPasses !== undefined && !(Number.isInteger(spec.expandPasses) && spec.expandPasses >= 1 && spec.expandPasses <= 200)) problems.push('"expandPasses" must be a whole number from 1 to 200')
   const statusColumn = detailStatusColumn(listColumns)
-  const taken = names.filter(name => listColumns.includes(name) || name === statusColumn)
+  const countColumn = spec.children !== undefined ? childrenCountColumn(listColumns) : null
+  const taken = names.filter(name => listColumns.includes(name) || name === statusColumn || name === countColumn)
   if (taken.length) {
     problems.push(
       `detail field${taken.length > 1 ? 's' : ''} ${taken.map(n => `"${n}"`).join(', ')} already ${taken.length > 1 ? 'are columns' : 'is a column'} of the output; rename ${taken.length > 1 ? 'them' : 'it'} in "fields" (e.g. "detail_${taken[0]}")`
     )
   }
   for (const name of Array.isArray(spec.require) ? spec.require : []) if (!names.includes(name)) problems.push(`"require": "${name}" is not one of the fields`)
+  if (spec.children !== undefined) problems.push(...checkChildrenSpec(spec.children))
   const concurrency = Number(spec.concurrency ?? 1)
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 3) problems.push('"concurrency" must be 1, 2 or 3')
   const attempts = Number(spec.maxAttempts ?? 3)
@@ -323,13 +430,98 @@ export function checkDetailSpec(spec, listColumns) {
   return problems
 }
 
+/** The keys `children` takes; the others (expand, setup, waitFor, root…) belong at the top level. */
+const CHILDREN_KEYS = ['rows', 'fields', 'require', 'max']
+
+/** Problems with a spec's `children` (empty array when it is fine). */
+function checkChildrenSpec(kids) {
+  const isObject = value => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+  const hint = '{ "rows": "<css of each child row, inside root>", "fields": { … } }'
+  if (!isObject(kids)) return [`"children" must be an object: ${hint}`]
+  const problems = []
+  if (!kids.rows || typeof kids.rows !== 'string' || !kids.rows.trim()) problems.push(`"children.rows" is required: the CSS of each child row, inside root (${hint})`)
+  else problems.push(...cssProblems('"children.rows"', kids.rows))
+  const unknown = Object.keys(kids).filter(key => !CHILDREN_KEYS.includes(key))
+  if (unknown.length) problems.push(`"children" has unknown keys ${unknown.map(k => `"${k}"`).join(', ')}: expand / setup / waitFor / root go at the top level of the detail config; "children" takes ${CHILDREN_KEYS.join(', ')}`)
+  const names = isObject(kids.fields) ? Object.keys(kids.fields) : []
+  if (!names.length) problems.push('"children.fields" needs at least one field: { "<column>": "<css inside the child row>" or { "css": …, "attr": … } }')
+  for (const name of names) {
+    const field = kids.fields[name]
+    if (typeof field !== 'string' && !isObject(field)) problems.push(`child field "${name}" must be a CSS string or a field object`)
+    else problems.push(...fieldCssProblems(`child field "${name}"`, field))
+  }
+  const reserved = names.filter(name => CHILD_KEY_COLUMNS.includes(name))
+  if (reserved.length) problems.push(`child field${reserved.length > 1 ? 's' : ''} ${reserved.map(n => `"${n}"`).join(', ')}: ${CHILD_KEY_COLUMNS.join(', ')} are the child table's own columns; rename ${reserved.length > 1 ? 'them' : 'it'}`)
+  if (kids.require !== undefined && !Array.isArray(kids.require)) problems.push('"children.require" must be an array')
+  for (const name of Array.isArray(kids.require) ? kids.require : []) if (!names.includes(name)) problems.push(`"children.require": "${name}" is not one of the child fields`)
+  if (kids.max !== undefined && !(Number.isInteger(kids.max) && kids.max >= 1)) problems.push('"children.max" must be a whole number ≥ 1')
+  return problems
+}
+
+/** A field's CSS problems: "", "." and ":scope" (the row itself) are fine. */
+function fieldCssProblems(what, field) {
+  const css = typeof field === 'string' ? field : field.css
+  if (css === undefined || css === '' || css === '.' || css === ':scope') return []
+  if (typeof css !== 'string') return [`${what}: "css" must be a string`]
+  return cssProblems(what, css)
+}
+
 /**
- * A short key for what a detail spec reads (fields, root, require, waitFor, setup, expand): checkpoint
+ * Mistakes that make a selector invalid CSS, caught before any page loads: blank, an unclosed bracket, parenthesis
+ * or quote, an empty part in a comma list, a trailing combinator. (Other bad CSS still throws in the page.)
+ */
+function cssProblems(what, css) {
+  const bad = cssSyntaxProblem(css)
+  return bad ? [`${what} (${JSON.stringify(css)}) is not valid CSS: ${bad}`] : []
+}
+
+/** → why `css` cannot be a selector, or null. */
+export function cssSyntaxProblem(css) {
+  if (!css.trim()) return 'it is blank'
+  const open = []
+  let quote = null
+  for (let i = 0; i < css.length; i += 1) {
+    const ch = css[i]
+    if (ch === '\\') {
+      i += 1
+      continue
+    }
+    if (quote) {
+      if (ch === quote) quote = null
+      continue
+    }
+    if (ch === '"' || ch === "'") quote = ch
+    else if (ch === '(' || ch === '[') open.push(ch)
+    else if (ch === ')' || ch === ']') {
+      if (open.pop() !== (ch === ')' ? '(' : '[')) return `it has an unmatched "${ch}"`
+    }
+  }
+  if (quote) return 'it has an unclosed quote'
+  if (open.length) return `it has an unclosed "${open[open.length - 1]}"`
+  if (/(^|,)\s*(,|$)/.test(css)) return 'it has an empty part in its comma list'
+  if (/[>+~]\s*(,|$)/.test(css)) return 'it ends in a combinator'
+  return null
+}
+
+/** The child table, past this many rows, is rewritten only after it grew by a tenth: each rewrite costs its whole size. */
+export const CHILD_CSV_SMALL = 5000
+
+/** Is the child table due for a rewrite while the run goes on? (It is always written at the end.) */
+export function childCsvDue({ rows, writtenRows, sinceMs, everyMs = 2000 }) {
+  if (sinceMs < everyMs) return false
+  return rows < CHILD_CSV_SMALL || rows * 10 >= writtenRows * 11
+}
+
+/**
+ * A short key for what a detail spec reads (fields, root, require, waitFor, setup, expand, children, expandPasses): checkpoint
  * entries read with another one are read again, so fixing a selector and rerunning updates the rows.
  * Pacing and retry settings are left out: changing them keeps the pages already read.
  */
 export function detailSpecKey(spec) {
-  const text = JSON.stringify([spec.fields ?? {}, spec.root ?? null, spec.require ?? [], spec.waitFor ?? null, spec.setup ?? [], spec.expand ?? []])
+  const parts = [spec.fields ?? {}, spec.root ?? null, spec.require ?? [], spec.waitFor ?? null, spec.setup ?? [], spec.expand ?? []]
+  // Without children (or expandPasses) the key stays what it was before they existed: older checkpoints are kept.
+  const withKids = spec.children !== undefined ? [...parts, spec.children] : parts
+  const text = JSON.stringify(spec.expandPasses !== undefined ? [...withKids, { expandPasses: spec.expandPasses }] : withKids)
   let hash = 5381
   for (let i = 0; i < text.length; i += 1) hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0
   return (hash >>> 0).toString(36)
@@ -340,9 +532,11 @@ export function detailSpecKey(spec) {
  * while it has tries left; blocked always. An empty page is done once confirmed (an ok page came after it,
  * or the run ended normally); one still `unconfirmed` (the run stopped in the middle of a run of empty
  * pages) is read again, and so is any empty page with `retryEmpty` or when it was read by another browser.
+ * With `retryEmpty`, an ok page that read no child row (its list may have rendered late) is read again too.
  */
 export function needsDetailFetch(entry, maxAttempts, { browser = null, retryEmpty = false } = {}) {
   if (!entry) return true
+  if (retryEmpty && entry.status === 'ok' && Array.isArray(entry.children) && !entry.children.length) return true
   if (entry.status === 'blocked') return true
   if (entry.status === 'failed') return Number(entry.attempts ?? 0) < maxAttempts
   if (entry.status === 'empty' && !entry.notFound) return Boolean(entry.unconfirmed || retryEmpty || (browser && entry.browser && entry.browser !== browser))
@@ -365,17 +559,39 @@ export const RECORD_TEXT_KEEP = 3
  * the excerpt it keeps.
  */
 export function recordTextKeeper(entries, detailNames, limit = RECORD_TEXT_KEEP) {
-  const kept = new Map(detailNames.map(name => [name, 0]))
-  const blankIn = fields => detailNames.filter(name => String(fields?.[name] ?? '') === '')
+  // A page with a child list and no child row counts as one more blank column.
+  const blankIn = page => [...detailNames.filter(name => String(page.fields?.[name] ?? '') === ''), ...(Array.isArray(page.children) && !page.children.length ? [NO_CHILDREN] : [])]
+  return excerptKeeper(entries, limit, 'recordText', blankIn)
+}
+
+/** recordTextKeeper's name for "no child row on the page". */
+const NO_CHILDREN = '#children'
+
+/**
+ * The same for child-row excerpts (`childText`): kept for the first few pages per child column it shows blank.
+ * → (result) => boolean
+ */
+export function childTextKeeper(entries, childNames, limit = RECORD_TEXT_KEEP) {
+  const blankIn = page => {
+    const row = page.children?.[Number(page.childText?.index) - 1]
+    return row ? childNames.filter(name => String(row[name] ?? '') === '') : []
+  }
+  return excerptKeeper(entries, limit, 'childText', blankIn)
+}
+
+/** Keep `page[key]` while one of the columns it shows blank (`blankIn(page)`) has fewer than `limit` kept. */
+function excerptKeeper(entries, limit, key, blankIn) {
+  const kept = new Map()
+  const count = name => kept.get(name) ?? 0
   for (const entry of entries.values()) {
-    if (entry.status !== 'ok' || !entry.recordText) continue
-    for (const name of blankIn(entry.fields)) kept.set(name, kept.get(name) + 1)
+    if (entry.status !== 'ok' || !entry[key]) continue
+    for (const name of blankIn(entry)) kept.set(name, count(name) + 1)
   }
   return result => {
-    if (result.status !== 'ok' || !result.recordText) return false
-    const blanks = blankIn(result.fields)
-    if (!blanks.some(name => kept.get(name) < limit)) return false
-    for (const name of blanks) kept.set(name, kept.get(name) + 1)
+    if (result.status !== 'ok' || !result[key]) return false
+    const blanks = blankIn(result)
+    if (!blanks.some(name => count(name) < limit)) return false
+    for (const name of blanks) kept.set(name, count(name) + 1)
     return true
   }
 }
@@ -408,12 +624,34 @@ export function readDetailCheckpoint(text, specKey = null) {
  * without a usable link is "no-link"; a link not fetched yet is "pending"; detail cells are filled only
  * from ok pages (a row whose page failed keeps its list data).
  */
-export function mergeDetailRows(listRows, linkColumn, detailNames, entries, statusColumn = DETAIL_STATUS_COLUMN) {
+export function mergeDetailRows(listRows, linkColumn, detailNames, entries, statusColumn = DETAIL_STATUS_COLUMN, countColumn = null) {
   return listRows.map(row => {
     const url = detailLink(row[linkColumn])
     const entry = url ? entries.get(url) : null
     const status = !url ? 'no-link' : entry ? entry.status : 'pending'
     const detail = Object.fromEntries(detailNames.map(name => [name, status === 'ok' ? String(entry.fields?.[name] ?? '') : '']))
-    return { ...row, ...detail, [statusColumn]: status }
+    // The child count: "0" on an ok page without child rows, blank on a page not read ok.
+    // Blank too where the children could not be read (childError): the count is not known.
+    const count = countColumn ? { [countColumn]: status === 'ok' && !entry.childError ? String(entry.children?.length ?? 0) : '' } : {}
+    return { ...row, ...detail, ...count, [statusColumn]: status }
   })
+}
+
+/**
+ * The child table's rows: for each list row (in order) whose page read ok, one row per child, keyed by the row's
+ * link cell (`parent_link`), its 1-based row number in the main CSV (`parent_row`) and the child's 1-based place on
+ * the page (`child_index`). A link in several rows is read once; its children are listed under each of those rows,
+ * so every main row's count equals its child rows here.
+ */
+export function mergeChildRows(listRows, linkColumn, childNames, entries) {
+  const out = []
+  for (const [i, row] of listRows.entries()) {
+    const url = detailLink(row[linkColumn])
+    const entry = url ? entries.get(url) : null
+    if (entry?.status !== 'ok') continue
+    for (const [k, child] of (entry.children ?? []).entries()) {
+      out.push({ parent_link: String(row[linkColumn] ?? ''), parent_row: String(i + 1), child_index: String(k + 1), ...Object.fromEntries(childNames.map(name => [name, String(child[name] ?? '')])) })
+    }
+  }
+  return out
 }

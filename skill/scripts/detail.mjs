@@ -6,7 +6,9 @@
 //
 // list.csv: a CSV from collect.mjs (or any CSV) with a column of detail URLs (detail.json "link").
 // Writes full.csv (every list row, in order, + the detail columns + detail_status), full.json (summary) and
-// full.detail.jsonl (checkpoint: one line per URL as it finishes). Rerunning the same command resumes:
+// full.detail.jsonl (checkpoint: one line per URL as it finishes). With "children" (a list inside each detail
+// page) full.csv also gets children_count, and full.children.csv holds the child rows (parent_link, parent_row,
+// child_index + the child columns). Rerunning the same command resumes:
 // ok / empty pages are kept, failed ones are retried while they have tries left, blocked ones again, and
 // empty ones the run could not vouch for (it stopped in the middle of a run of empty pages).
 //
@@ -22,11 +24,16 @@ import { runInChromeAsync } from './lib/chrome.mjs'
 import { parseCsv, toCsv } from './lib/csv.mjs'
 import {
   checkDetailSpec,
+  CHILD_KEY_COLUMNS,
+  childCsvDue,
+  childrenCountColumn,
+  childTextKeeper,
   DETAIL_STREAK_LIMIT,
   detailBatchProgram,
   detailLink,
   detailSpecKey,
   detailStatusColumn,
+  mergeChildRows,
   mergeDetailRows,
   needsDetailFetch,
   nextStreaks,
@@ -88,6 +95,8 @@ const delayMs = Number(spec.delayMs ?? 1500)
 const concurrency = browserMode === 'chrome' ? 1 : Number(spec.concurrency ?? 1)
 const detailNames = Object.keys(spec.fields)
 const statusColumn = detailStatusColumn(list.columns)
+const childNames = spec.children ? Object.keys(spec.children.fields) : []
+const countColumn = spec.children ? childrenCountColumn(list.columns) : null
 
 // ---------- files ----------
 const base = out.replace(/\.csv$/i, '')
@@ -96,6 +105,17 @@ if ([listPath, specPath].some(p => same(p, checkpointPath))) fail(`--out ${out} 
 // Never overwrite an input: `detail.json --out detail.csv` would otherwise replace the config with the summary.
 let summaryPath = `${base}.json`
 if ([listPath, specPath].some(p => same(p, summaryPath))) summaryPath = `${base}.summary.json`
+const childrenPath = spec.children ? `${base}.children.csv` : null
+if (childrenPath && [listPath, specPath].some(p => same(p, childrenPath))) fail(`--out ${out} would write its child table over ${childrenPath}: choose another --out`)
+/** Warnings the run raises itself (they go first in the summary). */
+const runWarnings = []
+// A child table left by an earlier run with "children": this spec has none, so it would sit beside a CSV it no longer matches.
+const oldChildren = `${base}.children.csv`
+if (!spec.children && fs.existsSync(oldChildren) && ![listPath, specPath].some(p => same(p, oldChildren))) {
+  const stalePath = `${base}.children.stale.csv`
+  fs.renameSync(oldChildren, stalePath)
+  runWarnings.push(`this config has no "children", so the child table an earlier run wrote to this --out was moved to ${path.resolve(stalePath)}: it does not match ${path.resolve(out)} any more; do not report it as current.`)
+}
 fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true })
 const specKey = detailSpecKey(spec)
 const checkpointText = fs.existsSync(checkpointPath) ? fs.readFileSync(checkpointPath, 'utf8') : ''
@@ -104,6 +124,7 @@ if (checkpointText && !checkpointText.endsWith('\n')) fs.appendFileSync(checkpoi
 const { entries, stale } = readDetailCheckpoint(checkpointText, specKey)
 /** Record excerpts go into the checkpoint for the first few pages per blank column only (the summary quotes one). */
 const keepRecordText = recordTextKeeper(entries, detailNames)
+const keepChildText = childTextKeeper(entries, childNames)
 
 // ---------- plan ----------
 const rowUrls = list.rows.map(row => detailLink(row[spec.link]))
@@ -137,24 +158,46 @@ function stop(reason, text = '') {
   note = text
 }
 
-function writeCsv() {
-  const columns = [...list.columns, ...detailNames, statusColumn]
-  writeFileAtomic(out, toCsv(columns, mergeDetailRows(list.rows, spec.link, detailNames, entries, statusColumn)))
+/** Child rows the child table had when it was last written, and when. */
+let childCsv = { rows: 0, at: 0 }
+
+/** Rewrite the CSV, and the child table too (`children`: always at the end; while running, see childCsvDue). */
+function writeCsv({ children = true } = {}) {
+  const columns = [...list.columns, ...detailNames, ...(countColumn ? [countColumn] : []), statusColumn]
+  writeFileAtomic(out, toCsv(columns, mergeDetailRows(list.rows, spec.link, detailNames, entries, statusColumn, countColumn)))
   lastCsv = Date.now()
+  if (childrenPath && children) {
+    const rows = mergeChildRows(list.rows, spec.link, childNames, entries)
+    writeFileAtomic(childrenPath, toCsv([...CHILD_KEY_COLUMNS, ...childNames], rows))
+    childCsv = { rows: rows.length, at: Date.now() }
+  }
 }
 
-/** Keep an entry: checkpoint line now, CSV every few seconds. → the entry. */
+/** Keep an entry: checkpoint line now, CSV every few seconds (the child table less often once it is big). → the entry. */
 function append(entry) {
   entries.set(entry.url, entry)
   fs.appendFileSync(checkpointPath, JSON.stringify(entry) + '\n')
-  if (Date.now() - lastCsv >= CSV_EVERY_MS) writeCsv()
+  if (Date.now() - lastCsv >= CSV_EVERY_MS) {
+    const rows = childrenPath ? childRowCount() : 0
+    writeCsv({ children: Boolean(childrenPath) && childCsvDue({ rows, writtenRows: childCsv.rows, sinceMs: Date.now() - childCsv.at, everyMs: CSV_EVERY_MS }) })
+  }
   return entry
+}
+
+/** The child table's row count now (rows per list row, like mergeChildRows), without building it. */
+function childRowCount() {
+  let n = 0
+  for (const url of rowUrls) {
+    const entry = url ? entries.get(url) : null
+    if (entry?.status === 'ok') n += entry.children?.length ?? 0
+  }
+  return n
 }
 
 /** Record one finished page. An empty one (not a dead link) is `unconfirmed` until the site is vouched for. */
 function record(url, result, attemptsDelta = 1) {
   const prev = entries.get(url)
-  const { status, fields = {}, error, httpStatus, notFound, recordText, recordScope } = result
+  const { status, fields = {}, error, httpStatus, notFound, recordText, recordScope, children, childrenMatched, childText, childPager, childMore, childPlaces, childDupes, childrenHidden, childError, expandCapped } = result
   return append({
     url,
     status,
@@ -166,6 +209,16 @@ function record(url, result, attemptsDelta = 1) {
     ...(error ? { error } : {}),
     ...(httpStatus ? { httpStatus } : {}),
     ...(notFound ? { notFound } : {}),
+    ...(status === 'ok' && children ? { children } : {}),
+    ...(status === 'ok' && childrenMatched ? { childrenMatched } : {}),
+    ...(status === 'ok' && childPager ? { childPager } : {}),
+    ...(status === 'ok' && childMore ? { childMore } : {}),
+    ...(status === 'ok' && childPlaces ? { childPlaces } : {}),
+    ...(status === 'ok' && childDupes ? { childDupes } : {}),
+    ...(status === 'ok' && childrenHidden ? { childrenHidden } : {}),
+    ...(status === 'ok' && childError ? { childError } : {}),
+    ...(status === 'ok' && expandCapped ? { expandCapped } : {}),
+    ...(keepChildText(result) ? { childText } : {}),
     ...(keepRecordText(result) ? { recordText, ...(recordScope ? { recordScope } : {}) } : {}),
   })
 }
@@ -401,6 +454,8 @@ const summary = summarizeDetail({
   note,
   maxRows,
   canary,
+  extraWarnings: runWarnings,
+  children: spec.children ? { selector: spec.children.rows, names: childNames, out: path.resolve(childrenPath), countColumn, rooted: Boolean(spec.root) } : null,
   extra: {
     fetchedThisRun: fetched,
     ...(stale ? { rereadAfterSpecChange: stale } : {}),

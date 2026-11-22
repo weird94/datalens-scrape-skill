@@ -1,0 +1,25 @@
+{
+  "id": "H01-003",
+  "pattern": ["H1"],
+  "title": "列表 → 详情页 → 详情页里的子列表：H01-001 的同一套商品，每件商品详情页的主记录里有一个评价列表（作者 / 星级 / 日期 / 正文），条数因商品而异（0–6 条，4 件没有评价），超过 2 条时其余藏在「Show all N reviews」后面；星级只在 aria-label「Rated N out of 5」里、日期在 time 的 datetime 里。主记录前的「Customers also viewed」卡片里也各有一条同 class 的「Top review」，子列表不限定在主记录里就会混进来。其余同 H01-001：晚渲染、两套模板、Read more、2 行没链接、2 个死链；列表 24 行",
+  "source": "合成（商品详情页的评价、文章下的评论、商品的规格 / 尺码、公司的在招职位这类「每个详情页自带一个列表」的形状；用 skill/scripts/detail.mjs 的 children 走第二遍，输出主表 + 子表）",
+  "variant": { "lang": "en", "items": 24, "perPage": 8, "lateMs": 1500, "related": 1, "reviews": 1 },
+  "url": "/dev-fixtures/playground/detail-links?items=24&perPage=8&related=1&reviews=1",
+  "message": "Export every product in this list with its brand and SKU, and all of each product's reviews: reviewer, star rating, date and review text.",
+  "heldOut": false,
+  "status": "draft",
+  "agentExpectation": "detail.json 设 root 为主记录、children.rows 读主记录里的评价（不含相关卡片的 Top review），expand 点开「Show all N reviews」；子表 56 行，各商品条数与 expected.json 一致，4 件 0 条评价的商品计数为 0（不是空）；星级读 aria-label 里的分数。",
+  "relatedCode": [
+    "eval/playground/fixtures/detail-links/route.ts",
+    "eval/playground/fixtures/detail-links/[id]/route.ts",
+    "eval/playground/fixtures/detail-links/products.ts",
+    "eval/playground/fixtures/__test__/detail-links.test.ts",
+    "skill/scripts/detail.mjs",
+    "skill/scripts/lib/detail.mjs",
+    "skill/scripts/lib/report-format.mjs",
+    "skill/scripts/detail-pages.test.mjs",
+    "eval/dev-detail/H01-003.json",
+    "eval/grade-detail.mjs"
+  ],
+  "relatedDocs": ["skill/references/detail-pages.md"]
+}

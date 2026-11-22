@@ -1,6 +1,6 @@
 // detail.mjs end to end on the playground's list → detail fixture (eval/playground/fixtures/detail-links):
 // late-rendered detail pages in two layouts, dead links, a "Read more" to click, related items before the
-// record that reuse its classes, an optional field, a site that starts
+// record that reuse its classes, an optional field, a list of reviews inside each record (children), a site that starts
 // blocking (a captcha, or empty pages) after N requests, and pages that fail once. The fixture server
 // (eval/serve.mts) is started on a free port. Run with `node --test scripts/detail-pages.test.mjs`.
 import assert from 'node:assert/strict'
@@ -99,11 +99,40 @@ const listPage = n => `${origin}/dev-fixtures/playground/detail-links?items=${n}
 /** A list CSV by hand: one row per entry, `link` holding the URL (or whatever is given). */
 const listOf = (name, links) => write(name, toCsv(['title', 'link'], links.map((link, i) => ({ title: `row ${i + 1}`, link }))))
 
+// reviews=1 (products.ts): reviews per product by id % 8, the first 2 shown, the rest behind "Show all N reviews".
+const REVIEW_COUNTS = [3, 0, 5, 1, 4, 0, 6, 2]
+const reviewCount = id => REVIEW_COUNTS[id % 8]
+const REVIEWERS = ['Mia K.', 'Noah P.', 'Ava R.', 'Liam S.', 'Zoe T.', 'Omar V.', 'Lena W.']
+/** Review k (0-based) of product id, as the child CSV should hold it. */
+const reviewOf = (id, k) => ({
+  reviewer: REVIEWERS[(id + k) % REVIEWERS.length],
+  rating: String(1 + ((id + 2 * k) % 5)),
+  date: `2026-${String(((id + k) % 12) + 1).padStart(2, '0')}-${String(1 + ((id * 3 + k * 5) % 28)).padStart(2, '0')}`,
+  review: `Review ${k + 1} of product ${id}: ${k % 2 ? 'works as described, would buy again' : 'arrived quickly, solid build'}.`,
+})
+const REVIEW_FIELDS = {
+  reviewer: '.author',
+  rating: { css: '.rating', attr: 'aria-label', regex: 'Rated (\\d) out of 5' },
+  date: { css: 'time.date', attr: 'datetime' },
+  review: '.text',
+}
+
 const SPEC = {
   link: 'link',
   fields: { name: 'h1.name', brand: '.specs .brand, .maker a', sku: '.sku', description: '.description .full-text' },
   require: ['name'],
   expand: ['.read-more'],
+  delayMs: 0,
+  waitTimeoutMs: 4000,
+}
+/** Each product's reviews as a child list: inside the record, after "Show all N reviews" is clicked. */
+const KIDS = {
+  link: 'link',
+  root: 'article.product-detail',
+  fields: { name: 'h1.name', sku: '.sku' },
+  require: ['name'],
+  expand: ['.show-reviews'],
+  children: { rows: '.reviews li.review', fields: REVIEW_FIELDS },
   delayMs: 0,
   waitTimeoutMs: 4000,
 }
@@ -549,6 +578,285 @@ describe('detail.mjs', { concurrency: 4 }, () => {
     ])
   })
 
+  test('children: each item\'s own list goes to <out>.children.csv, read after expand and inside root; the count column is 0 for none and blank for pages not read ok', async () => {
+    const q = `related=1&reviews=1&lateMs=200&run=kids-${run}`
+    // #9 is a dead link; #2 twice (read once, its reviews listed under both rows); a row without a link.
+    const ids = [1, 2, 3, 4, 6, 9, 2]
+    const list = listOf('kids.csv', [...ids.map(id => detailUrl(id, q)), 'n/a'])
+    const out = path.join(tmp, 'kids.out.csv')
+    const { summary, code, stderr } = await script('detail.mjs', [list, write('kids.json', KIDS), '--out', out])
+    assert.equal(code, 0, stderr)
+    assert.equal(summary.stopReason, 'done', summary.note)
+    assert.deepEqual(summary.status, { ok: 6, empty: 1, failed: 0, blocked: 0, pending: 0, 'no-link': 1 })
+    assert.equal(summary.warnings, undefined, JSON.stringify(summary.warnings))
+
+    const main = readCsv(out)
+    assert.deepEqual(main.columns, ['title', 'link', 'name', 'sku', 'children_count', 'detail_status'])
+    assert.deepEqual(main.rows.map(r => r.children_count), ['0', '5', '1', '4', '6', '', '5', ''])
+
+    const kids = readCsv(path.join(tmp, 'kids.out.children.csv'))
+    assert.deepEqual(kids.columns, ['parent_link', 'parent_row', 'child_index', 'reviewer', 'rating', 'date', 'review'])
+    const expected = []
+    for (const [i, id] of ids.entries()) {
+      if (id === 9) continue
+      for (let k = 0; k < reviewCount(id); k += 1) expected.push({ parent_link: detailUrl(id, q), parent_row: String(i + 1), child_index: String(k + 1), ...reviewOf(id, k) })
+    }
+    assert.equal(expected.length, 21)
+    assert.deepEqual(kids.rows, expected)
+    // The join: each main row's count is the number of child rows under its row number.
+    for (const [i, row] of main.rows.entries()) assert.equal(kids.rows.filter(k => k.parent_row === String(i + 1)).length, Number(row.children_count || 0))
+
+    assert.deepEqual(summary.children, {
+      out: path.resolve(path.join(tmp, 'kids.out.children.csv')),
+      countColumn: 'children_count',
+      rows: 21,
+      okPages: 5,
+      pagesWithNone: { count: 1, sample: [detailUrl(1, q)], check: 'open one: if it shows child rows, they rendered late; rerun with --retry-empty to read these pages again' },
+      fillRate: { reviewer: '16/16 (100%)', rating: '16/16 (100%)', date: '16/16 (100%)', review: '16/16 (100%)' },
+    })
+  })
+
+  test('children: without root the related cards\' reviews get in, without expand only the shown ones, and max keeps the first N', async () => {
+    const q = `related=1&reviews=1&lateMs=200&run=kids-scope-${run}`
+    const ids = [2, 3, 6]
+    const list = listOf('kids-scope.csv', ids.map(id => detailUrl(id, q)))
+    const { root, ...noRoot } = KIDS
+    const specs = [
+      noRoot,
+      { ...KIDS, expand: [] },
+      { ...KIDS, children: { ...KIDS.children, max: 3 } },
+    ]
+    const runs = await Promise.all(specs.map((spec, i) => script('detail.mjs', [list, write(`kids-scope-${i}.json`, spec), '--out', path.join(tmp, `kids-scope-${i}.csv`)])))
+    const counts = i => readCsv(path.join(tmp, `kids-scope-${i}.csv`)).rows.map(r => r.children_count)
+    const texts = i => readCsv(path.join(tmp, `kids-scope-${i}.children.csv`)).rows.map(r => r.review)
+    // No root: each page also lists the "Top review" of the related products before it (#3: 1 review, #4: 4, #5: 0, #7: 2, #8: 3).
+    assert.deepEqual(counts(0), ['7', '2', '8'])
+    assert.ok(texts(0).some(t => t.startsWith('Top review:')))
+    // No expand: the first 2 only.
+    assert.deepEqual(counts(1), ['2', '1', '2'])
+    assert.ok(!texts(1).some(t => t.startsWith('Top review:')))
+    // max 3: the first 3 of each page; the summary says which pages had more.
+    assert.deepEqual(counts(2), ['3', '1', '3'])
+    assert.deepEqual(runs[2].summary.children.capped, { count: 2, sample: [detailUrl(2, q), detailUrl(6, q)] })
+    assert.deepEqual(texts(2).slice(0, 3), [0, 1, 2].map(k => reviewOf(2, k).review))
+  })
+
+  test('children: killed mid-run, the rerun keeps every child row exactly once; a changed children spec reads the pages again', async () => {
+    const q = `reviews=1&lateMs=200&run=kids-resume-${run}`
+    const ids = [1, 2, 3, 4, 6, 8]
+    const list = listOf('kids-resume-list.csv', ids.map(id => detailUrl(id, q)))
+    const spec = write('kids-resume.json', KIDS)
+    const cleanOut = path.join(tmp, 'kids-clean.csv')
+    const out = path.join(tmp, 'kids-resume.csv')
+    const checkpoint = path.join(tmp, 'kids-resume.detail.jsonl')
+    const [whole, killed] = await Promise.all([
+      script('detail.mjs', [list, spec, '--out', cleanOut]),
+      script('detail.mjs', [list, spec, '--out', out], { onSpawn: signalWhen(checkpoint, 3, 'SIGKILL') }),
+    ])
+    assert.equal(whole.summary.children.rows, 19)
+    assert.equal(killed.signal, 'SIGKILL')
+    const before = checkpointLines(checkpoint).length
+    assert.ok(before >= 3 && before < ids.length, `killed after ${before} pages`)
+    const resumed = await script('detail.mjs', [list, spec, '--out', out])
+    assert.equal(resumed.summary.fetchedThisRun, ids.length - before)
+    assert.equal(fs.readFileSync(out, 'utf8'), fs.readFileSync(cleanOut, 'utf8'))
+    assert.equal(fs.readFileSync(path.join(tmp, 'kids-resume.children.csv'), 'utf8'), fs.readFileSync(path.join(tmp, 'kids-clean.children.csv'), 'utf8'))
+    assert.deepEqual(resumed.summary.children, { ...whole.summary.children, out: path.resolve(path.join(tmp, 'kids-resume.children.csv')) })
+
+    // Same pages, another children spec (one more child column): every page is read again.
+    const wider = write('kids-resume-b.json', { ...KIDS, children: { ...KIDS.children, fields: { ...REVIEW_FIELDS, shown_date: 'time.date' } } })
+    const again = await script('detail.mjs', [list, wider, '--out', out])
+    assert.equal(again.summary.fetchedThisRun, ids.length)
+    assert.equal(again.summary.rereadAfterSpecChange, ids.length)
+    const kids = readCsv(path.join(tmp, 'kids-resume.children.csv'))
+    assert.equal(kids.rows.length, 19)
+    assert.match(kids.rows[0].shown_date, /^\d{1,2} [A-Z][a-z]{2} 2026$/)
+  })
+
+  test('children: a child selector that matches nothing warns with the record text; a link to more of the list on another URL is pointed out', async () => {
+    const q = `reviews=1&lateMs=200&run=kids-warn-${run}`
+    const list = listOf('kids-warn.csv', [2, 3, 6].map(id => detailUrl(id, q)))
+    const wrong = write('kids-warn-a.json', { ...KIDS, children: { ...KIDS.children, rows: '.comments li.comment' } })
+    const pagedQ = `reviews=1&reviewPager=1&lateMs=200&run=kids-pager-${run}`
+    const paged = listOf('kids-pager-list.csv', [2, 3, 6].map(id => detailUrl(id, pagedQ)))
+    const [none, pager] = await Promise.all([
+      script('detail.mjs', [list, wrong, '--out', path.join(tmp, 'kids-warn-a.csv')]),
+      script('detail.mjs', [paged, write('kids-pager.json', KIDS), '--out', path.join(tmp, 'kids-pager.csv')]),
+    ])
+    assert.deepEqual(readCsv(path.join(tmp, 'kids-warn-a.csv')).rows.map(r => r.children_count), ['0', '0', '0'])
+    assert.equal(none.summary.children.rows, 0)
+    const warning = none.summary.warnings.find(w => w.includes('children'))
+    assert.match(warning, /"children\.rows" \("\.comments li\.comment"\) matched no child row on any of the 3 ok pages/)
+    assert.match(warning, /On http:\S+\/detail-links\/2\S* the record (reads|starts): "Product 2 .*Reviews \(5\)/)
+
+    // reviewPager=1: the reviews past the first 2 are on another URL; the run reads what the page shows and says so.
+    assert.deepEqual(readCsv(path.join(tmp, 'kids-pager.csv')).rows.map(r => r.children_count), ['2', '1', '2'])
+    const note = pager.summary.warnings.find(w => w.includes('another URL'))
+    assert.match(note, /on 2 of 3 ok pages/)
+    assert.match(note, /"Next reviews ›" → http:\S+\/detail-links\/2\?reviews=1&reviewPager=1&reviewPage=2/)
+  })
+
+  test('--browser chrome ships the child reader too: the run-code program reads each page\'s children', async () => {
+    const q = `related=1&reviews=1&lateMs=200&run=kids-program-${run}`
+    const { sources, call } = detailBatchProgram([2, 5, 6].map(id => detailUrl(id, q)), KIDS, { limit: 3 })
+    const program = new Function(`return (${runCodeSource(sources, call)})`)()
+    const browser = await chromium.launch()
+    try {
+      const { results } = JSON.parse(await program(await browser.newPage()))
+      assert.deepEqual(results.map(r => r.status), ['ok', 'ok', 'ok'])
+      assert.deepEqual(results.map(r => r.children.length), [5, 0, 6])
+      assert.deepEqual(results[0].children[4], reviewOf(2, 4))
+      // No reviews: the record's text comes back, so a summary can show what the page has instead.
+      assert.match(results[1].recordText, /No reviews yet/)
+    } finally {
+      await browser.close()
+    }
+  })
+
+  test('children, the H01-003 traps: a "Show all" left out of expand, no root, a selector that also matches the list, one that matches everything: each gets a warning; the right spec none', async () => {
+    const q = `related=1&reviews=1&lateMs=200&run=kids-traps-${run}`
+    // #1 none, #2 five, #3 one, #6 six, #8 three (#2, #6, #8 have more than the 2 shown).
+    const ids = [1, 2, 3, 6, 8]
+    const list = listOf('kids-traps-list.csv', ids.map(id => detailUrl(id, q)))
+    const { root, ...noRoot } = KIDS
+    const specs = {
+      good: KIDS,
+      noExpand: { ...KIDS, expand: [] },
+      noRoot,
+      nested: { ...KIDS, children: { ...KIDS.children, rows: '.reviews li.review, .reviews ul' } },
+      star: { ...KIDS, children: { ...KIDS.children, rows: '*' } },
+    }
+    const runs = Object.fromEntries(
+      await Promise.all(Object.entries(specs).map(async ([name, spec]) => [name, await script('detail.mjs', [list, write(`kids-traps-${name}.json`, spec), '--out', path.join(tmp, `kids-traps-${name}.csv`)])]))
+    )
+    const warnings = name => runs[name].summary.warnings ?? []
+    assert.deepEqual(warnings('good'), [])
+    assert.equal(runs.good.summary.children.rows, 15)
+
+    // No expand: 2 of each long list; the button beside the rows is pointed out.
+    assert.equal(runs.noExpand.summary.children.rows, 7)
+    const unclicked = warnings('noExpand').find(w => w.includes('not in "expand"'))
+    assert.ok(unclicked, JSON.stringify(warnings('noExpand')))
+    assert.match(unclicked, /on 3 of 5 ok pages/)
+    assert.match(unclicked, /"Show all 5 reviews"/)
+
+    // No root: the related cards' "Top review" rows come in from another place on the page.
+    const places = warnings('noRoot').find(w => w.includes('separate places'))
+    assert.ok(places, JSON.stringify(warnings('noRoot')))
+    assert.match(places, /on 3 of 5 ok pages/)
+    assert.match(places, /Top review: /)
+    assert.match(places, /set "root"/)
+
+    // The list container matched with its rows: it reads the same as its first row.
+    const container = warnings('nested').find(w => w.includes('container'))
+    assert.ok(container, JSON.stringify(warnings('nested')))
+    assert.match(container, /on 4 of 5 ok pages/)
+
+    // Everything: most child rows read nothing.
+    const blank = warnings('star').find(w => w.includes('read nothing in any child column'))
+    assert.ok(blank, JSON.stringify(warnings('star')))
+  })
+
+  test('children behind a load-more that needs many clicks: all read by default; with fewer expand passes than it needs, the pages cut off are named', async () => {
+    const q = `reviews=1&reviewStep=1&lateMs=200&run=kids-loadmore-${run}`
+    const ids = [2, 3, 6]
+    const list = listOf('kids-loadmore-list.csv', ids.map(id => detailUrl(id, q)))
+    const spec = { ...KIDS, expand: ['.load-more-reviews'] }
+    const [full, cut] = await Promise.all([
+      script('detail.mjs', [list, write('kids-loadmore-full.json', spec), '--out', path.join(tmp, 'kids-loadmore-full.csv')]),
+      script('detail.mjs', [list, write('kids-loadmore-cut.json', { ...spec, expandPasses: 2 }), '--out', path.join(tmp, 'kids-loadmore-cut.csv')]),
+    ])
+    assert.deepEqual(readCsv(path.join(tmp, 'kids-loadmore-full.csv')).rows.map(r => r.children_count), ['5', '1', '6'])
+    assert.equal(full.summary.warnings, undefined, JSON.stringify(full.summary.warnings))
+    assert.deepEqual(readCsv(path.join(tmp, 'kids-loadmore-cut.csv')).rows.map(r => r.children_count), ['4', '1', '4'])
+    const capped = (cut.summary.warnings ?? []).find(w => w.includes('expandPasses'))
+    assert.ok(capped, JSON.stringify(cut.summary.warnings))
+    assert.match(capped, /on 2 of 3 ok pages a control in "expand" was still there after 2 rounds of clicks \(e\.g\. "Load more reviews" on http/)
+    assert.deepEqual(cut.summary.expandCapped, { count: 2, sample: [detailUrl(2, q), detailUrl(6, q)] })
+  })
+
+  test('children that render after the record are waited for, and the "Show all" that comes with them is clicked', async () => {
+    const q = `reviews=1&reviewsLateMs=2500&lateMs=200&run=kids-late-${run}`
+    const list = listOf('kids-late-list.csv', [2, 5, 6].map(id => detailUrl(id, q)))
+    const { summary, code, stderr } = await script('detail.mjs', [list, write('kids-late.json', KIDS), '--out', path.join(tmp, 'kids-late.csv')])
+    assert.equal(code, 0, stderr)
+    assert.deepEqual(readCsv(path.join(tmp, 'kids-late.csv')).rows.map(r => r.children_count), ['5', '0', '6'])
+    assert.equal(summary.children.rows, 11)
+  })
+
+  test('a child selector the page rejects keeps each page ok with its fields; the summary names the child spec, not the site', async () => {
+    const q = `reviews=1&lateMs=200&run=kids-bad-${run}`
+    const list = listOf('kids-bad-list.csv', [2, 3].map(id => detailUrl(id, q)))
+    const spec = { ...KIDS, children: { ...KIDS.children, rows: '.reviews li.review:bogus' } }
+    const { summary, code, stderr } = await script('detail.mjs', [list, write('kids-bad.json', spec), '--out', path.join(tmp, 'kids-bad.csv')])
+    assert.equal(code, 0, stderr)
+    assert.equal(summary.status.ok, 2)
+    const rows = readCsv(path.join(tmp, 'kids-bad.csv')).rows
+    assert.deepEqual(rows.map(r => [r.name, r.children_count]), [['Product 2', ''], ['Product 3', '']])
+    const warning = summary.warnings.find(w => w.includes('could not be read'))
+    assert.ok(warning, JSON.stringify(summary.warnings))
+    assert.match(warning, /on 2 of 2 ok pages/)
+    assert.match(warning, /:bogus/)
+    assert.ok(!summary.warnings.some(w => /matched no child row|Rerun the same command/.test(w)), JSON.stringify(summary.warnings))
+  })
+
+  test('a run without children over an --out that had them moves the old child table aside and says so', async () => {
+    const q = `reviews=1&lateMs=200&run=kids-stale-${run}`
+    const list = listOf('kids-stale-list.csv', [2, 3].map(id => detailUrl(id, q)))
+    const out = path.join(tmp, 'kids-stale-out.csv')
+    await script('detail.mjs', [list, write('kids-stale-a.json', KIDS), '--out', out])
+    assert.ok(fs.existsSync(path.join(tmp, 'kids-stale-out.children.csv')))
+    const { children, ...plain } = KIDS
+    const { summary } = await script('detail.mjs', [list, write('kids-stale-b.json', plain), '--out', out])
+    assert.ok(!fs.existsSync(path.join(tmp, 'kids-stale-out.children.csv')))
+    assert.ok(fs.existsSync(path.join(tmp, 'kids-stale-out.children.stale.csv')))
+    assert.ok(summary.warnings.some(w => w.includes('kids-stale-out.children.stale.csv')), JSON.stringify(summary.warnings))
+  })
+
+  test('child list helpers on hand-made pages: pagers told from rating filters and next-item links, "see all N" with no row shown, hidden template rows, a count beside the rows', async () => {
+    const rows = '<ul class="list"><li class="c"><span class="a">Ann</span></li><li class="c"><span class="a">Bob</span></li></ul>'
+    const bodies = {
+      stars: `<article id="r"><h1>Item</h1><div class="filters"><a href="?stars=5">5</a> <a href="?stars=4">4</a> <a href="?stars=3">3</a></div>${rows}</article>`,
+      nextProduct: `<article id="r"><h1>Item</h1>${rows}<a href="/p/2">Next product ›</a></article>`,
+      nextArticle: `<article id="r"><h1>Item</h1>${rows}<nav><a href="/p/1" rel="next">Next article: Ten tips for spring</a></nav></article>`,
+      numbers: `<article id="r"><h1>Item</h1><section>${rows}<div class="pages"><span class="current">1</span> <a href="?page=2">2</a> <a href="?page=3">3</a></div></section></article>`,
+      nextReviews: `<article id="r"><h1>Item</h1><section>${rows}<a href="?page=2">Next reviews ›</a></section></article>`,
+      seeAll: `<article id="r"><h1>Item</h1><h2>Reviews</h2><a href="/p/seeAll/reviews">See all 120 reviews</a></article><footer><a href="/deals">See all 50 deals</a></footer>`,
+      template: `<article id="r"><h1>Item</h1><ul class="list"><li class="c" style="display:none"><span class="a">{{author}}</span></li><li class="c"><span class="a">Ann</span></li></ul></article>`,
+      counted: `<article id="r"><h1>Item</h1><section><h2>Comments (14)</h2>${rows}<button type="button" class="all">Show all 14 comments</button></section></article>`,
+    }
+    const browser = await chromium.launch()
+    try {
+      const page = await browser.newPage()
+      await page.route('http://site.test/**', route => route.fulfill({ contentType: 'text/html; charset=utf-8', body: `<!doctype html><html><body>${bodies[new URL(route.request().url()).pathname.split('/')[2]] ?? ''}</body></html>` }))
+      const on = async (name, fn, arg) => {
+        await page.goto(`http://site.test/p/${name}`)
+        await page.evaluate(installDlk)
+        return page.evaluate(fn, arg)
+      }
+      const pager = (name, rooted = true) => on(name, ([r]) => window.__dlk.pagerNear('#r', '.c', r), [rooted])
+      assert.equal(await pager('stars'), null)
+      assert.equal(await pager('nextProduct'), null)
+      assert.equal(await pager('nextArticle'), null)
+      assert.deepEqual(await pager('numbers'), { text: '2', href: 'http://site.test/p/numbers?page=2' })
+      assert.deepEqual(await pager('nextReviews'), { text: 'Next reviews ›', href: 'http://site.test/p/nextReviews?page=2' })
+      assert.deepEqual(await pager('seeAll'), { text: 'See all 120 reviews', href: 'http://site.test/p/seeAll/reviews' })
+      // Without root the whole page is the scope: a "see all" anywhere would be taken, so none is.
+      assert.equal(await on('seeAll', () => window.__dlk.pagerNear('html', '.c', false)), null)
+
+      const template = await on('template', () => window.__dlk.extractIn('#r', '.c', { author: '.a' }))
+      assert.deepEqual(template.recs, [{ author: 'Ann' }])
+      assert.equal(template.hidden, 1)
+      assert.equal(await on('template', () => window.__dlk.rowTextIn('#r', '.c', 0)), 'Ann')
+
+      assert.deepEqual(await on('counted', () => window.__dlk.moreNear('#r', '.c', [])), { control: 'Show all 14 comments', claim: { text: 'Comments (14)', n: 14 } })
+      assert.deepEqual(await on('counted', () => window.__dlk.moreNear('#r', '.c', ['button.all'])), { claim: { text: 'Comments (14)', n: 14 } })
+      assert.equal(await on('nextProduct', () => window.__dlk.moreNear('#r', '.c', [])), null)
+    } finally {
+      await browser.close()
+    }
+  })
+
   describe('--browser chrome (a stand-in playwright-cli drives a bundled Chromium)', () => {
     const env = { PLAYWRIGHT_CLI: FAKE_CLI }
     test('same rows as the bundled browser', async () => {
@@ -556,6 +864,20 @@ describe('detail.mjs', { concurrency: 4 }, () => {
       const { summary, stderr } = await script('detail.mjs', [listCsv, specFile, '--out', out, '--browser', 'chrome'], { env })
       assert.equal(summary?.stopReason, 'done', stderr)
       assert.equal(fs.readFileSync(out, 'utf8'), fs.readFileSync(path.join(tmp, 'clean.csv'), 'utf8'))
+    })
+    test('children: same main and child CSV as the bundled browser', async () => {
+      const q = `related=1&reviews=1&lateMs=200&run=kids-chrome-${run}`
+      const list = listOf('kids-chrome.csv', [1, 2, 9, 6].map(id => detailUrl(id, q)))
+      const spec = write('kids-chrome.json', KIDS)
+      const [bundled, chrome] = await Promise.all([
+        script('detail.mjs', [list, spec, '--out', path.join(tmp, 'kids-chrome-b.csv')]),
+        script('detail.mjs', [list, spec, '--out', path.join(tmp, 'kids-chrome-c.csv'), '--browser', 'chrome'], { env }),
+      ])
+      assert.equal(chrome.summary?.stopReason, 'done', chrome.stderr)
+      assert.equal(bundled.summary.children.rows, 11)
+      for (const suffix of ['.csv', '.children.csv']) {
+        assert.equal(fs.readFileSync(path.join(tmp, `kids-chrome-c${suffix}`), 'utf8'), fs.readFileSync(path.join(tmp, `kids-chrome-b${suffix}`), 'utf8'), suffix)
+      }
     })
     test('SIGINT to the script stops it with "interrupted" while a batch is running', async () => {
       const out = path.join(tmp, 'chrome-int.csv')

@@ -62,5 +62,9 @@
   "8336d491": {
     "id": "H01-002",
     "url": "/dev-fixtures/playground/detail-links?items=24&perPage=8&related=1&warranty=1"
+  },
+  "ed0ecf53": {
+    "id": "H01-003",
+    "url": "/dev-fixtures/playground/detail-links?items=24&perPage=8&related=1&reviews=1"
   }
 }

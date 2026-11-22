@@ -88,6 +88,7 @@ mock 页面路由在 `packages/backend/src/app/dev-fixtures/playground/`，由 b
 | [G03-001](cases/G03-001/case.json) | G3 | 连续调工具时长时间不说话：ERP 订单表，订单头一行 + 每单 1–3 个商品行，用户要「商品信息和 1688 商品信息两列」，两列都在列表单元格里、不用下钻；15 单 30 个商品行 | 30 | ok | — | verified | oracle-verified | — |
 | [H01-001](cases/H01-001/case.json) | H1 | 列表 → 详情页：24 件商品分 3 页，品牌 / SKU / 完整描述只在详情页上；详情页晚渲染 1.5 秒、两套模板（每第 4 件的品牌换了位置）、完整描述要点「Read more」；2 行没有链接、2 个死链（404）；详情页可选「第 N 次请求后变验证码页 / 空壳页 / 首次 503」 | 24 | — | — | vitest | draft | skill：scripts/detail-pages.test.mjs（detail.mjs 端到端：20 ok / 2 empty / 2 no-link，断点续跑、重试、被拦停机、canary） |
 | [H01-002](cases/H01-002/case.json) | H1 | 同 H01-001 的商品，详情页主记录前多一块「Customers also viewed」（两张卡片复用 .name / .maker a / .price / .warranty，各有 Read more）；用户要的保修是真可选字段（每第 3 件没有、别处也没有，14/20） | 24 | — | — | vitest | draft | skill：scripts/detail-pages.test.mjs（设 root 读主记录、expand 只点 root 内；不设 root 读到相关卡片；保修 14/20 的填充率提示不说「换了模板」） |
+| [H01-003](cases/H01-003/case.json) | H1 | 同 H01-001 的商品，每个详情页主记录里有评价列表（作者 / 星级在 aria-label / 日期在 datetime / 正文），每件 0–6 条（4 件 0 条），超过 2 条的其余在「Show all N reviews」后面；主记录前的相关卡片里各有一条同 class 的「Top review」 | 24 | — | — | vitest | draft | skill：scripts/detail-pages.test.mjs（children：子表 56 行、展开后读全、0 条计 0 与非 ok 页留空、root 内才读、断点续跑子行不重不漏、改 children 重读、chrome 程序带子列表读取） |
 
 ## 列说明
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from '../../_lib/next-shim'
 
 import { htmlResponse, intParam, playgroundBlocked, renderShell } from '../../_lib/shell'
-import { BASE, isCompactTemplate, isDeadLink, isFlaky, product, type Product } from '../products'
+import { BASE, isCompactTemplate, isDeadLink, isFlaky, product, type Product, type Review, REVIEWS_INLINE, reviews } from '../products'
 
 /**
  * 演练场 · 列表 → 详情页（pattern H1）：详情页 /dev-fixtures/playground/detail-links/<id>。
@@ -23,6 +23,17 @@ import { BASE, isCompactTemplate, isDeadLink, isFlaky, product, type Product } f
  *   root 设成主记录（article.product-detail）才读对、expand 也只该点主记录里的按钮。
  * - warranty=1：规格表多一行 Warranty（td.warranty）；id % 3 === 0 的商品没有保修，这一行不出现、页面别处也没有
  *   （真正的可选字段：填充率低不是因为换了模板）。
+ * - reviews=1：主记录（article 里、描述后面）有评价区 section.reviews：ul.review-list 里每条 li.review 有
+ *   .author / .rating（星星文字，分数只在 aria-label「Rated N out of 5」里）/ time.date（datetime 属性）/ p.text。
+ *   条数按商品不同（products.ts reviewCount，有 0 条的：只有「No reviews yet.」）；超过 REVIEWS_INLINE 条时其余
+ *   藏在 button.show-reviews「Show all N reviews」后面，点了 300ms 后插入、按钮消失。和 related=1 一起开时，
+ *   相关商品卡片里也各有一条同 class 的「Top review」（section.reviews 里的 li.review），只有把子列表限定在主记录里才不会混进来。
+ * - reviewPager=1（配合 reviews=1）：多出来的评价不在按钮后面，而在另一个 URL：a.reviews-next「Next reviews ›」
+ *   指向本页加 reviewPage=2，那一页的评价区只列从第 REVIEWS_INLINE+1 条起的评价。
+ * - reviewStep=N（配合 reviews=1）：多出来的评价不是一次全出来，而是在 button.load-more-reviews「Load more reviews」后面，
+ *   每点一次 300ms 后多插入 N 条，全部插完按钮才消失（长评论区的「加载更多」：要点很多次）。
+ * - reviewsLateMs=N（配合 reviews=1）：主记录先出来，评价区先只有标题和「Loading reviews…」，再过 N 毫秒评价列表
+ *   （和按钮）才插进去（评价单独一个请求、比商品信息晚到）。
  * - badge=1：每个详情页右下角常驻一个 reCAPTCHA v3 徽标（position:fixed 的 div.grecaptcha-badge + iframe title="reCAPTCHA"），
  *   很多站每页都挂着它；它不是拦截，内容照常渲染。
  *
@@ -40,6 +51,10 @@ const STYLE = `
 .specs th { text-align: left; padding-right: 16px; }
 .read-more { margin-left: 8px; }
 `
+const REVIEW_STYLE = `
+.review { padding: 6px 0; border-bottom: 1px solid #eee; }
+.review .rating { color: #c80; }
+`
 const CAPTCHA_STYLE = `
 .captcha-box { width: 320px; padding: 16px; border: 1px solid #ccc; }
 .captcha-track { height: 40px; background: #eee; }
@@ -50,6 +65,47 @@ const BADGE = `<div class="grecaptcha-badge" style="position:fixed;right:0;botto
 interface Variant {
   related: boolean
   warranty: boolean
+  reviews: boolean
+  reviewPager: boolean
+  /** reviewPager=1 时的评价页码（1 或 2）。 */
+  reviewPage: number
+  /** >0：其余评价在「Load more reviews」后面，每点一次多出这么多条。 */
+  reviewStep: number
+  /** >0：评价列表比主记录晚这么多毫秒出现。 */
+  reviewsLateMs: number
+}
+
+function reviewHtml(r: Review, prefix = ''): string {
+  return `<li class="review"><span class="author">${r.author}</span> <span class="rating" aria-label="Rated ${r.rating} out of 5">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span> <time class="date" datetime="${r.date}">${r.dateText}</time><p class="text">${prefix}${r.text}</p></li>`
+}
+
+/** 主记录里的评价区；超过 REVIEWS_INLINE 条时其余在按钮后面（或 reviewPager 时在第 2 页）。 */
+function reviewsHtml(p: Product, v: Variant): string {
+  const all = reviews(p.id)
+  if (!all.length) return `<section class="reviews"><h2>Reviews (0)</h2><p class="no-reviews">No reviews yet.</p></section>`
+  const shown = v.reviewPager && v.reviewPage === 2 ? all.slice(REVIEWS_INLINE) : all.slice(0, REVIEWS_INLINE)
+  const more =
+    all.length <= REVIEWS_INLINE || (v.reviewPager && v.reviewPage === 2)
+      ? ''
+      : v.reviewPager
+        ? `<a class="reviews-next" href="${BASE}/${p.id}?reviews=1&amp;reviewPager=1&amp;reviewPage=2">Next reviews ›</a>`
+        : v.reviewStep
+          ? `<button class="load-more-reviews" type="button">Load more reviews</button>`
+          : `<button class="show-reviews" type="button">Show all ${all.length} reviews</button>`
+  const list = `<ul class="review-list">${shown.map(r => reviewHtml(r)).join('')}</ul>${more}`
+  if (v.reviewsLateMs) return `<section class="reviews"><h2>Reviews (${all.length})</h2><div class="reviews-body"><p class="loading-reviews">Loading reviews…</p></div></section>`
+  return `<section class="reviews"><h2>Reviews (${all.length})</h2>${list}</section>`
+}
+
+/** reviewsLateMs：晚到的评价列表（和它的按钮），插进 .reviews-body。 */
+function lateReviewsHtml(p: Product, v: Variant): string {
+  if (!v.reviews || !v.reviewsLateMs || !reviews(p.id).length) return ''
+  return reviewsHtml(p, { ...v, reviewsLateMs: 0 }).replace(/^<section class="reviews"><h2>[^<]*<\/h2>/, '').replace(/<\/section>$/, '')
+}
+
+/** 点「Show all N reviews」后插入的评价。 */
+function hiddenReviewsHtml(p: Product, v: Variant): string {
+  return v.reviews && !v.reviewPager ? reviews(p.id).slice(REVIEWS_INLINE).map(r => reviewHtml(r)).join('') : ''
 }
 
 function warrantyRow(p: Product, v: Variant): string {
@@ -59,7 +115,7 @@ function warrantyRow(p: Product, v: Variant): string {
 /** 「Customers also viewed」：主记录前面的两张卡片，class 与主记录相同。 */
 function relatedHtml(p: Product, v: Variant): string {
   const card = (r: Product): string =>
-    `<div class="product-card"><h3 class="name"><a href="${BASE}/${r.id}">${r.name}</a></h3><p class="maker">by <a href="/brands/${r.brand.toLowerCase()}">${r.brand}</a></p><p class="price">${r.price}</p>${v.warranty && r.warranty ? `<p class="warranty">${r.warranty}</p>` : ''}<p class="teaser">${r.summary}</p><button class="read-more" type="button">Read more</button></div>`
+    `<div class="product-card"><h3 class="name"><a href="${BASE}/${r.id}">${r.name}</a></h3><p class="maker">by <a href="/brands/${r.brand.toLowerCase()}">${r.brand}</a></p><p class="price">${r.price}</p>${v.warranty && r.warranty ? `<p class="warranty">${r.warranty}</p>` : ''}<p class="teaser">${r.summary}</p><button class="read-more" type="button">Read more</button>${v.reviews && reviews(r.id).length ? `<section class="reviews"><ul class="review-list">${reviewHtml(reviews(r.id)[0], 'Top review: ')}</ul></section>` : ''}</div>`
   return `<aside class="related"><h2>Customers also viewed</h2>
 ${[product(p.id + 1), product(p.id + 2)].map(card).join('\n')}
 </aside>
@@ -69,7 +125,7 @@ ${[product(p.id + 1), product(p.id + 2)].map(card).join('\n')}
 function detailHtml(p: Product, v: Variant): string {
   const before = v.related ? relatedHtml(p, v) : ''
   const warranty = warrantyRow(p, v)
-  const description = `<section class="description"><p class="summary">${p.summary}</p><button class="read-more" type="button">Read more</button></section>`
+  const description = `<section class="description"><p class="summary">${p.summary}</p><button class="read-more" type="button">Read more</button></section>${v.reviews ? `\n${reviewsHtml(p, v)}` : ''}`
   if (isCompactTemplate(p.id)) {
     return `${before}<article class="product-detail compact">
 <header><h1 class="name">${p.name}</h1><p class="maker">by <a href="/brands/${p.brand.toLowerCase()}">${p.brand}</a></p></header>
@@ -98,9 +154,36 @@ const RELATED_SCRIPT = `
     }, 300);
   }));`
 
+/** reviews=1：「Show all N reviews」把其余评价插进主记录的列表后消失；reviewStep 时「Load more reviews」每次插 N 条。 */
+function reviewsScript(hidden: string, main: string, step = 0): string {
+  if (!hidden) return ''
+  if (step) {
+    return `
+  const MORE_REVIEW_ITEMS = ${JSON.stringify(hidden.match(/<li class="review">[\s\S]*?<\/li>/g) ?? [])};
+  const loadMore = document.querySelector('${main}.load-more-reviews');
+  if (loadMore) loadMore.addEventListener('click', () => {
+    setTimeout(() => {
+      document.querySelector('${main}.review-list').insertAdjacentHTML('beforeend', MORE_REVIEW_ITEMS.splice(0, ${step}).join(''));
+      if (!MORE_REVIEW_ITEMS.length) loadMore.remove();
+    }, 300);
+  });`
+  }
+  return `
+  const MORE_REVIEWS = ${JSON.stringify(hidden)};
+  const showReviews = document.querySelector('${main}.show-reviews');
+  if (showReviews) showReviews.addEventListener('click', () => {
+    setTimeout(() => {
+      document.querySelector('${main}.review-list').insertAdjacentHTML('beforeend', MORE_REVIEWS);
+      showReviews.remove();
+    }, 300);
+  });`
+}
+
 function renderScript(p: Product, lateMs: number, v: Variant): string {
   // 有相关卡片时，主记录的按钮和摘要要限定在 article 里（卡片在前，document.querySelector 会先碰到卡片）。
   const main = v.related ? 'article.product-detail ' : ''
+  const wiring = reviewsScript(hiddenReviewsHtml(p, v), main, v.reviewStep)
+  const late = lateReviewsHtml(p, v)
   return `
 const DETAIL = ${JSON.stringify(detailHtml(p, v))};
 const FULL = ${JSON.stringify(p.fullText)};
@@ -115,7 +198,10 @@ setTimeout(() => {
       document.querySelector('${main}.summary').replaceWith(full);
       button.remove();
     }, 300);
-  });${v.related ? RELATED_SCRIPT : ''}
+  });${v.related ? RELATED_SCRIPT : ''}${late ? `
+  setTimeout(() => {
+    document.querySelector('${main}.reviews-body').innerHTML = ${JSON.stringify(late)};${wiring}
+  }, ${v.reviewsLateMs});` : wiring}
 }, ${lateMs});`
 }
 
@@ -137,7 +223,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const flaky = query.get('flaky')
   const badge = query.get('badge') === '1'
   const run = query.get('run') ?? 'default'
-  const variant: Variant = { related: query.get('related') === '1', warranty: query.get('warranty') === '1' }
+  const variant: Variant = {
+    related: query.get('related') === '1',
+    warranty: query.get('warranty') === '1',
+    reviews: query.get('reviews') === '1',
+    reviewPager: query.get('reviewPager') === '1',
+    reviewPage: query.get('reviewPage') === '2' ? 2 : 1,
+    reviewStep: intParam(query.get('reviewStep'), 0, 0, 10),
+    reviewsLateMs: intParam(query.get('reviewsLateMs'), 0, 0, 10_000),
+  }
 
   const served = (requestsByRun.get(run) ?? 0) + 1
   requestsByRun.set(run, served)
@@ -172,5 +266,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const p = product(id)
   const body = `<nav class="crumbs"><a href="/dev-fixtures/playground/detail-links">Products</a> › ${p.name}</nav>
 <main id="app"><p class="loading">Loading…</p></main>${badge ? BADGE : ''}`
-  return htmlResponse(renderShell(p.name, body, { style: STYLE, script: renderScript(p, lateMs, variant) }))
+  return htmlResponse(renderShell(p.name, body, { style: variant.reviews ? STYLE + REVIEW_STYLE : STYLE, script: renderScript(p, lateMs, variant) }))
 }
