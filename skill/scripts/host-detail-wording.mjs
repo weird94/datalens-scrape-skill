@@ -2,14 +2,22 @@
 // Such a host has no detail.mjs / inspect.mjs to run, no --out file to go on from, no signals, no --browser switch
 // and no pacing settings, and it keeps a result as tables of one saved result rather than CSV files. Its agent would
 // go after any of those, so each passage that names them is said here without them (or left out); every rule about
-// what to read and how stays word for word. Used by sync-references.mjs; each passage must appear exactly once in
-// its source, so an edit to the .md / SKILL.md that moves one fails the sync instead of letting CLI wording through.
+// what to read and how stays word for word. Where such a host behaves otherwise, its wording says what it does: a
+// run of the same spec skips pages read ok and dead links and reads every other one again (empty ones last); a
+// 404 / 410 has its own status, `dead-link`; a changed spec leaves each row's earlier values until it reads that
+// row's page ok; and it follows only links in the list's own columns (never a link read on a detail page).
+// Used by sync-references.mjs; each passage must appear exactly once in its source, so an edit to the .md /
+// SKILL.md that moves one fails the sync instead of letting CLI wording through.
 
 /** [CLI passage, host wording] pairs for references/detail-pages.md. */
 export const DETAIL_NOTE_HOST = [
   ["`detail.mjs` opens each row's own page", "The detail pass opens each row's own page"],
   ['It is a second pass over a list CSV:', 'It is a second pass over a collected list:'],
   ['## Before writing detail.json', '## Before writing the detail spec'],
+  [
+    '- **A second pass** over a detail output (for pages its rows link to) works the same way; its status column is `detail_status_2`.',
+    "- **Only links in the list's own columns** can be followed: a link read on a detail page (a detail field) cannot be opened in another pass. A pass over another link column of the list gets its own status column, `detail_status_2`.",
+  ],
   ['and inspect each: `inspect.mjs <url> --html "<record css>"`, `--probe "<field css>"`.', "and inspect each: the record's html, probes for the fields."],
   ['inspect that whole record (`--html "<root>"`)', 'inspect that whole record (the html of `root`)'],
   ['Check with `inspect.mjs <url> --click "<css>" --html "<record css>"`.', "Check it by inspecting the page: click the control, then look at the record's html."],
@@ -21,12 +29,15 @@ export const DETAIL_NOTE_HOST = [
   ],
   [
     '- Every page is written to `<out>.detail.jsonl` when it finishes, and the CSV is rewritten as the run goes. A run that is killed loses at most the page in flight (with `--browser chrome`, the batch in flight: up to 8 pages). Ctrl-C, SIGTERM and SIGHUP stop it cleanly (`stopReason: "interrupted"`). Rerunning the same command skips `ok` and `empty` pages, retries `failed` ones while they have tries left (`maxAttempts`, counted over all runs) and `blocked` ones every time.',
-    '- What a run read is kept when it stops. Running the same spec again skips pages read `ok`, retries `failed` ones while they have tries left (`maxAttempts`) and `blocked` ones every time.',
+    '- What a run read is kept when it stops. Running the same spec again skips pages read `ok` and dead links, and reads `failed`, `blocked`, `empty` and `pending` ones again (`empty` ones last, after the others); a `failed` page gets up to `maxAttempts` tries in each run.',
   ],
-  ['; pacing and retry settings do not.', '; retry settings do not.'],
   [
-    '**Empty pages read again:** an empty page counts as done only once an ok page came after it (or the run ended normally); a run stopped in the middle',
-    '**Empty pages read again:** a run stopped in the middle',
+    'A changed `fields` / `root` / `require` / `waitFor` / `setup` / `expand` / `expandPasses` / `children` reads every page again; pacing and retry settings do not.',
+    "A changed `fields` / `root` / `require` / `waitFor` / `setup` / `expand` / `expandPasses` / `children` reads every page again (dead links aside), and each row keeps the values the earlier spec read until the new spec reads that row's page `ok`; retry settings do not change what was read.",
+  ],
+  [
+    '**Empty pages read again:** an empty page counts as done only once an ok page came after it (or the run ended normally); a run stopped in the middle of a run of empty pages reads them again next time, after the other links.',
+    '**Empty pages read again:** every `empty` page is read again when the same spec runs again, after the other links.',
   ],
   [
     ' To read every `empty` page again (e.g. after raising `waitTimeoutMs` for slow pages), add `--retry-empty` (with `children`, it also reads again the `ok` pages that had no child row); pages recorded as empty by the bundled browser are read again on their own with `--browser chrome`, and the other way round.',
@@ -37,6 +48,10 @@ export const DETAIL_NOTE_HOST = [
     ' and ask before running it again (the user may get past the check themselves first). Do not solve captchas or log in for the user, and do not try to get through faster.',
   ],
   ['(fix detail.json;', '(fix the spec;'],
+  [
+    "`deadLinks`: links that answered 404 / 410. They count as `empty`; report them, don't retry.",
+    '`deadLinks`: links that answered 404 / 410. They show as `dead-link` (not `empty`) and are not read again; report them.',
+  ],
   ['the site may be serving this browser empty pages — ask the user about `--browser chrome`.', 'the site may be serving the run empty pages — tell the user.'],
   [
     '- Pacing: one page at a time, with a pause of `delayMs`..2×`delayMs` (default 1500 ms) before each. `concurrency` (up to 3) runs pages in parallel in the bundled browser only; use it for sites that clearly tolerate it.',
@@ -45,6 +60,7 @@ export const DETAIL_NOTE_HOST = [
   ['add `children` to detail.json:', 'add `children` to the spec:'],
   ['write them from one whole child row (`--html "<rows>"`)', 'write them from one whole child row (the html of `rows`)'],
   ['check with `--html` on a page that has replies.', 'check with the html of a page that has replies.'],
+  [" On a separate reviews page (below), use that page's heading.", ''],
   ['detail.mjs does not scroll:', 'The detail pass does not scroll:'],
   ['- Output: the main CSV gets', '- Output: the result gets'],
   [
@@ -60,17 +76,16 @@ export const DETAIL_NOTE_HOST = [
     '',
   ],
   ['`rows` (rows in the child CSV)', '`rows` (rows in the child table)'],
-  ["detail.mjs reads only the children the item's page itself shows", "the detail pass reads only the children the item's page itself shows"],
   [
-    "its child CSV joins on `parent_row` like the first and replaces the first pass's child rows for those items",
-    "its child rows replace the first pass's child rows for those items",
-  ],
-  [
-    "run collect.mjs on each item's list URL (its `next` follows the pager), one run per item, and join on the item's link.",
-    "collect it as a list of its own on each item's list page (its `next` follows the pager), one run per item, and join on the item's link.",
+    "detail.mjs reads only the children the item's page itself shows, and warns when it sees such a link. To get the rest, collect it separately. When the whole list is on one page of its own (\"See all reviews\" shows them all, maybe behind a load-more button), read that link as a detail field (`attr: \"href\"`) and run a second detail pass over the output with `link` set to that column and `children` (plus `expand`) reading that page; its child CSV joins on `parent_row` like the first and replaces the first pass's child rows for those items: that page usually repeats the ones the item's page showed, so do not concatenate the two. When the list goes on page by page through URLs, run collect.mjs on each item's list URL (its `next` follows the pager), one run per item, and join on the item's link.",
+    "the detail pass reads only the children the item's page itself shows, and warns when it sees such a link. Only links in the list's own columns can be followed, so a detail pass cannot add the rest of such a list, not even by reading its link as a detail field. Tell the user which items have more children on a separate page; if they want the rest of one item's list, collect it as a list of its own on that page (its `next` follows the pager), one run per item.",
   ],
   ['say how many, and that rerunning the same command fills them in.', 'say how many, and that running the same spec again fills them in.'],
   ["the child CSV's path and row count,", "the child table's row count,"],
+  [
+    'ok / empty / failed / blocked / pending / no-link; `deadLinks` among the empty ones)',
+    'ok / empty / dead-link / failed / blocked / pending / no-link; `deadLinks` lists the dead links)',
+  ],
 ]
 
 /** [CLI passage, host wording] pairs for SKILL.md's "### Detail pages" (SKILL_CONFIG_DETAIL). */
@@ -90,7 +105,11 @@ export const DETAIL_CONFIG_HOST = [
   ],
   [
     'Every page is checkpointed in `<out>.detail.jsonl`: rerunning the same command skips `ok` / `empty`, retries `failed` while tries are left and `blocked` always; a spec that reads differently reads every page again; `--retry-empty` (or the other `--browser`) reads `empty` pages again.',
-    'What a run read is kept when it stops: running the same spec again skips `ok` pages, retries `failed` while tries are left and `blocked` always; a spec that reads differently reads every page again.',
+    "What a run read is kept when it stops: running the same spec again skips `ok` pages and dead links, and reads `failed`, `blocked`, `empty` and `pending` ones again (`empty` ones last); a spec that reads differently reads every page again, and each row keeps the values the earlier spec read until the new one reads its page `ok`.",
+  ],
+  [
+    '`detail_status` (`detail_status_2` when the list already has one): `ok`, `empty` (loaded without the fields; dead links, HTTP 404/410, too), `failed`, `blocked`, `pending` (not read yet), `no-link`.',
+    "`detail_status` (`detail_status_2` for a pass over another link column of the list; only links in the list's own columns are followed): `ok`, `empty` (loaded without the fields), `dead-link` (HTTP 404/410), `failed`, `blocked`, `pending` (not read yet), `no-link`.",
   ],
   [' · `interrupted` (Ctrl-C, SIGTERM or SIGHUP)', ''],
   ['The summary (`full.json`) adds', 'The summary adds'],

@@ -118,3 +118,23 @@ test('SKILL_CONFIG_DETAIL_HOST is the detail grammar without the command line', 
   assert.match(SKILL_CONFIG_DETAIL, /scripts\/detail\.mjs/)
   assert.match(SKILL_CONFIG_DETAIL, /`interrupted` \(Ctrl-C/)
 })
+
+// What the in-process host actually does, said the same way in the note and the grammar: a run of the same spec skips
+// pages read ok and dead links and reads every other page again (empty ones last); a 404 / 410 shows as `dead-link`;
+// a changed spec leaves each row's earlier values until it reads that row's page ok; and only links in the list's own
+// columns can be followed, so nothing may promise a second pass over a link read on a detail page.
+test('the host detail texts say what the host does on a rerun, with dead links, and promise no pass over a detail field', () => {
+  const note = REFERENCES_HOST['detail-pages']
+  for (const [what, text] of [['note', note], ['grammar', SKILL_CONFIG_DETAIL_HOST]]) {
+    assert.match(text, /skips (pages read )?`ok`( pages)? and dead links, and reads `failed`, `blocked`, `empty` and `pending` ones again \(`empty` ones last/, what)
+    assert.match(text, /`dead-link`/, what)
+    assert.match(text, /until the new (spec|one) reads (that row's|its) page `ok`/, what)
+    assert.doesNotMatch(text, /dead links, HTTP 404\/410, too/, what)
+  }
+  assert.doesNotMatch(note, /They count as `empty`/)
+  assert.match(note, /ok \/ empty \/ dead-link \/ failed \/ blocked \/ pending \/ no-link/)
+  // Links: the list's own columns only.
+  assert.match(note, /only links in the list's own columns/i)
+  assert.doesNotMatch(note, /second pass\*\* over a detail output|read that link as a detail field|second detail pass over the output|On a separate reviews page/)
+  assert.match(note, /See all/)
+})
