@@ -111,7 +111,8 @@ export const DETAIL_CONFIG_HOST = [
     '`detail_status` (`detail_status_2` when the list already has one): `ok`, `empty` (loaded without the fields; dead links, HTTP 404/410, too), `failed`, `blocked`, `pending` (not read yet), `no-link`.',
     "`detail_status` (`detail_status_2` for a pass over another link column of the list; only links in the list's own columns are followed): `ok`, `empty` (loaded without the fields), `dead-link` (HTTP 404/410), `failed`, `blocked`, `pending` (not read yet), `no-link`.",
   ],
-  [' · `interrupted` (Ctrl-C, SIGTERM or SIGHUP)', ''],
+  [' · `interrupted` (Ctrl-C, SIGTERM or SIGHUP)', ' · `pages-failed` (5 links in a row failed) · `window-closed` (the user closed the detail window) · `stopped-by-user` · `points-exhausted`'],
+  ['(the run stops with a message otherwise)', '(the preview refuses the spec otherwise)'],
   ['The summary (`full.json`) adds', 'The summary adds'],
 ]
 
