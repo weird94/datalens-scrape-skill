@@ -5,7 +5,8 @@
 // what to read and how stays word for word. Where such a host behaves otherwise, its wording says what it does: a
 // run of the same spec skips pages read ok and dead links and reads every other one again (empty ones last); a
 // 404 / 410 has its own status, `dead-link`; a changed spec leaves each row's earlier values until it reads that
-// row's page ok; and it follows only links in the list's own columns (never a link read on a detail page).
+// row's page ok; it follows only links in the list's own columns (never a link read on a detail page); and it reads
+// the pages in the user's own tab, one after another, taking that tab back to the list afterwards.
 // Used by sync-references.mjs; each passage must appear exactly once in its source, so an edit to the .md /
 // SKILL.md that moves one fails the sync instead of letting CLI wording through.
 
@@ -55,7 +56,7 @@ export const DETAIL_NOTE_HOST = [
   ['the site may be serving this browser empty pages — ask the user about `--browser chrome`.', 'the site may be serving the run empty pages — tell the user.'],
   [
     '- Pacing: one page at a time, with a pause of `delayMs`..2×`delayMs` (default 1500 ms) before each. `concurrency` (up to 3) runs pages in parallel in the bundled browser only; use it for sites that clearly tolerate it.',
-    '- The pace is fixed: one page at a time, with a pause before each.',
+    "- The pages open in the user's tab, one after another, at a fixed pace (one page at a time, with a pause before each); the tab goes back to the list afterwards. Tell the user to keep that tab in front and not use it while the run goes: a tab that is not in front is not drawn, so the run pauses until the user brings it back.",
   ],
   ['add `children` to detail.json:', 'add `children` to the spec:'],
   ['write them from one whole child row (`--html "<rows>"`)', 'write them from one whole child row (the html of `rows`)'],
@@ -92,7 +93,7 @@ export const DETAIL_NOTE_HOST = [
 export const DETAIL_CONFIG_HOST = [
   [
     '`detail.json` for `scripts/detail.mjs list.csv detail.json --out full.csv [--max-rows N] [--browser bundled|chrome] [--session NAME] [--retry-empty]`:',
-    "The detail spec, for a second pass that opens each row's own page:",
+    "The detail spec, for a second pass that opens each row's own page in the user's tab, one after another (the tab goes back to the list afterwards):",
   ],
   ['  "expand": [".description button.show-more"],\n  "delayMs": 1500\n', '  "expand": [".description button.show-more"]\n'],
   [
@@ -111,7 +112,10 @@ export const DETAIL_CONFIG_HOST = [
     '`detail_status` (`detail_status_2` when the list already has one): `ok`, `empty` (loaded without the fields; dead links, HTTP 404/410, too), `failed`, `blocked`, `pending` (not read yet), `no-link`.',
     "`detail_status` (`detail_status_2` for a pass over another link column of the list; only links in the list's own columns are followed): `ok`, `empty` (loaded without the fields), `dead-link` (HTTP 404/410), `failed`, `blocked`, `pending` (not read yet), `no-link`.",
   ],
-  [' · `interrupted` (Ctrl-C, SIGTERM or SIGHUP)', ' · `pages-failed` (5 links in a row failed) · `window-closed` (the user closed the detail window) · `stopped-by-user` · `points-exhausted`'],
+  [
+    ' · `tab-not-rendering` · `interrupted` (Ctrl-C, SIGTERM or SIGHUP)',
+    ' · `tab-not-rendering` (the tab was not in front, and the user stopped the run) · `pages-failed` (5 links in a row failed) · `tab-closed` (the user closed the tab) · `stopped-by-user` · `points-exhausted`',
+  ],
   ['(the run stops with a message otherwise)', '(the preview refuses the spec otherwise)'],
   ['The summary (`full.json`) adds', 'The summary adds'],
 ]

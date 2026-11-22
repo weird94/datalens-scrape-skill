@@ -138,3 +138,18 @@ test('the host detail texts say what the host does on a rerun, with dead links, 
   assert.doesNotMatch(note, /second pass\*\* over a detail output|read that link as a detail field|second detail pass over the output|On a separate reviews page/)
   assert.match(note, /See all/)
 })
+
+// The in-process host (the extension's side panel) reads detail pages in the user's own tab, one after another, and
+// takes that tab back to the list afterwards; the user keeps it in front and leaves it alone meanwhile. There is no
+// separate window, so neither text may mention one, and closing the tab stops a run as `tab-closed`.
+test('the host detail texts say the pages open in the user\'s tab and the tab goes back to the list', () => {
+  const note = REFERENCES_HOST['detail-pages']
+  for (const [what, text] of [['note', note], ['grammar', SKILL_CONFIG_DETAIL_HOST]]) {
+    assert.match(text, /in the user's (current )?tab, one after another/, what)
+    assert.match(text, /goes back to the list/, what)
+    assert.doesNotMatch(text, /window-closed|detail window|separate window/, what)
+  }
+  assert.match(note, /keep that tab in front and not use it while the run goes/)
+  assert.match(SKILL_CONFIG_DETAIL_HOST, /`tab-closed` \(the user closed the tab\)/)
+  assert.match(SKILL_CONFIG_DETAIL_HOST, /`tab-not-rendering` \(the tab was not in front/)
+})
