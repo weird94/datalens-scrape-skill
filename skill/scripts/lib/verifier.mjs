@@ -22,7 +22,7 @@ export function verifyTable({ header, rows, summary = null }) {
   lines.push(`ROWS  ${rows.length}   COLUMNS  ${header.length}: ${header.join(', ')}`)
   // A run that did not finish: the CSV holds only what was collected until it stopped.
   const unfinished = summary ? UNFINISHED[summary.stopReason] : null
-  if (unfinished) warn(`${unfinished(summary.note)}: the CSV holds only the rows collected until then — rerun to get the rest, or tell the user the list is incomplete`)
+  if (unfinished) warn(`${unfinished(summary.note)}: the CSV holds only the rows collected until then — rerun the same command to get the rest (collect.mjs with --resume), or tell the user the list is incomplete`)
   if (!rows.length) return { lines, warnings: lines.filter(l => l.startsWith('WARN')).map(l => l.slice(6)), notes: [] }
 
   // Columns

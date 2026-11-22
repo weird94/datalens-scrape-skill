@@ -14,13 +14,16 @@ export const CHUNK_SOURCES = [installDlk, settle, gotoAndSettle, runSetup, rowId
 
 /**
  * The expression one call evaluates (with CHUNK_SOURCES in scope and `page` bound): the first call when
- * `state` is null, otherwise the call that goes on from it. `pauseAfter`: { steps, ms } per call.
+ * `state` is null, otherwise the call that goes on from it. `pauseAfter`: { steps, ms } per call. `start`: what
+ * the first call also gets — `seedRows` and `resumeAt` when the run goes on from one an earlier process saved.
  * @param {object} config
  * @param {object | null} state
  * @param {{ steps?: number, ms?: number }} pauseAfter
+ * @param {{ seedRows?: object[], resumeAt?: object }} [start]
  */
-export function chunkCall(config, state, pauseAfter) {
-  return `collectOnPage(page, ${JSON.stringify(config)}, { settle, gotoAndSettle, runSetup, installDlk, pauseAfter: ${JSON.stringify(pauseAfter)}, resume: ${JSON.stringify(state ?? null)} })`
+export function chunkCall(config, state, pauseAfter, start = {}) {
+  const first = state ? '' : `, seedRows: ${JSON.stringify(start.seedRows ?? null)}, resumeAt: ${JSON.stringify(start.resumeAt ?? null)}`
+  return `collectOnPage(page, ${JSON.stringify(config)}, { settle, gotoAndSettle, runSetup, installDlk, pauseAfter: ${JSON.stringify(pauseAfter)}, resume: ${JSON.stringify(state ?? null)}${first} })`
 }
 
 /**

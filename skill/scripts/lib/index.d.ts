@@ -96,6 +96,34 @@ export interface RoundEntry {
   total: number
   /** Rows on the page left unread because maxRows was reached in this round. */
   cutAtMaxRows?: number
+  /** Seeded rows (`seedRows`, e.g. saved by an earlier run) read again in this round; they count as progress. */
+  known?: number
+}
+
+/** Where a run stands after the last page it finished (see `onPage`). */
+export interface CollectPosition {
+  /** Pages (or scroll / load-more rounds) read so far. */
+  pages: number
+  /** Page turns so far (next clicks that changed the list, URL pages). */
+  turn: number
+  /** The URL of that page. */
+  url: string | null
+  /** Rows collected when it was finished. */
+  rows: number
+  /** Hashes of that page's first rows, to tell it from another page when it is opened again. */
+  keys: string[]
+  /** next.type click: every turn that brought rows went to a URL of its own (null before the first). */
+  urlPerPage: boolean | null
+}
+
+/** How to go on from a run an earlier process saved (collect.mjs --resume; lib/resume.mjs builds it). */
+export interface ResumeAt extends Partial<CollectPosition> {
+  how: 'continued' | 'from-start'
+  /** The earlier run's rounds (skipped ones as placeholders), totals it saw, and its merge counts. */
+  rounds?: RoundEntry[]
+  claimed?: { text: string; n: number }[]
+  mergedByLink?: number
+  mergedSameRecord?: number
 }
 
 export interface WallInfo {
@@ -134,6 +162,10 @@ export interface CollectResult {
   lastUrl: string
   /** Rows the host handed in (`seedRows`) that start the result. */
   seeded: number
+  /** After the last page the run finished; null before the first page was read. */
+  position: CollectPosition | null
+  /** With `resumeAt`: how the run went on ('from-start' with a `note` when the saved page was not that page any more). */
+  resumed: { how: 'continued' | 'from-start'; at?: string; note?: string } | null
   /** Rows on the page went down after an expand pass (an expand selector also hit a "hide" button). */
   expandShrank: { from: number; to: number; at: string } | null
   /** Rows whose element showed other values after an expand click (a pager inside the record); the first values were kept. */
@@ -244,6 +276,10 @@ export interface CollectHooks {
   pauseAfter?: { steps?: number; ms?: number }
   /** A state a paused call returned (as JSON): go on from it in the same tab, without loading the page again. */
   resume?: CollectState | null
+  /** Go on with a run an earlier process saved (its rows as `seedRows`); ignored with `resume`. */
+  resumeAt?: ResumeAt | null
+  /** At each page boundary: where the run stands, and how it went on from a saved run. */
+  onPage?: (position: CollectPosition, info: { resumed: CollectResult['resumed'] }) => void | Promise<void>
 }
 
 /** What a paused call hands back: plain JSON (rows, rounds, counters, expand bookkeeping); `url` is where the tab is,
@@ -327,7 +363,12 @@ export function collectOnPage(page: SkillPage, config: ScrapeConfig, lib: PageHe
 /** Function declarations (as source) a run-code call needs to run collectOnPage. */
 export const CHUNK_SOURCES: string[]
 /** The expression one chunked call evaluates (CHUNK_SOURCES in scope, `page` bound). */
-export function chunkCall(config: ScrapeConfig, state: CollectState | null, pauseAfter: { steps?: number; ms?: number }): string
+export function chunkCall(
+  config: ScrapeConfig,
+  state: CollectState | null,
+  pauseAfter: { steps?: number; ms?: number },
+  start?: { seedRows?: Record<string, string>[]; resumeAt?: ResumeAt | null }
+): string
 /** Call `runChunk` until a result is not paused; `onPause` runs between calls with the state so far. */
 export function collectInChunks(
   runChunk: (state: CollectState | null, n: number) => Promise<CollectResult | CollectPaused> | CollectResult | CollectPaused,

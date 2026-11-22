@@ -13,11 +13,19 @@ The collector stops on rules; you decide what the stop means. Use the summary JS
 | `scroll-end` | at the bottom, nothing new for 3 rounds | footer reached; or loading is slow (raise `stagnantRounds`/`quietMs`) |
 | `scroll-blocked` | scrolling didn't move | popup locking the page → `dismiss` |
 | `no-rows-on-first-page` | rows never appeared | late render (raise `waitTimeoutMs`/`initialWaitMs`), empty or gated page, wrong selector |
-| `max-pages` / `max-rows` | your limit, and the next control was still there | tell the user there's more |
+| `max-pages` / `max-rows` | your limit, and the next control was still there | tell the user there's more, or go on: `--resume` with a higher limit |
 | `blocked` | no rows, and the page looks like a bot check / block page (`note` has the evidence: challenge element, wording, HTTP status) | offer the user's own Chrome (browser.md); if that is blocked too, stop and report |
 | `login-wall` | no rows, and the page asks to log in | the user logs in — in their own Chrome (browser.md) |
 | `tab-not-rendering` | `--browser chrome` only: the Chrome window is minimized or covered, so the page stopped drawing | ask the user to bring the window to the front and keep it visible, then rerun |
 | `setup-failed` | a required setup step could not run (`note` names it) | the button text/selector differs (language, A/B layout), the page is a wall, or the step needs `optional: true` |
+
+## Going on after a stop: `--resume`
+Rerun the exact same command with `--resume` (raise `--max-pages` / `--max-rows` when a limit stopped it) to go on with the run saved at `--out` instead of starting over. It keeps the saved rows, does not add them twice, and the summary reads as one run (`rounds`, `roundLog` and `seconds` go on; `resumedFrom` lists each earlier part).
+- `next.type: "url"`: goes on at the first page not yet read. A page the row limit cut part way is read again.
+- `next.type: "click"` where each click loaded a page with its own URL: reopens the last page read, checks it still shows the same rows, and clicks on. If it shows other rows or lands elsewhere, the list is read from the top instead.
+- Scrolling, `load-more`, or a click that changes the page in place: the list is read again from the top. Saved rows that come by again are not added twice (`known` in `roundLog`), so only the time to get back there is lost. The summary says `resumed: "from-start"`.
+- Refused when the config's `url`, `rows`, `fields`, `next` (its `waitMs` / `quietMs` may change), `require`, `dedupe`, `setup`, `expand` or `fillDown` changed, when there is no saved summary, when the CSV has other columns, or while another run still writes the same `--out`: write to a new `--out`, or drop `--resume` to start over.
+- A run that already reached the end of the list (no `wall`), or the same `--max-pages` / `--max-rows` it is rerun with, is printed and left as it is. One that stopped at a wall can go on in the user's own Chrome (`--resume --browser chrome`), once the user agrees.
 
 ## `aiStop`: when a second look decided
 

@@ -9,6 +9,8 @@ import { htmlResponse, intParam, itemRow, playgroundBlocked, renderShell } from 
  * - pages：总页数（默认 12，1–50）
  * - perPage：每页行数（默认 10，1–50）
  * - arrowOnly：1 = 箭头只有图标没有文字（D7 的形状）；0 = 带「下一页」文字
+ * - pin：每页列表顶部都有的置顶行数（默认 0，0–5；每页完全相同，像置顶帖、广告位）
+ * - consent：1 = 页面顶部有一个 cookie 同意横幅（.consent button），点过一次就写 cookie，之后同一浏览器里不再出现
  *
  * 末页的「下一页」箭头保留且不置灰，点了原地不动（D12）。分页器只显示「1 2 3 … N」这样的窗口，
  * 不是完整列表（同一种形状，窗口会滑动）。翻页是普通整页 <a href> 导航，不是 JS 切换。
@@ -44,13 +46,21 @@ export async function GET(
   const pages = intParam(query.get('pages'), 12, 1, 50)
   const perPage = intParam(query.get('perPage'), 10, 1, 50)
   const arrowOnly = intParam(query.get('arrowOnly'), 1, 0, 1) === 1
+  const pin = intParam(query.get('pin'), 0, 0, 5)
+  const consent = intParam(query.get('consent'), 0, 0, 1) === 1
   const page = Number.parseInt(pageParam, 10)
   if (!Number.isInteger(page) || page < 1 || page > pages) {
     return new NextResponse('Not found', { status: 404 })
   }
 
-  const rows = Array.from({ length: perPage }, (_, index) => itemRow((page - 1) * perPage + index + 1)).join('\n')
-  const body = `<h1>商品列表 第 ${page} / ${pages} 页</h1>
+  const pinned = Array.from({ length: pin }, (_, index) => `<li class="item"><span class="title">置顶 ${index + 1}</span><span class="price">¥1</span></li>`)
+  const rows = [...pinned, ...Array.from({ length: perPage }, (_, index) => itemRow((page - 1) * perPage + index + 1))].join('\n')
+  // 横幅一直在 HTML 里；脚本在同意过的浏览器里把它去掉，点按钮记下同意。
+  const banner = consent
+    ? `<div class="consent"><span>本站使用 cookie</span><button type="button">同意</button></div>
+<script>(function () { var b = document.querySelector('.consent'); if (document.cookie.indexOf('consent=1') >= 0) { b.remove(); return; } b.querySelector('button').addEventListener('click', function () { document.cookie = 'consent=1; path=/'; b.remove(); }); })();</script>`
+    : ''
+  const body = `${banner}<h1>商品列表 第 ${page} / ${pages} 页</h1>
 <ul id="list">
 ${rows}
 </ul>

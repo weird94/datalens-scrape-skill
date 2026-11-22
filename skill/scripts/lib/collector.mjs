@@ -21,13 +21,22 @@ export async function collectOnPage(page, config, lib) {
   // ends as one uninterrupted run would have.
   const pauseAfter = lib.pauseAfter ?? null
   const resume = lib.resume ?? null
+  // Optional: go on with a run an earlier process saved (collect.mjs --resume, lib/resume.mjs). `seedRows` are its
+  // rows; `resumeAt` says how: { how: 'continued', pages, turn, url, rows, keys } opens the page after the last one
+  // it finished (next.type url) or that page itself, checked to show the same rows, then clicks on (next.type
+  // click); { how: 'from-start' } reads the list from the top. Both carry the earlier run's `rounds`, `claimed`,
+  // `mergedByLink` and `mergedSameRecord`, so the result reads as one run. Ignored when `resume` is given.
+  const resumeAt = resume ? null : lib.resumeAt ?? null
+  // Optional: called at each page boundary with where the run stands (`position`, also in the result) and
+  // { resumed }, for a host that saves it so a later process can go on from there.
+  const onPage = lib.onPage ?? (() => undefined)
   const chunkStarted = Date.now()
   const maxPages = Number(config.maxPages ?? 50)
   const maxRows = Number(config.maxRows ?? 0)
   const next = config.next ?? null
   const fields = config.fields ?? {}
   const required = config.require ?? []
-  const dedupeKeys = config.dedupe ?? Object.keys(fields)
+  const dedupeKeys = [].concat(config.dedupe ?? Object.keys(fields)) // "dedupe": "link" works too
   const waitSel = config.waitFor ?? config.rows
   const STAGNANT_LIMIT = Number(config.stagnantRounds ?? 3)
   const QUIET_MS = Number(config.quietMs ?? next?.quietMs ?? 1500)
@@ -35,17 +44,27 @@ export async function collectOnPage(page, config, lib) {
 
   const rows = []
   const seen = new Set()
-  const rounds = []
+  const rounds = [...(resumeAt?.rounds ?? [])]
   let stopReason = null
   let note = ''
   let setupLog = null
   let lastStatus = null
-  let claimed = []
+  let claimed = [...(resumeAt?.claimed ?? [])]
   /** Rows link to pages of their own but no field reads a link (checked once, on page 1). */
   let unreadLinks = null
   /** Texts and images the first rows show that no field reads (checked once, on page 1). */
   let unreadParts = null
   let lastScroll = null
+  // Where the run stands, for a later process to go on from (see `onPage`): set at each page boundary once a
+  // page of this run is loaded. `urlPerPage`: every next click so far went to another URL (null before the first).
+  let position = null
+  let pageLoaded = false
+  let urlPerPage = null
+  /** The page the first rows were noted for, and their hashes. */
+  let keysPage = 0
+  let pageKeys = []
+  /** How this run went on from an earlier one (lib.resumeAt): { how, at?, note? }. */
+  let resumed = resumeAt ? { how: resumeAt.how } : null
 
   /** Retry page.evaluate across navigations; inject the page helpers if this document lacks them. */
   async function inPage(fn, arg) {
@@ -107,7 +126,7 @@ export async function collectOnPage(page, config, lib) {
       return v
     }
   }
-  let mergedByLink = 0
+  let mergedByLink = Number(resumeAt?.mergedByLink ?? 0)
   const keyOf = rec => JSON.stringify(dedupeKeys.map(k => normLink(String(rec[k] ?? ''))))
   const rawKeyOf = rec => JSON.stringify(dedupeKeys.map(k => rec[k] ?? ''))
   const rawSeen = new Set()
@@ -155,7 +174,14 @@ export async function collectOnPage(page, config, lib) {
   /** Page turns so far (a next click that changed the list, a URL page): look-alikes on two pages are two records. */
   let turn = 0
   /** Rows recognised as a record read before, from another element or the preview, apart from their loose cells. */
-  let mergedSameRecord = 0
+  let mergedSameRecord = Number(resumeAt?.mergedSameRecord ?? 0)
+  /** A short hash of a row's identity (without its loose cells when it has a name): which rows a page showed. */
+  const rowHash = rec => {
+    const text = stableKeyOf(rec) ?? keyOf(rec)
+    let hash = 5381
+    for (let i = 0; i < text.length; i += 1) hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0
+    return (hash >>> 0).toString(36)
+  }
 
   // Rows the host already collected from this page (its preview run): they start the result.
   const rowByKey = new Map()
@@ -170,6 +196,11 @@ export async function collectOnPage(page, config, lib) {
     turnOf.set(rec, 0)
   }
   let seeded = rows.length
+  /** Seeded rows not read again yet in this run: reading one is progress (a page saved before is not an empty page). */
+  const seedLeft = new Set(rows)
+  // Read again from the top (--resume, resumed.how 'from-start'), the saved rows carry no page turn: one not read
+  // again yet may be on any page, so it is recognised there too (a count or price changed since it was saved).
+  const savedAnyTurn = row => resumed?.how === 'from-start' && seedLeft.has(row)
 
   // Expanding: a pass clicks every expander not clicked yet, waits for what it brings, and the rows are
   // read again after each pass — a per-record "next page" replaces the replies it showed, so they are
@@ -378,7 +409,32 @@ export async function collectOnPage(page, config, lib) {
     let updated = 0
     // Rows on the page left unread because maxRows was reached (not duplicates, not filtered).
     let cut = 0
+    // Seeded rows read for the first time in this run.
+    let known = 0
+    const reread = row => {
+      if (seedLeft.delete(row)) known += 1
+    }
     let pending = []
+    /** The saved row (not read again yet, on this page) that `row` read as `values` is, when their keys meet. */
+    const savedTwin = (row, values) => {
+      const key = keyOf(values)
+      if (key === keyOf(row)) return null
+      const other = rowByKey.get(key)
+      return other && other !== row && seedLeft.has(other) && (turnOf.get(other) === turn || savedAnyTurn(other)) ? other : null
+    }
+    /** Take a row this run added back out (it was a saved row read in another state). */
+    const drop = row => {
+      const at = pending.indexOf(row)
+      if (at >= 0) pending.splice(at, 1)
+      else if (rows.includes(row)) rows.splice(rows.indexOf(row), 1)
+      unindexRow(row)
+      seen.delete(keyOf(row))
+      rowByKey.delete(keyOf(row))
+      elementOf.delete(row)
+      turnOf.delete(row)
+      for (const [id, held] of rowById) if (held === row) rowById.delete(id)
+      added -= 1
+    }
     const flush = before => {
       if (!pending.length) return
       const at = ordered && before ? rows.indexOf(before) : -1
@@ -426,6 +482,18 @@ export async function collectOnPage(page, config, lib) {
       const held = rowById.get(id)
       const kept = held && turnOf.get(held) === turn ? held : undefined
       const merged = kept ? mergeRead(kept, rec) : null
+      // A record read collapsed in this run that, opened, is a row an earlier run saved (--resume, read again from
+      // the top): that saved row is the record, and the collapsed copy goes.
+      const twin = merged ? savedTwin(kept, merged) : null
+      if (twin) {
+        drop(kept)
+        reread(twin)
+        const again = mergeRead(twin, rec)
+        if (again) rewrite(twin, again)
+        bind(twin, id)
+        flush(twin)
+        continue
+      }
       if (merged) {
         const changed = Object.keys(merged).filter(k => String(kept[k] ?? '') !== merged[k])
         const ok = changed.length > 0 && (keyOf(merged) === keyOf(kept) || !required.some(k => !merged[k])) && rewrite(kept, merged)
@@ -448,6 +516,7 @@ export async function collectOnPage(page, config, lib) {
         }
         const existing = rowByKey.get(key)
         if (existing) {
+          reread(existing)
           if (existing === kept) {
             // The same element and key showing other values after an expand click: the first values stay. When
             // every such cell was a cut-off text ("…") and now reads whole, the record was collapsed and is now
@@ -480,7 +549,8 @@ export async function collectOnPage(page, config, lib) {
       const holders = stable && sameStable.get(stable) === 1 ? rowsByStable.get(stable) : null
       if (holders?.size === 1) {
         const [existing] = holders
-        if (!claimed.has(existing) && turnOf.get(existing) === turn && elementOf.get(existing) !== id && rewrite(existing, mergeLoose(existing, rec))) {
+        if (!claimed.has(existing) && (turnOf.get(existing) === turn || savedAnyTurn(existing)) && elementOf.get(existing) !== id && rewrite(existing, mergeLoose(existing, rec))) {
+          reread(existing)
           mergedSameRecord += 1
           bind(existing, id)
           flush(existing)
@@ -509,7 +579,7 @@ export async function collectOnPage(page, config, lib) {
       }
     }
     flush(null)
-    return { added, filtered, cut, updated }
+    return { added, filtered, cut, updated, known }
   }
 
   async function harvest(label) {
@@ -517,9 +587,20 @@ export async function collectOnPage(page, config, lib) {
     const expanding = Boolean(config.expand?.length)
     const read = () => inPage(([sel, f]) => window.__dlk.extractTagged(sel, f), [config.rows, fields])
     let batch = await read()
+    // The first rows of each page, to tell that page from another when a later process opens it again: rows no
+    // earlier page showed (rows every page repeats, pinned or sponsored, would make any page look like it), hashed
+    // as the page shows them (before fillDown fills them from the row above).
+    if (keysPage !== pages) {
+      keysPage = pages
+      pageKeys = batch
+        .filter(({ rec }) => !required.some(k => !rec[k]) && (!seen.has(keyOf(rec)) || seedLeft.has(rowByKey.get(keyOf(rec)))))
+        .slice(0, 3)
+        .map(({ rec }) => rowHash(rec))
+    }
     let got = absorb(batch, expanding)
     await onRows({ rows, rounds })
     let added = got.added
+    let known = got.known
     let cut = got.cut
     // Before the first click: a record whose own pager already shows a later page (someone paged it while
     // looking). Expand only goes forward, so what its earlier pages held is never read.
@@ -537,9 +618,10 @@ export async function collectOnPage(page, config, lib) {
         batch = read
         got = absorb(batch, true)
         added += got.added
+        known += got.known
         cut = got.cut
         // Progress is new rows, or rows whose cells grew (one row per comment: opening replies adds none).
-        const progress = got.added > 0 || got.updated > 0
+        const progress = got.added > 0 || got.updated > 0 || got.known > 0
         // Fewer rows right after clicks that brought nothing: one of them hides content. A record's own pager
         // also leaves fewer rows on its last page — but those are new rows.
         if (clickedLast && batch.length < onPageBefore && !progress && !expandShrank) {
@@ -598,10 +680,11 @@ export async function collectOnPage(page, config, lib) {
       const left = expandClicks > 0 ? await inPage(([expand, sel]) => window.__dlk.expandLeft(expand, sel), [config.expand, config.rows]).catch(() => null) : null
       if (left?.count) expandNoEffect = { clicked: expandClicks, stale: left.count, left: left.sample }
     }
-    const entry = { round: rounds.length + 1, label, onPage: batch.length, filtered: got.filtered, added, total: rows.length, ...(cut ? { cutAtMaxRows: cut } : {}) }
+    const entry = { round: rounds.length + 1, label, onPage: batch.length, filtered: got.filtered, added, ...(known ? { known } : {}), total: rows.length, ...(cut ? { cutAtMaxRows: cut } : {}) }
     rounds.push(entry)
     await onRound(entry, { rows, rounds })
-    return added
+    // Progress: new rows, or rows saved by an earlier run read for the first time in this one.
+    return added + known
   }
 
   async function clickControl(selector, waitMs) {
@@ -737,26 +820,40 @@ export async function collectOnPage(page, config, lib) {
     return true
   }
 
-  /** Load the page, run setup and read page 1 (the first call of a run only). */
-  async function openPage() {
+  /** Is the tab drawn? If not, stop with tab-not-rendering. → whether it is. */
+  async function checkRendering() {
+    if (await isRendering()) return true
+    await page.bringToFront().catch(() => undefined)
+    if (await isRendering()) return true
+    stopReason = 'tab-not-rendering'
+    note = 'the browser is not drawing this tab (window minimized or covered, or tab in the background), so clicks, scrolling and lazy loading stall. Ask the user to bring that Chrome window to the front and keep it visible during the run.'
+    return false
+  }
+
+  /** Setup runs a second time in this browser (see reopen). */
+  let setupAgain = false
+  /** Load the start page and run setup. → whether that worked. */
+  async function openStart() {
     lastStatus = await gotoAndSettle(page, config.url, { wait: Number(config.initialWaitMs ?? 0) })
-    if (!(await isRendering())) {
-      await page.bringToFront().catch(() => undefined)
-      if (!(await isRendering())) {
-        stopReason = 'tab-not-rendering'
-        note = 'the browser is not drawing this tab (window minimized or covered, or tab in the background), so clicks, scrolling and lazy loading stall. Ask the user to bring that Chrome window to the front and keep it visible during the run.'
-      }
-    }
-    if (!stopReason && config.setup?.length) {
+    if (!(await checkRendering())) return false
+    if (config.setup?.length) {
       await dismiss()
       // Setup clicks ask the page helpers which match is on screen.
       await inPage(() => true).catch(() => undefined)
-      setupLog = await runSetup(page, config.setup)
+      setupLog = await runSetup(page, setupAgain ? config.setup.map(step => ({ ...step, optional: true })) : config.setup)
       if (setupLog.error) {
         stopReason = 'setup-failed'
         note = setupLog.error
+        return false
       }
     }
+    return true
+  }
+
+  /** Load the page, run setup and read page 1 (the first call of a run only). */
+  async function openPage() {
+    pageLoaded = true
+    await openStart()
     const initial = stopReason ? 0 : await waitForRows()
     await dismiss()
     if (stopReason) {
@@ -772,6 +869,70 @@ export async function collectOnPage(page, config, lib) {
     }
     // Page 1 was read as it loaded; what scrolling it draws is read too.
     if (!stopReason && next && (next.type === 'click' || next.type === 'url') && (await reveal())) await harvest('page 1 (scrolled)')
+  }
+
+  /**
+   * Go on where an earlier process stopped (resumeAt.how 'continued'). Setup runs on the start page first, as
+   * it did then. Pages by URL: the loop loads the next page. Pages by click: the last page that run finished is
+   * opened, and kept only when it shows that page's first rows at the same address; otherwise the list is read
+   * from the top (the seeded rows are not added twice).
+   */
+  async function reopen() {
+    pages = Number(resumeAt.pages)
+    turn = Number(resumeAt.turn ?? 0)
+    position = { pages, turn, url: resumeAt.url ?? null, rows: Number(resumeAt.rows ?? rows.length), keys: resumeAt.keys ?? [], urlPerPage: next?.type === 'click' ? true : null }
+    if (config.setup?.length && !(await openStart())) return
+    const goOn = () => {
+      // Rows saved after that page were read from the next one: they are that page's rows, not look-alikes from another.
+      rows.slice(position.rows).forEach(row => turnOf.set(row, turn + 1))
+      // fillDown fills the next page's first cells from the last row of that page, as it did in one run.
+      previous = rows[position.rows - 1] ?? null
+    }
+    if (next?.type === 'url') {
+      resumed = { how: 'continued' }
+      pageLoaded = Boolean(config.setup?.length)
+      goOn()
+      return
+    }
+    lastStatus = await gotoAndSettle(page, resumeAt.url, { wait: Number(config.initialWaitMs ?? 0) })
+    if (!config.setup?.length && !(await checkRendering())) return
+    const found = await waitForRows()
+    await dismiss()
+    const shown = found ? await inPage(([sel, f]) => window.__dlk.extractTagged(sel, f), [config.rows, fields]).catch(() => []) : []
+    const hashes = new Set(shown.map(({ rec }) => rowHash(rec)))
+    const keys = position.keys
+    const same = keys.filter(key => hashes.has(key)).length >= Math.min(2, keys.length) && keys.length > 0
+    const address = u => {
+      try {
+        const url = new URL(u)
+        url.hash = ''
+        url.searchParams.sort()
+        return url.href
+      } catch {
+        return u
+      }
+    }
+    const moved = address(page.url()) !== address(resumeAt.url)
+    // A page past the first saved at the start page's address: a next click that went back to the start.
+    const atStart = address(resumeAt.url) === address(config.url)
+    if (found && same && !moved && !atStart) {
+      resumed = { how: 'continued', at: resumeAt.url }
+      pageLoaded = true
+      urlPerPage = true
+      keysPage = pages
+      pageKeys = keys
+      goOn()
+      return
+    }
+    const why = !found ? 'showed none of the rows' : moved ? `went on to ${page.url()}` : atStart ? 'is the start page' : 'showed other rows than when it was read'
+    resumed = { how: 'from-start', note: `the saved page ${resumeAt.url} ${why}: read the list again from the top; the saved rows were kept, and rows read again were not added twice` }
+    pages = 1
+    turn = 0
+    position = null
+    // Setup already ran once in this browser: a step that did something lasting (a cookie banner accepted) finds
+    // nothing the second time, and is skipped rather than stopping the run.
+    setupAgain = Boolean(config.setup?.length)
+    await openPage()
   }
 
   // The paging loop's counters.
@@ -815,7 +976,7 @@ export async function collectOnPage(page, config, lib) {
   // The page keeps its own part (element ids, what expand clicked) in window.__dlk while it does not navigate:
   // `doc` names that document, and a later call that finds another one (the tab navigated or reloaded between
   // calls) stops with the rows so far instead of going on against a page it knows nothing of.
-  const STATE_VERSION = 2
+  const STATE_VERSION = 3
   const docId = () => inPage(() => window.__dlk.DOC_ID).catch(() => null)
   async function snapshot() {
     const at = new Map(rows.map((row, index) => [row, index]))
@@ -832,6 +993,7 @@ export async function collectOnPage(page, config, lib) {
       rounds,
       counters: { pages, stagnant, immobile, scrolledIn, lazyPages, turn, harvests, seeded, mergedByLink, mergedSameRecord, expandClicks },
       run: { note, setupLog, lastStatus, claimed, unreadLinks, unreadParts, lastScroll },
+      place: { position, pageLoaded, urlPerPage, keysPage, pageKeys, resumed, seedLeft: [...seedLeft].map(ref) },
       expand: {
         shrank: expandShrank,
         missed: expandMissed,
@@ -862,6 +1024,8 @@ export async function collectOnPage(page, config, lib) {
     rounds.push(...state.rounds)
     ;({ pages, stagnant, immobile, scrolledIn, lazyPages, turn, harvests, seeded, mergedByLink, mergedSameRecord, expandClicks } = state.counters)
     ;({ note, setupLog, lastStatus, claimed, unreadLinks, unreadParts, lastScroll } = state.run)
+    ;({ position, pageLoaded, urlPerPage, keysPage, pageKeys, resumed } = state.place)
+    for (const index of state.place.seedLeft) if (rows[index]) seedLeft.add(rows[index])
     const ex = state.expand
     expandShrank = ex.shrank
     expandMissed = ex.missed
@@ -886,11 +1050,25 @@ export async function collectOnPage(page, config, lib) {
   const chunkDone = steps =>
     Boolean(pauseAfter) && steps > 0 && ((pauseAfter.steps > 0 && steps >= pauseAfter.steps) || (pauseAfter.ms > 0 && Date.now() - chunkStarted >= pauseAfter.ms))
 
+  /** At a page boundary (the top of the paging loop): note where the run stands, once per page. */
+  async function notePosition() {
+    if (!pageLoaded || (position && position.pages === pages && position.turn === turn)) return
+    // The row limit reached on this page may have left part of it unread (rows past the limit, records not
+    // expanded): it is not finished. The position stays at the page before, so a later run reads this one again
+    // (the rows it already gave are not added twice).
+    if (maxRows && rows.length >= maxRows) return
+    position = { pages, turn, url: page.url(), rows: rows.length, keys: pageKeys, urlPerPage }
+    await onPage(position, { resumed })
+  }
+
   try {
     if (resume) await restore(resume)
+    else if (resumeAt?.how === 'continued') await reopen()
     else await openPage()
-    let steps = resume ? 0 : 1
+    // A call that has loaded nothing yet (pages by URL, resumed) does not pause before its first page.
+    let steps = resume || !pageLoaded ? 0 : 1
     while (!stopReason) {
+      await notePosition()
       if (chunkDone(steps)) return { paused: true, state: await snapshot() }
       steps += 1
       const external = await shouldStop(rows.length)
@@ -918,7 +1096,7 @@ export async function collectOnPage(page, config, lib) {
         stopReason = 'max-pages'
         break
       }
-      await dismiss()
+      if (pageLoaded) await dismiss()
       await page.waitForTimeout(DELAY_MS + Math.round(Math.random() * DELAY_MS))
 
       if (scrolls) {
@@ -964,6 +1142,7 @@ export async function collectOnPage(page, config, lib) {
           else stagnant = resumeFrom(patience)
         }
       } else if (next.type === 'click') {
+        const urlBefore = page.url()
         const result = await clickControl(next.selector, Number(next.waitMs ?? 10_000))
         if (result === 'missing') {
           if (await confirmEnd('next-control-gone')) {
@@ -986,6 +1165,7 @@ export async function collectOnPage(page, config, lib) {
         }
         pages += 1
         turn += 1
+        const urlChanged = page.url() !== urlBefore
         // No rows on the new page: unless the host says to wait or did something, that is the end. Either way the
         // next click would skip this page, so it is waited for here.
         if ((await rowCount()) === 0 && ((await confirmEnd('no-rows-after-page-turn')) || (await waitForRows(8000)) === 0)) {
@@ -994,6 +1174,8 @@ export async function collectOnPage(page, config, lib) {
         }
         await reveal()
         const added = await harvest(`page ${pages}${result === 'navigated' ? ' (navigated)' : ''}`)
+        // A turn that brought rows: did it go to a URL of its own?
+        if (added > 0) urlPerPage = (urlPerPage ?? true) && urlChanged
         stagnant = added === 0 ? stagnant + 1 : 0
         if (stagnant >= STAGNANT_LIMIT) {
           if (await confirmEnd('no-new-rows')) stopReason = 'no-new-rows'
@@ -1023,6 +1205,7 @@ export async function collectOnPage(page, config, lib) {
         turn += 1
         const target = next.url.replace('{page}', String((next.start ?? 2) + pages - 2))
         lastStatus = await gotoAndSettle(page, target)
+        pageLoaded = true
         if ((await waitForRows(8000)) === 0) {
           stopReason = 'url-page-empty'
           break
@@ -1056,16 +1239,19 @@ export async function collectOnPage(page, config, lib) {
   // Not the end? A limit stopped the run while more was still coming.
   let warning = ''
   const recent = rounds.slice(-3)
-  const stillAdding = recent.some(r => r.added > 0)
+  // Rows saved by an earlier run (--resume) read again count: those pages were not empty.
+  /** Rows a round brought: new ones, and saved ones an earlier run had (--resume) read again ("3+10 saved"). */
+  const readIn = r => (r.known ? `${r.added}+${r.known} saved` : r.added)
+  const stillAdding = recent.some(r => r.added > 0 || r.known > 0)
   if (stopReason === 'max-pages') {
     const why = next?.type === 'click' || next?.type === 'load-more'
       ? 'the next / load-more control is still there'
       : next?.type === 'scroll'
         ? stillAdding ? 'scrolling was still adding rows' : lastScroll && !lastScroll.atBottom ? 'the page could still scroll further' : ''
         : stillAdding ? 'the last pages still added rows' : ''
-    if (why) warning = `NOT THE END: stopped at maxPages (${maxPages}) while ${why} (last rounds added ${recent.map(r => r.added).join(', ')}). If the user wants everything, raise maxPages (e.g. --max-pages ${Math.max(50, maxPages * 4)}) and rerun.`
+    if (why) warning = `NOT THE END: stopped at maxPages (${maxPages}) while ${why} (last rounds added ${recent.map(readIn).join(', ')}). If the user wants everything, rerun the same command with --resume --max-pages ${Math.max(50, maxPages * 4)}: it goes on from here.`
   } else if (stopReason === 'max-rows') {
-    warning = `NOT THE END: stopped at maxRows (${maxRows}); the list may have more. Raise maxRows if the user wants more.`
+    warning = `NOT THE END: stopped at maxRows (${maxRows}); the list may have more. If the user wants more, rerun the same command with --resume and a higher --max-rows.`
   }
 
   // Totals the page claims, compared with what we have. Read again at the end (some pages update them).
@@ -1083,7 +1269,7 @@ export async function collectOnPage(page, config, lib) {
   // Scrolling that stopped adding rows: maybe the wrong element was scrolled.
   let scrollCandidates
   // The last scroll added nothing (a preview has a single one; longer runs need the last two).
-  const flat = rounds.length >= 2 && (rounds.length >= 3 ? rounds.slice(-2) : rounds.slice(-1)).every(r => r.added === 0)
+  const flat = rounds.length >= 2 && (rounds.length >= 3 ? rounds.slice(-2) : rounds.slice(-1)).every(r => r.added === 0 && !r.known)
   if (next?.type === 'scroll' && (flat || stopReason === 'scroll-blocked') && rows.length) {
     const found = await inPage(([s, c]) => window.__dlk.scrollCandidates(s, c), [config.rows, next.scroller ?? null]).catch(() => [])
     // Only worth showing when there is something other than what was scrolled.
@@ -1091,5 +1277,5 @@ export async function collectOnPage(page, config, lib) {
   }
 
   const tail = await inPage(() => window.__dlk.bodyText().slice(-400)).catch(() => '')
-  return { rows, rounds, stopReason, ...(confirmStop ? { aiStop } : {}), note, warning, totalCheck, claimed, mergedByLink, mergedSameRecord, scrollCandidates, setupLog, wall, tail, lastUrl: page.url(), seeded, expandShrank, expandReplaced: replacedOnReread.size, expandReplacedCells: [...replacedCells.values()].map(({ rows: kept, ...cell }) => ({ ...cell, rows: kept.size })), expandFilledCells: [...filledOnReread].map(([column, rows]) => ({ column, rows })), expandMissed, expandNoEffect, expandPastStart, expandClicked: [...expandClicked].map(([selector, shapes]) => ({ selector, clicks: [...shapes.values()].reduce((sum, seen) => sum + seen.clicks, 0), labels: [...shapes.values()].sort((a, b) => b.clicks - a.clicks).map(seen => seen.label) })), unreadLinks, unreadParts }
+  return { rows, rounds, stopReason, ...(confirmStop ? { aiStop } : {}), note, warning, totalCheck, claimed, mergedByLink, mergedSameRecord, scrollCandidates, setupLog, wall, tail, lastUrl: page.url(), seeded, position, resumed, expandShrank, expandReplaced: replacedOnReread.size, expandReplacedCells: [...replacedCells.values()].map(({ rows: kept, ...cell }) => ({ ...cell, rows: kept.size })), expandFilledCells: [...filledOnReread].map(([column, rows]) => ({ column, rows })), expandMissed, expandNoEffect, expandPastStart, expandClicked: [...expandClicked].map(([selector, shapes]) => ({ selector, clicks: [...shapes.values()].reduce((sum, seen) => sum + seen.clicks, 0), labels: [...shapes.values()].sort((a, b) => b.clicks - a.clicks).map(seen => seen.label) })), unreadLinks, unreadParts }
 }

@@ -50,6 +50,8 @@ http
       url = new URL(ALIASES[alias[1]].url, `http://localhost:${PORT}`)
       for (const [key, value] of own) url.searchParams.set(key, value)
     }
+    // LOG_REQUESTS=1: one line per request on stdout (tests count which pages a run loaded).
+    if (process.env.LOG_REQUESTS) console.log(`request ${url.pathname}${url.search}`)
     const prefix = '/dev-fixtures/playground/'
     if (!url.pathname.startsWith(prefix)) {
       res.writeHead(404).end('not a playground path')

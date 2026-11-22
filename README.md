@@ -20,7 +20,7 @@ Agent: Saved comments.csv: 160 rows (123 comments + 37 replies), 9 columns:
 
 Good for search results, product listings, comments and replies, rankings, directories and tables. It does not try to beat captchas or bot checks.
 
-When the fields you want only show on each item's own page (brand, full description, salary), it collects the list first and then opens every row's page in a second pass. That pass saves each page as it goes, so a run that gets cut off continues where it stopped when you run it again. A list run that gets cut off keeps the rows it already had.
+When the fields you want only show on each item's own page (brand, full description, salary), it collects the list first and then opens every row's page in a second pass. That pass saves each page as it goes, so a run that gets cut off continues where it stopped when you run it again. A list run that gets cut off keeps the rows it already had. Run it again with `--resume` and a paged list goes on from where it stopped; a scrolling or load-more list is read again from the top, keeping the saved rows.
 
 ## Install
 
@@ -104,7 +104,7 @@ With a small model, check the "why it stopped" line in its report. If it says th
 ## Not supported yet
 
 - Lists inside each detail page (for example the reviews on every product page)
-- Picking up a cut-off list run where it stopped (it starts again from page 1; the rows it had are kept)
+- Jumping straight back into a cut-off scrolling or load-more list, or a list whose pages have no address of their own: `--resume` reads it again from the top (the saved rows are kept)
 - Lists inside iframes
 - Some embedded comment widgets (closed shadow roots)
 - Files behind a download button
