@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import test from 'node:test'
-import { REFERENCES, SKILL_CONFIG, SKILL_CONFIG_DETAIL } from '../references/index.mjs'
+import { REFERENCES, REFERENCES_HOST, SKILL_CONFIG, SKILL_CONFIG_DETAIL } from '../references/index.mjs'
 
 const root = path.join(path.dirname(new URL(import.meta.url).pathname), '..')
 const fix = 'run `node scripts/sync-references.mjs`'
@@ -54,4 +54,25 @@ test('SKILL_CONFIG is the text hosts already serve (test-support/skill-config.sn
   // update the snapshot in the same commit so the change is reviewed, and the backend's prompt test with it.
   const snapshot = fs.readFileSync(path.join(root, 'scripts/test-support/skill-config.snapshot.txt'), 'utf8')
   assert.equal(`${SKILL_CONFIG}\n`, snapshot)
+})
+
+// A host that runs the collector in-process (the extension's side panel) has no `--resume` command: going on after a
+// stop is the CLI's. REFERENCES_HOST is the notes such a host serves, with that part of stop-signals left out.
+const RESUME_CELL = ', or go on: `--resume` with a higher limit'
+const RESUME_SECTION = '## Going on after a stop: `--resume`\n'
+
+test('REFERENCES_HOST is REFERENCES without the CLI-only --resume part of stop-signals', () => {
+  assert.deepEqual(Object.keys(REFERENCES_HOST).sort(), Object.keys(REFERENCES).sort(), fix)
+  for (const name of Object.keys(REFERENCES)) if (name !== 'stop-signals') assert.equal(REFERENCES_HOST[name], REFERENCES[name], `${name}: ${fix}`)
+  const cli = REFERENCES['stop-signals']
+  const host = REFERENCES_HOST['stop-signals']
+  // The CLI's note still tells it how to go on.
+  assert.ok(cli.includes(RESUME_CELL), 'stop-signals.md: the max-pages / max-rows row offers --resume')
+  assert.ok(cli.includes(RESUME_SECTION), 'stop-signals.md has the --resume section')
+  assert.doesNotMatch(host, /--resume|resumedFrom|--out\b|same command/)
+  assert.match(host, /\| `max-pages` \/ `max-rows` \| your limit, and the next control was still there \| tell the user there's more \|/)
+  // Only that: the section is cut up to the next one, the rest of the note is as written.
+  const section = cli.slice(cli.indexOf(RESUME_SECTION), cli.indexOf('\n## ', cli.indexOf(RESUME_SECTION)) + 1)
+  assert.equal(host, cli.replace(RESUME_CELL, '').replace(section, ''), fix)
+  assert.match(host, /\n## `aiStop`: when a second look decided\n/)
 })
