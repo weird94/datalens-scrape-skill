@@ -27,13 +27,13 @@ When the fields you want only show on each item's own page (brand, full descript
 **Claude Code, one step** (needs Claude Code 2.1.275 or later):
 
 ```
-/plugin install datalens-scrape --marketplace weird94/scrape-skill
+/plugin install datalens-scrape --marketplace weird94/datalens-scrape-skill
 ```
 
 **Any agent:** send it this:
 
 ```text
-Install the skill in the skill/ folder of https://github.com/weird94/scrape-skill and check that it works.
+Install the skill in the skill/ folder of https://github.com/weird94/datalens-scrape-skill and check that it works.
 ```
 
 Requirements: Node.js 18 or later. The first run downloads Chromium for Playwright (one time).

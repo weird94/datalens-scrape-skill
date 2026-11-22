@@ -27,13 +27,13 @@ agent：已保存 comments.csv，共 160 行（主评论 123 + 回复 37），9 
 **Claude Code 一步装好**（需要 Claude Code 2.1.275 或以上）：
 
 ```
-/plugin install datalens-scrape --marketplace weird94/scrape-skill
+/plugin install datalens-scrape --marketplace weird94/datalens-scrape-skill
 ```
 
 **任何 agent**：把这句话发给它：
 
 ```text
-帮我把 https://github.com/weird94/scrape-skill 里的 skill（在 skill/ 目录）装上，装完试一下能不能用。
+帮我把 https://github.com/weird94/datalens-scrape-skill 里的 skill（在 skill/ 目录）装上，装完试一下能不能用。
 ```
 
 需要 Node.js 18 或以上。第一次运行会给 Playwright 下载一次 Chromium。
