@@ -1,14 +1,14 @@
-// planResumeAt (lib/resume-at.mjs): where a list run that stopped goes on from, without node: imports, so the
+// planResumeAt (lib/resume-at.mjs): where a list run that stopped goes on from, without anything Node-only, so the
 // extension can resume a run from its own checkpoint the way `collect.mjs --resume` does from the saved files.
 // Run with `node --test scripts/resume-at.test.mjs`.
 import assert from 'node:assert/strict'
-import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import * as engine from './lib/index.mjs'
 import { configKey, resumePlan } from './lib/resume.mjs'
 import { END_OF_LIST, fromStartNote, planResumeAt, urlPage } from './lib/resume-at.mjs'
+import { browserSafetyProblems } from './test-support/browser-safe.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const byUrl = { url: 'https://example.com/list?page=1', rows: 'li', fields: { a: '.a' }, next: { type: 'url', url: 'https://example.com/list?page={page}', start: 2 } }
@@ -17,21 +17,8 @@ const byScroll = { url: 'https://example.com/feed', rows: 'li', fields: { a: '.a
 const position = (over = {}) => ({ pages: 3, turn: 2, url: 'https://example.com/list?page=3', rows: 30, keys: ['k1', 'k2'], urlPerPage: true, ...over })
 const carry = { rounds: [{ round: 1 }, { round: 2 }, { round: 3 }], claimed: [{ text: '120 results', n: 120 }], mergedByLink: 1, mergedSameRecord: 0 }
 
-/** Every module `file` imports, itself included (relative imports only, followed). */
-function importClosure(file, seen = new Set()) {
-  if (seen.has(file)) return seen
-  seen.add(file)
-  const text = fs.readFileSync(file, 'utf8')
-  for (const [, spec] of text.matchAll(/^\s*(?:import|export)\b[^'"]*?from\s+['"]([^'"]+)['"]/gm)) {
-    if (spec.startsWith('.')) importClosure(path.resolve(path.dirname(file), spec), seen)
-    else seen.add(spec)
-  }
-  return seen
-}
-
-test('resume-at.mjs imports nothing from node: and the engine index exports planResumeAt', () => {
-  const imports = [...importClosure(path.join(HERE, 'lib/resume-at.mjs'))].filter(s => !s.startsWith('/'))
-  assert.deepEqual(imports, [])
+test('resume-at.mjs uses nothing Node-only and the engine index exports planResumeAt', () => {
+  assert.deepEqual(browserSafetyProblems(path.join(HERE, 'lib/resume-at.mjs')), [])
   assert.equal(engine.planResumeAt, planResumeAt)
 })
 

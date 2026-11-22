@@ -28,5 +28,30 @@ test('SKILL_CONFIG and SKILL_CONFIG_DETAIL are the config section of SKILL.md, i
   assert.match(SKILL_CONFIG_DETAIL, /^### Detail pages\n/)
   assert.doesNotMatch(SKILL_CONFIG_DETAIL, /\n## /, 'only the detail subsection')
   assert.ok(section.includes(`\n\n${SKILL_CONFIG_DETAIL}\n\n`), fix)
-  assert.equal(section.replace(`${SKILL_CONFIG_DETAIL}\n\n`, ''), SKILL_CONFIG, fix)
+  assert.equal(withoutCliOnlyStopReasons(section.replace(`${SKILL_CONFIG_DETAIL}\n\n`, '')), SKILL_CONFIG, fix)
+})
+
+// `running` and `interrupted` are list stop reasons only collect.mjs's own process writes (a summary saved mid-run,
+// a signal). A host that runs the collector in-process never gets them, and their wording (Ctrl-C, SIGHUP) would
+// mislead its agent, so SKILL_CONFIG leaves them out while SKILL.md keeps them for the CLI.
+const CLI_ONLY = /\u00b7 `(?:running|interrupted)`/
+
+function withoutCliOnlyStopReasons(text) {
+  return text.replace(/ \u00b7 `running` \([^()]*\)/, '').replace(/ \u00b7 `interrupted` \([^()]*\)/, '')
+}
+
+test('SKILL.md lists the CLI-only stop reasons; SKILL_CONFIG does not', () => {
+  const skill = fs.readFileSync(path.join(root, 'SKILL.md'), 'utf8')
+  const stopReasons = skill.slice(skill.indexOf('\n## Stop reasons\n'), skill.indexOf('\n## Environment\n'))
+  assert.match(stopReasons, CLI_ONLY, 'the CLI still documents them')
+  assert.doesNotMatch(SKILL_CONFIG, CLI_ONLY)
+  assert.doesNotMatch(SKILL_CONFIG, /Ctrl-C|SIGTERM|SIGHUP/)
+})
+
+test('SKILL_CONFIG is the text hosts already serve (test-support/skill-config.snapshot.txt)', () => {
+  // The extension's sidebar prompt carries SKILL_CONFIG; with detail pages off it must stay the text it had before
+  // them (the monorepo's packages/scrape-skill at 6beb8db). A change here changes that prompt: when it is meant,
+  // update the snapshot in the same commit so the change is reviewed, and the backend's prompt test with it.
+  const snapshot = fs.readFileSync(path.join(root, 'scripts/test-support/skill-config.snapshot.txt'), 'utf8')
+  assert.equal(`${SKILL_CONFIG}\n`, snapshot)
 })

@@ -1,0 +1,76 @@
+## Config
+
+```json
+{
+  "url": "https://example.com/search?q=lamp",
+  "setup": [{ "click": "button:has-text(\"Sort by\")" }, { "click": "[role=option]:has-text(\"Newest\")" }],
+  "rows": "main ul.results > li.result",
+  "fields": {
+    "title": { "css": "h3", "exclude": ".badge" },
+    "link": { "css": "a", "attr": "href" },
+    "price": { "css": ".price-now", "number": true },
+    "image": { "css": "img", "attr": "src" },
+    "rating": { "css": ".stars", "attr": "aria-label", "regex": "([\\d.]+) out of" },
+    "downloads": { "css": ".metric", "index": 1, "number": true, "default": "0" },
+    "tags": { "css": ".tag", "all": true, "join": "; " },
+    "sponsored": { "css": ".ad-label", "exists": true },
+    "row_text": "."
+  },
+  "require": ["title"],
+  "next": { "type": "click", "selector": ".pager a[rel=next]" },
+  "dismiss": [".cookie-banner .accept"],
+  "dedupe": ["link"],
+  "maxPages": 50
+}
+```
+
+| key | meaning |
+|---|---|
+| `url` | start page |
+| `rows` | document-level CSS; every match is one row. `:has()`, `:not()`, `:is()` work |
+| `fields` | name → CSS inside the row (`"."` = the row itself), or an object — see Field options below |
+| `setup` | steps run once after the page loads, before the first harvest — see Setup below |
+| `require` | drop rows where any of these fields is empty (group headers, "show all" items, ads) |
+| `fillDown` | fields copied from the previous row when empty (merged cells, group labels) |
+| `expand` | selectors (CSS, or CSS with one `:has-text("…")`) clicked on every visible match before each harvest (per-item "show replies", "show more replies", "read more", a pager inside a record's replies). After each pass of clicks the run waits for what they bring and reads the rows again: rows a click took off the page stay in the result, so a pager inside a record that swaps one page of replies for the next loses nothing — with one row per reply as well as with the replies in an `all` field of their comment's row. Each element is clicked once, unless it still reads the same after a pass that brought new rows (a per-record "next" the page keeps as the same element). A row read again after a click keeps the cells the page stopped showing, and its `all` fields collect every item seen. Point the selector at the control itself (the button), not at the line or box around it; when a pass of clicks changes nothing, the run tries the single control inside each match, and the preview warns if still nothing opened. Leave out buttons that hide content ("Hide", "收起"): they often share the expand button's class. For one-off actions use `setup` |
+| `next` | omit when more rows come by scrolling or there is one page: the list is scrolled by default (ends as `single-page` when that brings nothing). `{type:"none"}` read the page without scrolling · `{type:"click", selector, waitMs?}` next page (in place or full navigation) · `{type:"load-more", selector}` · `{type:"scroll", scroller?, step?}` only to force one element / px per round when the default misses rows · `{type:"url", url:"…?page={page}", start:2}` |
+| `dismiss` | selectors clicked whenever visible (popups); `autoDismiss` (default true) also clicks close buttons of large fixed overlays — except an overlay that contains `rows` (a reviews dialog you are collecting from) |
+| `dedupe` | fields that identify a row (default: all fields). A row read again is recognised without its ticking counts, prices, pictures and empty cells, so set it only when the verify report still shows duplicates. Links are compared without tracking parameters (`utm_*`, `&pp=`, `&si=`, …) and `#fragment`; the CSV keeps them as read |
+| `waitFor` / `waitTimeoutMs` / `initialWaitMs` | wait for this selector (default `rows`, up to 15 s) / extra fixed wait after load |
+| `maxPages` / `maxRows` / `stagnantRounds` | limits; stop after N rounds without new rows (default 3) |
+| `quietMs` / `delayMs` | how long the DOM must stay unchanged before a harvest (default 1500) / pause before each page turn or batch (default 500 + random) |
+
+### Field options
+
+Selection: `css` (relative to the row; `"."` is the row) · `index` (n-th match, 0-based; negative counts from the end, `-1` = last) · `all: true` (every match, joined with `join`, default `" | "`) · `sibling: n` (read from the row's n-th next sibling element — records split over two elements) · `exists: true` (`"true"`/`"false"`: does `css` match anything inside the row — badges, "sponsored") · `matches: css` (`"true"`/`"false"`: does the row itself match, ancestors included — `".replies .comment"` tells replies from top-level comments). Cleaning below applies to `exists` / `matches` too: `"replace": [["true", "reply"], ["false", "comment"]]` gives readable labels.
+
+Reading: `attr` — `text` (default, visible text with whitespace collapsed), `href` (nearest link, absolute), `src` (real image URL, skips lazy placeholders), `html`, or any attribute name · `exclude` (CSS of descendants whose text is removed, e.g. a "more" link or a badge inside the title).
+
+Cleaning, applied in this order:
+1. `split` + `part` — split on a string (`"\n"` splits on line breaks, `<br>` included) and keep part n (negative from the end).
+2. `regex` (+ `flags`) — keep capture group 1 (`""` if that group did not take part in the match), or the whole match if the pattern has no group; no match gives `""`.
+3. `replace` — `[["pattern", "replacement"], …]`, regex, global.
+4. `number: true` — first number in the text: drops thousands separators and keeps the digits as written (`9.0` stays `9.0`); with a `k`/`M`/`B` or `千`/`万`/`亿` suffix it computes the value; no number gives `""`.
+5. `default` — value when the result is empty.
+
+Clean only what the page decorates (labels, units, separators). Keep the value the user sees; don't compute new values.
+
+### Setup
+
+Steps run in order after the page loads (and after popups are dismissed), before the first harvest. Selectors here are Playwright selectors: CSS plus `:has-text("…")` and `text=…`, so you can target buttons by their label. When several elements match a click (here, in `next` or in `--click`), the one on screen is clicked — not a carousel's other slides or the page under a dialog; `--probe` shows how many matches are on screen.
+
+`{"click": sel}` · `{"goto": url}` (absolute or relative) · `{"gotoHref": sel}` (follow a link's href — use for links that open a new tab) · `{"fill": sel, "text": "…", "submit": true}` · `{"select": sel, "value": "…"}` · `{"press": "Enter"}` · `{"hover": sel}` · `{"scrollTo": sel}` · `{"waitFor": sel}` · `{"wait": ms}`. Every step takes `"optional": true` (skip if it fails, e.g. a banner that only sometimes shows) and `"timeoutMs"` (default 10000).
+
+A required step that fails stops the run with `setup-failed`; the summary's `note` names the step. Setup runs once: if paging reloads the page (`next.type: "url"`, or a click that navigates) and the setting is lost, put it in the URL instead.
+
+## Selectors that last
+
+- Anchor on the list container and the item's own class or attributes (`role`, `data-testid`, `aria-*`). Avoid `nth-child` positions and long ancestor chains — they break when a page adds a wrapper or an optional item.
+- Hashed classes (`css-1x2y3z`) are fine if page 2 uses the same ones. Check, don't assume.
+- Exclude look-alike lists with `:not()`: `ul.cards:not(.promo) > li`, `section:not(.sidebar *) > article`.
+- Prefer a descendant (`.thread .comment`) over a child (`>`) combinator when items sit at different nesting depths.
+- Web components: selectors match inside open shadow roots, and a descendant selector (a space) crosses shadow boundaries the way Playwright's does: `load-more button` finds the button inside `load-more`'s shadow root, and a field `#replies .author` reads only the authors inside `#replies`, whatever shadow roots lie between. A child selector (`>`) does not cross. `--html` shows shadow content as `<template shadowrootmode="open">`. Closed shadow roots can't be read; use the host's attributes.
+
+## Stop reasons
+
+`single-page` · `blocked` · `login-wall` · `tab-not-rendering` · `setup-failed` · `next-control-gone` · `next-click-no-effect` · `no-rows-after-page-turn` · `no-new-rows` · `load-more-gone` · `load-more-no-new-rows` · `scroll-end` · `scroll-blocked` · `url-page-empty` · `url-page-no-new-rows` · `max-pages` (the next control was still there) · `max-rows` · `no-rows-on-first-page` · `error`. `roundLog` keeps the first and last 6 rounds; `{"skipped": n}` marks the rounds left out in between. What each one usually means: [references/stop-signals.md](references/stop-signals.md).

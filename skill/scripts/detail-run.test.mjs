@@ -2,13 +2,13 @@
 // host without a file system (the extension) runs the same queue, retries, streaks and canary check.
 // Run with `node --test scripts/detail-run.test.mjs`.
 import assert from 'node:assert/strict'
-import fs from 'node:fs'
 import path from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { detailSpecKey } from './lib/detail.mjs'
 import { createDetailRun } from './lib/detail-run.mjs'
 import * as engine from './lib/index.mjs'
+import { browserSafetyProblems } from './test-support/browser-safe.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const spec = { link: 'link', fields: { name: 'h1' } }
@@ -20,23 +20,8 @@ const dead = () => ({ status: 'empty', fields: {}, error: 'HTTP 404 (dead link)'
 const failed = () => ({ status: 'failed', fields: {}, error: 'HTTP 503' })
 const blocked = () => ({ status: 'blocked', fields: {}, error: 'captcha' })
 
-/** Every module `file` imports, itself included (relative imports only, followed). */
-function importClosure(file, seen = new Set()) {
-  if (seen.has(file)) return seen
-  seen.add(file)
-  const text = fs.readFileSync(file, 'utf8')
-  for (const [, spec] of text.matchAll(/^\s*(?:import|export)\b[^'"]*?from\s+['"]([^'"]+)['"]/gm)) {
-    if (spec.startsWith('.')) importClosure(path.resolve(path.dirname(file), spec), seen)
-    else seen.add(spec)
-  }
-  return seen
-}
-
-test('detail-run.mjs, and the engine index that exports it, import nothing from node: (they run in a browser)', () => {
-  for (const entry of ['lib/detail-run.mjs', 'lib/index.mjs']) {
-    const nodeImports = [...importClosure(path.join(HERE, entry))].filter(s => s.startsWith('node:') || ['fs', 'path', 'child_process', 'crypto', 'os'].includes(s))
-    assert.deepEqual(nodeImports, [], entry)
-  }
+test('detail-run.mjs, and the engine index that exports it, use nothing Node-only (they run in a browser)', () => {
+  for (const entry of ['lib/detail-run.mjs', 'lib/index.mjs']) assert.deepEqual(browserSafetyProblems(path.join(HERE, entry)), [], entry)
   assert.equal(engine.createDetailRun, createDetailRun)
 })
 
