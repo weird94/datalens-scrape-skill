@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import test from 'node:test'
-import { REFERENCES, REFERENCES_HOST, SKILL_CONFIG, SKILL_CONFIG_DETAIL } from '../references/index.mjs'
+import { REFERENCES, REFERENCES_HOST, SKILL_CONFIG, SKILL_CONFIG_DETAIL, SKILL_CONFIG_DETAIL_HOST } from '../references/index.mjs'
 
 const root = path.join(path.dirname(new URL(import.meta.url).pathname), '..')
 const fix = 'run `node scripts/sync-references.mjs`'
@@ -63,7 +63,8 @@ const RESUME_SECTION = '## Going on after a stop: `--resume`\n'
 
 test('REFERENCES_HOST is REFERENCES without the CLI-only --resume part of stop-signals', () => {
   assert.deepEqual(Object.keys(REFERENCES_HOST).sort(), Object.keys(REFERENCES).sort(), fix)
-  for (const name of Object.keys(REFERENCES)) if (name !== 'stop-signals') assert.equal(REFERENCES_HOST[name], REFERENCES[name], `${name}: ${fix}`)
+  // detail-pages has a host wording of its own (below); every other note but stop-signals is served as written.
+  for (const name of Object.keys(REFERENCES)) if (name !== 'stop-signals' && name !== 'detail-pages') assert.equal(REFERENCES_HOST[name], REFERENCES[name], `${name}: ${fix}`)
   const cli = REFERENCES['stop-signals']
   const host = REFERENCES_HOST['stop-signals']
   // The CLI's note still tells it how to go on.
@@ -75,4 +76,45 @@ test('REFERENCES_HOST is REFERENCES without the CLI-only --resume part of stop-s
   const section = cli.slice(cli.indexOf(RESUME_SECTION), cli.indexOf('\n## ', cli.indexOf(RESUME_SECTION)) + 1)
   assert.equal(host, cli.replace(RESUME_CELL, '').replace(section, ''), fix)
   assert.match(host, /\n## `aiStop`: when a second look decided\n/)
+})
+
+// A host that runs the detail pass in-process (the extension's side panel) has no detail.mjs, no --out file, no
+// signals and no --browser switch, and keeps its results as tables of one saved result, not CSV files. Its agent reads
+// REFERENCES_HOST['detail-pages'] and SKILL_CONFIG_DETAIL_HOST: the same rules about what to read and how, with the
+// command-line parts left out or said without them. The CLI keeps SKILL.md and the .md files as written.
+const CLI_WORDS = ['.mjs', 'Ctrl-C', 'SIGTERM', 'SIGHUP', 'same command', 'CSV', '.csv', '.jsonl', 'detail.json', 'full.json', '<out>', 'browser.md', 'references/', 'bundled', 'delayMs', 'concurrency']
+// The rules a host's agent needs as much as the CLI's: each one must survive the rewording.
+const KEPT_RULES = ['root', 'fields', 'require', 'expand', 'setup', 'children', 'matches', 'child_index', 'See all', 'select', 'iframe', 'waitFor', 'expandPasses', 'maxAttempts', 'deadLinks', 'fillRate', 'no-data', 'detail_status_2', 'children_count', 'scrollTo']
+// A command-line flag (--out, --html …); a Markdown table's |---| is not one.
+const FLAG = /--[a-z]/
+
+test('REFERENCES_HOST["detail-pages"] keeps the rules and drops the command line', () => {
+  const cli = REFERENCES['detail-pages']
+  const host = REFERENCES_HOST['detail-pages']
+  assert.ok(host, fix)
+  for (const word of CLI_WORDS) assert.ok(!host.includes(word), `host detail-pages note contains ${JSON.stringify(word)}`)
+  assert.doesNotMatch(host, FLAG)
+  for (const rule of KEPT_RULES) assert.ok(host.includes(rule), `host detail-pages note lost ${JSON.stringify(rule)}`)
+  // The CLI's note is the .md as written.
+  assert.match(cli, /detail\.mjs/)
+  assert.match(cli, /--browser chrome/)
+  // Same sections, in the same order.
+  const headings = text => text.split('\n').filter(line => line.startsWith('#'))
+  assert.deepEqual(headings(host).length, headings(cli).length)
+  assert.match(host, /^# Detail pages\n/)
+  assert.match(host, /\n## Child lists\n/)
+  assert.match(host, /\n## Things to report\n/)
+})
+
+test('SKILL_CONFIG_DETAIL_HOST is the detail grammar without the command line', () => {
+  assert.ok(SKILL_CONFIG_DETAIL_HOST, fix)
+  assert.match(SKILL_CONFIG_DETAIL_HOST, /^### Detail pages\n/)
+  for (const word of CLI_WORDS) assert.ok(!SKILL_CONFIG_DETAIL_HOST.includes(word), `SKILL_CONFIG_DETAIL_HOST contains ${JSON.stringify(word)}`)
+  assert.doesNotMatch(SKILL_CONFIG_DETAIL_HOST, FLAG)
+  assert.doesNotMatch(SKILL_CONFIG_DETAIL_HOST, /interrupted/)
+  for (const key of ['`link`', '`fields`', '`root`', '`require`', '`waitFor` / `waitTimeoutMs`', '`setup` / `expand` / `dismiss`', '`children`', '`maxAttempts`', 'detail_status', 'children_count', 'child_index', '`tab-not-rendering`', '`no-data`', '`blocked`', '`max-rows`'])
+    assert.ok(SKILL_CONFIG_DETAIL_HOST.includes(key), `SKILL_CONFIG_DETAIL_HOST lost ${key}`)
+  // The CLI grammar keeps its command line.
+  assert.match(SKILL_CONFIG_DETAIL, /scripts\/detail\.mjs/)
+  assert.match(SKILL_CONFIG_DETAIL, /`interrupted` \(Ctrl-C/)
 })
