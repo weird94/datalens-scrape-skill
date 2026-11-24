@@ -238,6 +238,17 @@ export async function collectOnPage(page, config, lib) {
   let harvests = 0
   const contentMark = () => inPage(sel => window.__dlk.contentMark(sel), config.rows).catch(() => '')
 
+  /**
+   * The host's stop (the user, the points budget), asked between pages and between expand passes: a record's
+   * own pager (hundreds of pages of replies) keeps one round going for a long time. → whether to stop now;
+   * the reason is the run's stop reason, and whoever called harvest() ends the run without asking anything more.
+   */
+  async function hostStops() {
+    const external = await shouldStop(rows.length)
+    if (external) stopReason = external
+    return Boolean(external)
+  }
+
   /** After a click: wait until the page shows something new (or `maxMs`), then until it is quiet. */
   async function waitForChange(before, maxMs = EXPAND_WAIT_MS) {
     const deadline = Date.now() + maxMs
@@ -630,6 +641,8 @@ export async function collectOnPage(page, config, lib) {
         return progress
       }
       for (let pass = 0; pass < EXPAND_PASSES && !(maxRows && rows.length >= maxRows); pass += 1) {
+        // Stopped by the host: no more clicks. What the last ones brought is still read below.
+        if (await hostStops()) break
         // Read, then click, in one call to the page: a click that replaces what a record shows (its own
         // pager) can only replace rows this read has taken, however late their page arrived.
         const step = await inPage(
@@ -664,8 +677,9 @@ export async function collectOnPage(page, config, lib) {
         if (retried) await waitForChange(beforeInner)
         if (idle >= 2) break
       }
-      // What the last clicks brought (the loop reads before it clicks).
-      if (clickedLast && !(maxRows && rows.length >= maxRows)) {
+      // What the last clicks brought (the loop reads before it clicks). Stopped by the host: also what came in
+      // while the last pass waited without clicking.
+      if ((clickedLast || stopReason) && !(maxRows && rows.length >= maxRows)) {
         await waitForChange(lastBefore, EXPAND_LATE_MS)
         take(await read())
         await onRows({ rows, rounds })
@@ -673,8 +687,8 @@ export async function collectOnPage(page, config, lib) {
       noteExpandClicks(await inPage(() => window.__dlk.takeExpandClicks()).catch(() => []))
     }
     // Once, on the first page: what the expand selectors left closed among the rows (a record's own pager),
-    // and whether their clicks did anything at all.
-    if (expanding && harvests === 1) {
+    // and whether their clicks did anything at all. Not after a stop by the host: it left them closed.
+    if (expanding && harvests === 1 && !stopReason) {
       const skip = [...config.expand, ...(next?.selector ? [next.selector] : [])]
       expandMissed = await inPage(([sel, s]) => window.__dlk.unclickedAmongRows(sel, s), [config.rows, skip]).catch(() => [])
       const left = expandClicks > 0 ? await inPage(([expand, sel]) => window.__dlk.expandLeft(expand, sel), [config.expand, config.rows]).catch(() => null) : null
@@ -963,6 +977,7 @@ export async function collectOnPage(page, config, lib) {
       // A virtual list on a paged site: read at every stop, the rows above are gone by the next.
       if (step.virtual) await harvest(`page ${pages} (scrolled)`)
       else if ((await rowCount()) <= had) return grew
+      if (stopReason) return grew
       if (step.virtual && step.atBottom) return grew
       grew = true
       lazyPages = true
@@ -1071,11 +1086,7 @@ export async function collectOnPage(page, config, lib) {
       await notePosition()
       if (chunkDone(steps)) return { paused: true, state: await snapshot() }
       steps += 1
-      const external = await shouldStop(rows.length)
-      if (external) {
-        stopReason = external
-        break
-      }
+      if (await hostStops()) break
       if (maxRows && rows.length >= maxRows) {
         stopReason = 'max-rows'
         break
@@ -1116,6 +1127,8 @@ export async function collectOnPage(page, config, lib) {
         const drew = step.moved || (await rowCount()) !== countBefore
         const added = drew ? await harvest(`scroll ${pages - 1}`) : 0
         scrolledIn += added
+        // Stopped by the host half-way through the round: the rules below have nothing to say.
+        if (stopReason) break
         if (!step.moved && !step.atBottom) {
           immobile += 1
           if (immobile >= 3) {
@@ -1173,9 +1186,11 @@ export async function collectOnPage(page, config, lib) {
           break
         }
         await reveal()
+        if (stopReason) break
         const added = await harvest(`page ${pages}${result === 'navigated' ? ' (navigated)' : ''}`)
         // A turn that brought rows: did it go to a URL of its own?
         if (added > 0) urlPerPage = (urlPerPage ?? true) && urlChanged
+        if (stopReason) break
         stagnant = added === 0 ? stagnant + 1 : 0
         if (stagnant >= STAGNANT_LIMIT) {
           if (await confirmEnd('no-new-rows')) stopReason = 'no-new-rows'
@@ -1186,6 +1201,7 @@ export async function collectOnPage(page, config, lib) {
         if (result === 'missing') {
           await settle(page, { quietMs: QUIET_MS * 2, maxMs: 12_000 })
           await harvest('after load-more gone')
+          if (stopReason) break
           if (await confirmEnd('load-more-gone')) {
             stopReason = 'load-more-gone'
             break
@@ -1195,6 +1211,7 @@ export async function collectOnPage(page, config, lib) {
         }
         pages += 1
         const added = await harvest(`load-more ${pages - 1}`)
+        if (stopReason) break
         stagnant = added === 0 ? stagnant + 1 : 0
         if (stagnant >= STAGNANT_LIMIT) {
           if (await confirmEnd('load-more-no-new-rows')) stopReason = 'load-more-no-new-rows'
@@ -1211,7 +1228,9 @@ export async function collectOnPage(page, config, lib) {
           break
         }
         await reveal()
+        if (stopReason) break
         const added = await harvest(`url page ${pages}`)
+        if (stopReason) break
         if (added === 0 && (await confirmEnd('url-page-no-new-rows'))) stopReason = 'url-page-no-new-rows'
       } else {
         throw new Error(`unknown next.type: ${next.type}`)

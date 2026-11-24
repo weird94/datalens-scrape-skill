@@ -264,7 +264,8 @@ export interface CollectHooks {
   onRound?: (round: RoundEntry, progress: { rows: Record<string, string>[]; rounds: RoundEntry[] }) => void | Promise<void>
   /** After each read of the page, also half-way through a round (expand passes): the rows and rounds so far (live arrays). */
   onRows?: (progress: { rows: Record<string, string>[]; rounds: RoundEntry[] }) => void | Promise<void>
-  /** Return a stop reason to end the run with the rows collected so far. */
+  /** Return a stop reason to end the run with the rows collected so far. Asked between pages and between expand passes
+   *  (a record's own pager can keep one page's round going for hundreds of clicks). */
   shouldStop?: (rowCount: number) => string | null | Promise<string | null>
   /** Asked when the rules want to stop (not at a limit, a user stop or `next: { type: 'none' }`). Its answer decides; null or a
    *  throw leaves it to the rules. Three asks in a row without new rows hand the decision back to the rules. */
