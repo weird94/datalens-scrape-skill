@@ -1,8 +1,17 @@
-# datalens-scrape
+# datalens-scrape: web scraping skill for Claude Code and other AI agents
 
 English | [中文](README.zh-CN.md)
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Agent Skill](https://img.shields.io/badge/Agent_Skill-SKILL.md-8A2BE2)](skill/SKILL.md)
+[![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-D97757)](#install)
+[![No API key](https://img.shields.io/badge/API_key-not_needed-2ea44f)](#where-your-data-goes)
+
 A free web scraping skill for AI agents such as Claude Code: tell it which data you want from a page, and it collects the whole list into a CSV, across pagination, infinite scroll and "load more" buttons.
+
+![Claude Code collecting the first 3 pages of Hacker News into a CSV with this skill: 90 rows, 11 columns in 12 seconds, and a report that the list goes on past page 3](.github/assets/hero.png)
+
+<sub>A real run (November 2026): the rows above are the start of the CSV it wrote.</sub>
 
 - **Free.** No account, no API key, no per-result billing.
 - **Uses your logins.** When a site blocks bots or needs an account, it can run in your own Chrome, with the sessions you already have (it asks you first).
@@ -30,7 +39,13 @@ When the fields you want only show on each item's own page (brand, full descript
 /plugin install datalens-scrape --marketplace weird94/datalens-scrape-skill
 ```
 
-**Any agent:** send it this:
+**Codex, Cursor, Gemini CLI, OpenCode and other agents** that load skills, with the [skills CLI](https://github.com/vercel-labs/skills) (needs Node.js 22.20 or later):
+
+```bash
+npx skills add weird94/datalens-scrape-skill
+```
+
+**Or ask your agent:** send it this:
 
 ```text
 Install the skill in the skill/ folder of https://github.com/weird94/datalens-scrape-skill and check that it works.
@@ -137,6 +152,10 @@ This skill comes from [DataLens](https://datalens.uk/?utm_source=github&utm_medi
 ## What else is in this repo
 
 `skill/` is what gets installed for the agent, and it is all you need. `eval/` and `docs/` are for developing and evaluating the skill: 80 local mock pages, regression tests and the blind-test method. See [`eval/README.md`](eval/README.md).
+
+## Feedback
+
+A site came out wrong or got stuck? [Open an issue](https://github.com/weird94/datalens-scrape-skill/issues/new/choose) with the URL and what you asked for; failing sites become test cases. If the skill saved you some copy-pasting, a star helps other people find it.
 
 ## License
 

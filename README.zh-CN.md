@@ -1,8 +1,17 @@
-# datalens-scrape
+# datalens-scrape：给 Claude Code 等 AI agent 用的网页采集 skill
 
 [English](README.md) | 中文
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Agent Skill](https://img.shields.io/badge/Agent_Skill-SKILL.md-8A2BE2)](skill/SKILL.md)
+[![Claude Code plugin](https://img.shields.io/badge/Claude_Code-plugin-D97757)](#安装)
+[![不用 API key](https://img.shields.io/badge/API_key-不需要-2ea44f)](#数据去了哪里)
+
 一个免费的网页采集 skill，给 Claude Code 等 AI agent 用：你说想要页面上的哪些数据，它把整份列表采下来存成 CSV，分页、无限滚动、「加载更多」都能处理。
+
+![Claude Code 用这个 skill 把 Hacker News 前 3 页采成 CSV：12 秒 90 行 11 列，并说明列表在第 3 页之后还有](.github/assets/hero.png)
+
+<sub>2026 年 11 月的一次真实运行，图里的行就是它写出的 CSV 开头几行。</sub>
 
 - **免费**：不用注册、不用 API key、不按条收费。
 - **复用你的登录**：网站拦机器人或要登录时，可以在你自己的 Chrome 里采，用你已有的登录状态（会先问你）。
@@ -30,7 +39,13 @@ agent：已保存 comments.csv，共 160 行（主评论 123 + 回复 37），9 
 /plugin install datalens-scrape --marketplace weird94/datalens-scrape-skill
 ```
 
-**任何 agent**：把这句话发给它：
+**Codex、Cursor、Gemini CLI、OpenCode 等能加载 skill 的 agent**，用 [skills CLI](https://github.com/vercel-labs/skills) 装（需要 Node.js 22.20 或以上）：
+
+```bash
+npx skills add weird94/datalens-scrape-skill
+```
+
+**或者让 agent 自己装**：把这句话发给它：
 
 ```text
 帮我把 https://github.com/weird94/datalens-scrape-skill 里的 skill（在 skill/ 目录）装上，装完试一下能不能用。
@@ -137,6 +152,10 @@ Opus 和 Sonnet 测下来效果最好。Haiku 也能用，在上面 10 个站上
 ## 仓库里还有什么
 
 `skill/` 是装给 agent 用的，只需要它。`eval/` 和 `docs/` 是开发和评测这个 skill 用的，包括 80 个本地模拟页面、回归测试和盲测方法，见 [`eval/README.md`](eval/README.md)。
+
+## 反馈
+
+哪个网站采错了、卡住了？[提个 issue](https://github.com/weird94/datalens-scrape-skill/issues/new/choose)，附上网址和你当时怎么说的；采不好的网站会变成测试用例。如果它帮你省了复制粘贴，点个 star 能让更多人找到它。
 
 ## 许可证
 
